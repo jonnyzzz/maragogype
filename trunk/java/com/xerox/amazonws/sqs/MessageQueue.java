@@ -14,12 +14,11 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 
 import com.xerox.amazonws.common.JAXBuddy;
-
-import com.xerox.amazonws.jaxb.DeleteMessageResponse;
-import com.xerox.amazonws.jaxb.DeleteQueueResponse;
-import com.xerox.amazonws.jaxb.PeekMessageResponse;
-import com.xerox.amazonws.jaxb.ReceiveMessageResponse;
-import com.xerox.amazonws.jaxb.SendMessageResponse;
+import com.xerox.amazonws.sqs.jaxb.DeleteMessageResponse;
+import com.xerox.amazonws.sqs.jaxb.DeleteQueueResponse;
+import com.xerox.amazonws.sqs.jaxb.PeekMessageResponse;
+import com.xerox.amazonws.sqs.jaxb.ReceiveMessageResponse;
+import com.xerox.amazonws.sqs.jaxb.SendMessageResponse;
 
 public class MessageQueue extends QueueService {
     public static final int MAX_MESSAGES = 600;
@@ -100,7 +99,7 @@ public class MessageQueue extends QueueService {
 				}
 				else {
 					ArrayList<Message> msgs = new ArrayList();
-					for (com.xerox.amazonws.jaxb.Message msg : response.getMessage()) {
+					for (com.xerox.amazonws.sqs.jaxb.Message msg : response.getMessage()) {
 						msgs.add(new Message(msg.getMessageId(), msg.getMessageBody()));
 					}
 					return msgs.toArray(new Message [msgs.size()]);
@@ -122,7 +121,7 @@ public class MessageQueue extends QueueService {
 		try {
 			InputStream iStr = makeRequest("GET", queueId+"/"+msgId, super.headers).getInputStream();
 			PeekMessageResponse response = JAXBuddy.deserializeXMLStream(PeekMessageResponse.class, iStr);
-			com.xerox.amazonws.jaxb.Message msg = response.getMessage();
+			com.xerox.amazonws.sqs.jaxb.Message msg = response.getMessage();
 			if (msg == null) {
 				return null;
 			}

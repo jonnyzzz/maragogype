@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://queue.amazonaws.com/doc/2006-04-01/" targetNamespace="http://queue.amazonaws.com/doc/2006-04-01/" elementFormDefault="qualified">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://queue.amazonaws.com/doc/2006-04-01/"
+           targetNamespace="http://queue.amazonaws.com/doc/2006-04-01/"
+           elementFormDefault="qualified">
 
     <xs:element name="ResponseStatus">
         <xs:complexType>

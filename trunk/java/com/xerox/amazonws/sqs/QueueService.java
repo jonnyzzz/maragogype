@@ -28,9 +28,9 @@ import org.apache.log4j.Logger;
 
 import ch.inventec.Base64Coder;
 
-import com.xerox.amazonws.jaxb.CreateQueueResponse;
-import com.xerox.amazonws.jaxb.ListQueuesResponse;
 import com.xerox.amazonws.common.JAXBuddy;
+import com.xerox.amazonws.sqs.jaxb.CreateQueueResponse;
+import com.xerox.amazonws.sqs.jaxb.ListQueuesResponse;
 import com.xerox.amazonws.tools.LoggingConfigurator;
 
 public class QueueService {
