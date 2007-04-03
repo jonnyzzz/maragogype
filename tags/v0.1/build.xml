@@ -1,0 +1,91 @@
+<?xml version="1.0" standalone="yes"?>
+
+<project name="typica" basedir="." default="compile">
+    <property name="typica" value="${basedir}"/>
+    <property name="typica.build" value="${typica}/build" />
+    <property name="typica.conf" value="${typica}/conf" />
+	<property name="typica.jar" value="${typica.build}/jar" />
+	<property name="typica.jar.file" value="${typica.jar}/typica.jar" />
+    <property name="typica.classes" value="${typica.build}/classes" />
+    <property name="typica.generated" value="${typica.build}/generated" />
+    <property name="typica.lib.dir" value="lib" />
+
+	<path id="typica.compile.classpath">
+          <fileset dir="${typica.lib.dir}">
+          </fileset>
+          <dirset dir="${typica.classes}"/>
+	</path>
+
+	<taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
+		<classpath>
+			<fileset dir="${typica.lib.dir}" includes="**/jaxb-xjc.jar"/>
+			<fileset dir="${typica.lib.dir}" includes="**/jaxb*.jar"/>
+		</classpath>
+	</taskdef>
+	
+	<target name="init">
+		<tstamp />
+		<mkdir dir="${typica.build}" />
+		<mkdir dir="${typica.classes}" />
+        <mkdir dir="${typica.jar}" />
+        <copy toDir="${typica.classes}">
+            <fileset dir="${typica.conf}"/>
+        </copy>
+	</target>
+
+	<target name="schema" depends="init">
+        <mkdir dir="${typica.generated}/com/xerox/amazonws/sqs/jaxb"/>
+		<echo>compiling the schema files in xsd to java files in ${typica.generated}/com/xerox/amazonws/sqs/jaxb</echo>
+		<xjc destdir="${typica.generated}" extension="true" removeOldOutput="yes" package="com.xerox.amazonws.sqs.jaxb">
+			<schema dir="xsd" includes="**/*.xsd"/>
+			<produces dir="${typica.generated}/com/xerox/amazonws/sqs/jaxb" includes="**/"/>
+		</xjc>
+	</target>
+
+	<!--compile Java source files-->
+	<target name="compile" depends="schema" description="Compile all Java source files">
+		<copy toDir="${typica.classes}">
+			<fileset dir="xsd" includes="**/*"/>
+		</copy>
+		<javac srcdir="${typica.generated}" includes="**/*.java" destdir="${typica.classes}" debug="on">
+			<classpath refid="typica.compile.classpath" />
+		</javac>
+		<copy todir="${typica.classes}">
+			<fileset dir="${typica.generated}" includes="**/*.ser"/>
+			<fileset dir="${typica.generated}" includes="**/*.properties"/>
+		</copy>
+		<javac destdir="${typica.classes}" debug="on">
+			<src path="java" />
+			<classpath refid="typica.compile.classpath" />
+		</javac>
+    </target>
+
+	<target name="test.compile" depends="compile" description="Compile test java files">
+		<javac destdir="${typica.classes}" debug="on">
+			<src path="test/java" />
+			<classpath refid="typica.compile.classpath" />
+		</javac>
+    </target>
+
+	<target name="jar" depends="compile">
+        <jar destfile="${typica.jar.file}" basedir="${typica.classes}" excludes="**/*.xml"/>
+	</target>
+
+	<target name="clean" description="Deletes all the generated artifacts.">
+		<delete dir="${typica.build}" />
+	</target>
+
+	<target name="dist" depends="clean, jar">
+	</target>
+
+	<target name="test.main" depends="test.compile">
+		<java fork="true" classname="${class}">
+			<classpath>
+				<path refid="typica.compile.classpath"/>
+				<pathelement location="${typica.classes}"/>
+			</classpath>
+			<arg line="${args}"/>
+		</java>
+	</target>
+</project>
+
