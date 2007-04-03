@@ -1,11 +1,16 @@
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import com.xerox.amazonws.sqs.QueueService;
 import com.xerox.amazonws.sqs.Message;
 import com.xerox.amazonws.sqs.MessageQueue;
+import com.xerox.amazonws.tools.LoggingConfigurator;
 
 public class TestQueueService {
+    private static Logger log = LoggingConfigurator.configureLogging(TestQueueService.class);
+
 	public static void main(String [] args) throws Exception {
 		QueueService qs = new QueueService("[AWS Access Id]", "[AWS Secret Key]");
 		List<MessageQueue> queues = qs.listMessageQueues(null);
