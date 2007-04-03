@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://queue.amazonaws.com/doc/2006-04-01/" targetNamespace="http://queue.amazonaws.com/doc/2006-04-01/" elementFormDefault="qualified">
+
+    <xs:element name="ResponseStatus">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="StatusCode" type="xs:string" minOccurs="1"/>
+                <xs:element name="Message" type="xs:string" minOccurs="0"/>  
+                <xs:element name="RequestId" type="xs:string" minOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+     </xs:element>
+
+    <!--******************************************************************
+    ** QueueService Interface
+    -->
+    
+    <xs:element name="ListQueues">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="QueueNamePrefix" type="xs:NCName" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+   
+    <xs:element name="ListQueuesResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="QueueUrl" type="xs:anyURI" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="tns:ResponseStatus" minOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+ 
+    <xs:element name="CreateQueue">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="QueueName" type="xs:NCName" minOccurs="0"/>
+                <xs:element name="DefaultVisibilityTimeout" type="xs:integer" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CreateQueueResponse">
+        <xs:complexType>
+            <xs:sequence>
+                 <xs:element name="QueueUrl" type="xs:anyURI" minOccurs="0"/>
+                 <xs:element ref="tns:ResponseStatus" minOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Messaging interface
+        -->
+
+    <xs:element name="MessageId" type="xs:string"/>
+
+    <xs:element name="MessageBody" type="xs:string"/>
+
+    <xs:element name="Message">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="tns:MessageId" minOccurs="1"/>
+                <xs:element ref="tns:MessageBody" minOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="SendMessage">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="MessageBody" type="xs:string" minOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+     <xs:element name="SendMessageResponse">
+         <xs:complexType>
+             <xs:sequence>
+                 <xs:element name="MessageId" type="xs:string" minOccurs="1"/>
+                 <xs:element ref="tns:ResponseStatus" minOccurs="1"/>
+             </xs:sequence>
+         </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="ReceiveMessage">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="NumberOfMessages" type="xs:integer" minOccurs="0"/>
+                <xs:element name="VisibilityTimeout" type="xs:integer" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ReceiveMessageResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="tns:Message" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="tns:ResponseStatus" minOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="PeekMessage">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="MessageId" type="xs:string" minOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="PeekMessageResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="tns:Message" minOccurs="0"/>
+                <xs:element ref="tns:ResponseStatus" minOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+     
+    <xs:element name="DeleteMessage">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="MessageId" type="xs:string" minOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="DeleteMessageResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="tns:ResponseStatus" minOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="DeleteQueue">
+        <xs:complexType>
+            <xs:sequence>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="DeleteQueueResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="tns:ResponseStatus"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="SetVisibilityTimeout">
+        <xs:complexType>
+            <xs:sequence>
+               <xs:element name="VisibilityTimeout" type="xs:integer"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="SetVisibilityTimeoutResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="tns:ResponseStatus"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetVisibilityTimeout">
+        <xs:complexType>
+            <xs:sequence>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetVisibilityTimeoutResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="VisibilityTimeout" type="xs:integer"/>
+                <xs:element ref="tns:ResponseStatus" minOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>
