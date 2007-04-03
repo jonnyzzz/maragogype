@@ -96,7 +96,7 @@
 	<target name="dist" depends="clean, jar, javadoc">
 		<input message="Enter the version # : " addproperty="rel.version"/>
 		<mkdir dir="${typica.dist}"/>
-		<zip destfile="${typica.dist}/typica-${rel.version}.xip">
+		<zip destfile="${typica.dist}/typica-${rel.version}.zip">
 			<fileset file="${typica.jar.file}"/>
 			<fileset dir="${typica.build}">
 				<include name="apidocs/**/*"/>
