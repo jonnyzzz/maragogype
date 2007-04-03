@@ -33,6 +33,16 @@ import com.xerox.amazonws.sqs.jaxb.CreateQueueResponse;
 import com.xerox.amazonws.sqs.jaxb.ListQueuesResponse;
 import com.xerox.amazonws.tools.LoggingConfigurator;
 
+/**
+ * This class provides an interface with the Amazon SQS service. It provides high level
+ * methods for listing and creating message queues.
+ *
+ * Http authentication code borrowed from Amazon S3 AWSAuthConnection code
+ * (see amazon copyright below).
+ *
+ * @author D. Kavanagh
+ * @author developer@dotech.com
+ */
 public class QueueService {
     private String awsAccessKeyId;
     private String awsSecretAccessKey;
@@ -43,28 +53,48 @@ public class QueueService {
 
     private static Logger logger = LoggingConfigurator.configureLogging(QueueService.class);
 
-    public QueueService(String awsAccessKeyId, String awsSecretAccessKey) {
-        this(awsAccessKeyId, awsSecretAccessKey, true);
+	/**
+	 * Initializes the queue service with your AWS login information.
+	 *
+     * @param awsAccessId The your user key into AWS
+     * @param awsSecretKey The secret string used to generate signatures for authentication.
+	 */
+    public QueueService(String awsAccessId, String awsSecretAccessKey) {
+        this(awsAccessId, awsSecretAccessKey, true);
     }
 
-    public QueueService(String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure) {
-        this(awsAccessKeyId, awsSecretAccessKey, isSecure, "queue.amazonaws.com");
+	/**
+	 * Initializes the queue service with your AWS login information.
+	 *
+     * @param awsAccessId The your user key into AWS
+     * @param awsSecretKey The secret string used to generate signatures for authentication.
+     * @param isSecure True if the data should be encrypted on the wire on the way to or from SQS.
+	 */
+    public QueueService(String awsAccessId, String awsSecretAccessKey, boolean isSecure) {
+        this(awsAccessId, awsSecretAccessKey, isSecure, "queue.amazonaws.com");
     }
 
-    public QueueService(String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure,
+	/**
+	 * Initializes the queue service with your AWS login information.
+	 *
+     * @param awsAccessId The your user key into AWS
+     * @param awsSecretKey The secret string used to generate signatures for authentication.
+     * @param isSecure True if the data should be encrypted on the wire on the way to or from SQS.
+     * @param server Which host to connect to.  Usually, this will be s3.amazonaws.com
+	 */
+    public QueueService(String awsAccessId, String awsSecretAccessKey, boolean isSecure,
                              String server)
     {
-        this(awsAccessKeyId, awsSecretAccessKey, isSecure, server,
+        this(awsAccessId, awsSecretAccessKey, isSecure, server,
              isSecure ? 443 : 80);
     }
 
     /**
-     * Create a new interface to interact with S3 with the given credential and connection
-     * parameters
-     *
-     * @param awsAccessKeyId The your user key into AWS
-     * @param awsSecretAccessKey The secret string used to generate signatures for authentication.
-     * @param isSecure True if the data should be encrypted on the wire on the way to or from S3.
+	 * Initializes the queue service with your AWS login information.
+	 *
+     * @param awsAccessId The your user key into AWS
+     * @param awsSecretKey The secret string used to generate signatures for authentication.
+     * @param isSecure True if the data should be encrypted on the wire on the way to or from SQS.
      * @param server Which host to connect to.  Usually, this will be s3.amazonaws.com
      * @param port Which port to use.
      */
@@ -82,6 +112,11 @@ public class QueueService {
 		this.headers.put("AWS-Version", vals);
     }
 
+	/**
+	 * This method provides the URL for the queue service based on initialization.
+	 *
+	 * @return generated queue service url
+	 */
 	public URL getUrl() {
 		try {
 			return makeURL("");
@@ -90,6 +125,13 @@ public class QueueService {
 		}
 	}
 
+	/**
+	 * Creates a new message queue. The queue name must be unique within the scope of the
+	 * queues you own.
+	 *
+	 * @param queueName name of queue to be created
+	 * @return object representing the message queue
+	 */
     public MessageQueue getOrCreateMessageQueue(String queueName) throws SQSException {
 		try {
 			InputStream iStr =
@@ -108,6 +150,15 @@ public class QueueService {
 		}
     }
 
+	/**
+	 * Retrieves a list of message queues. A maximum of 10,000 queue URLs are returned.
+	 * If a value is specified for the optional queueNamePrefix parameter, only those queues
+	 * with a queue name beginning with the value specified are returned. The queue name is
+	 * specified in the QueueName parameter when a queue is created.
+	 *
+	 * @param queueNamePrefix the optional prefix for filtering results. can be null.
+	 * @return a list of objects representing the message queues defined for this account
+	 */
     public List<MessageQueue> listMessageQueues(String queueNamePrefix) throws SQSException {
 		try {
 			InputStream iStr =
@@ -135,6 +186,15 @@ public class QueueService {
 		}
     }
 
+	//  This software code is made available "AS IS" without warranties of any
+	//  kind.  You may copy, display, modify and redistribute the software
+	//  code either by itself or as incorporated into your code; provided that
+	//  you do not remove any proprietary notices.  Your use of this software
+	//  code is at your own risk and you waive any claim against Amazon
+	//  Digital Services, Inc. or its affiliates with respect to your use of
+	//  this software code. (c) 2006 Amazon Digital Services, Inc. or its
+	//  affiliates.
+
     /**
      * Make a new HttpURLConnection.
      * @param method The HTTP method to use (GET, PUT, DELETE)
@@ -149,8 +209,6 @@ public class QueueService {
         HttpURLConnection connection = (HttpURLConnection)url.openConnection();
         connection.setRequestMethod(method);
 
-//        connection.setRequestProperty("Content-Type", "text/plain");
-//        connection.setRequestProperty("Content-MD5", "");
         addHeaders(connection, headers);
         addAuthHeader(connection, method, resource);
 
@@ -225,11 +283,6 @@ public class QueueService {
         String protocol = this.isSecure ? "https" : "http";
         return new URL(protocol, this.server, this.port, "/" + resource);
     }
-
-    /**
-     * HMAC/SHA1 Algorithm per RFC 2104.
-     */
-    private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
 
     static String makeCanonicalString(String method, String resource, Map headers) {
         return makeCanonicalString(method, resource, headers, null);
@@ -320,7 +373,7 @@ public class QueueService {
      * @throws NoSuchAlgorithmException If the algorithm does not exist.  Unlikely
      * @throws InvalidKeyException If the key is invalid.
      */
-    static String encode(String awsSecretAccessKey, String canonicalString,
+    private static String encode(String awsSecretAccessKey, String canonicalString,
                                 boolean urlencode)
     {
         // The following HMAC/SHA1 code for the signature is taken from the
@@ -355,7 +408,7 @@ public class QueueService {
         }
     }
 
-    static String urlencode(String unencoded) {
+    private static String urlencode(String unencoded) {
         try {
             return URLEncoder.encode(unencoded, "UTF-8");
         } catch (UnsupportedEncodingException e) {
@@ -383,7 +436,7 @@ public class QueueService {
     /**
      * Generate an rfc822 date for use in the Date HTTP header.
      */
-    public static String httpDate() {
+    private static String httpDate() {
         final String DateFormat = "EEE, dd MMM yyyy HH:mm:ss ";
         SimpleDateFormat format = new SimpleDateFormat( DateFormat, Locale.US );
         format.setTimeZone( TimeZone.getTimeZone( "GMT" ) );

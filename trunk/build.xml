@@ -4,22 +4,25 @@
     <property name="typica" value="${basedir}"/>
     <property name="typica.build" value="${typica}/build" />
     <property name="typica.conf" value="${typica}/conf" />
+    <property name="typica.lib" value="lib" />
+    <property name="typica.src" value="${typica}/java" />
 	<property name="typica.jar" value="${typica.build}/jar" />
 	<property name="typica.jar.file" value="${typica.jar}/typica.jar" />
     <property name="typica.classes" value="${typica.build}/classes" />
     <property name="typica.generated" value="${typica.build}/generated" />
-    <property name="typica.lib.dir" value="lib" />
+    <property name="typica.javadoc" value="${typica.build}/apidocs" />
+    <property name="typica.dist" value="${typica}/dist" />
 
 	<path id="typica.compile.classpath">
-          <fileset dir="${typica.lib.dir}">
+          <fileset dir="${typica.lib}">
           </fileset>
           <dirset dir="${typica.classes}"/>
 	</path>
 
 	<taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
 		<classpath>
-			<fileset dir="${typica.lib.dir}" includes="**/jaxb-xjc.jar"/>
-			<fileset dir="${typica.lib.dir}" includes="**/jaxb*.jar"/>
+			<fileset dir="${typica.lib}" includes="**/jaxb-xjc.jar"/>
+			<fileset dir="${typica.lib}" includes="**/jaxb*.jar"/>
 		</classpath>
 	</taskdef>
 	
@@ -28,6 +31,7 @@
 		<mkdir dir="${typica.build}" />
 		<mkdir dir="${typica.classes}" />
         <mkdir dir="${typica.jar}" />
+        <mkdir dir="${typica.javadoc}" />
         <copy toDir="${typica.classes}">
             <fileset dir="${typica.conf}"/>
         </copy>
@@ -55,7 +59,7 @@
 			<fileset dir="${typica.generated}" includes="**/*.properties"/>
 		</copy>
 		<javac destdir="${typica.classes}" debug="on">
-			<src path="java" />
+			<src path="${typica.src}" />
 			<classpath refid="typica.compile.classpath" />
 		</javac>
     </target>
@@ -71,11 +75,33 @@
         <jar destfile="${typica.jar.file}" basedir="${typica.classes}" excludes="**/*.xml"/>
 	</target>
 
+	<target name="javadoc" depends="init">
+		<javadoc packagenames="com.xerox.*"
+				sourcepath="${typica.src}"
+				defaultexcludes="yes"
+				destdir="${typica.javadoc}"
+				author="true"
+				version="true"
+				use="true"
+				windowtitle="Typica - Amazon SQS REST Client">
+			<classpath refid="typica.compile.classpath"/>
+			<link href="http://java.sun.com/j2se/1.5.0/docs/api"/>
+		</javadoc>
+	</target>
+
 	<target name="clean" description="Deletes all the generated artifacts.">
 		<delete dir="${typica.build}" />
 	</target>
 
-	<target name="dist" depends="clean, jar">
+	<target name="dist" depends="clean, jar, javadoc">
+		<input message="Enter the version # : " addproperty="rel.version"/>
+		<mkdir dir="${typica.dist}"/>
+		<zip destfile="${typica.dist}/typica-${rel.version}.xip">
+			<fileset file="${typica.jar.file}"/>
+			<fileset dir="${typica.build}">
+				<include name="apidocs/**/*"/>
+			</fileset>
+		</zip>
 	</target>
 
 	<target name="test.main" depends="test.compile">

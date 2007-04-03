@@ -6,16 +6,37 @@ import org.apache.log4j.Logger;
 
 /**
  * This class provides helper methods to interact with the Amazon Simple Queue Service.
+ *
+ * @author D. Kavanagh
+ * @author developer@dotech.com
  */
 public class SQSUtils {
     private static final Logger logger = Logger.getLogger(SQSUtils.class.getName());
     
+	/**
+	 * Returns a message queue for a given name, credentials. Uses the default SQS host.
+	 *
+	 * @param queueName name of the queue to connect to
+	 * @param accessKey AWS access id
+	 * @param secretKey AWS secret key
+	 * @return object representing the message queue
+	 */
 	public static MessageQueue connectToQueue(String queueName, String accessKey, String secretKey) 
 			throws SQSException {
 		return connectToQueue(null, queueName, accessKey, secretKey);
 	}
 
-	public static MessageQueue connectToQueue(String serverName, String queueName, String accessKey, String secretKey) 
+	/**
+	 * Returns a message queue for a given name, credentials.
+	 *
+	 * @param serverName name of the host to use
+	 * @param queueName name of the queue to connect to
+	 * @param accessKey AWS access id
+	 * @param secretKey AWS secret key
+	 * @return object representing the message queue
+	 */
+	public static MessageQueue connectToQueue(String serverName, String queueName,
+                                              String accessKey, String secretKey) 
 			throws SQSException {
 		// Create the service object
 		QueueService service = getQueueService(accessKey, secretKey, serverName);
@@ -26,6 +47,11 @@ public class SQSUtils {
 
 	/**
 	 * Create a QueueService object for a given URL.
+	 *
+	 * @param accessKey AWS access id
+	 * @param secretKey AWS secret key
+	 * @param serverName name of the host to use
+	 * @return object representing the queue service
 	 */
 	public static QueueService getQueueService(String accessKey, String secretKey, String serverName) 
 			throws SQSException {
@@ -48,6 +74,10 @@ public class SQSUtils {
 	/**
 	 * Looks for a queue by name: if found, return a MessageQuueue object for it.
 	 * Else, return null.
+	 *
+	 * @param service the queue service we're using
+	 * @param msgQueueName the name of the message queue to find, or create
+	 * @return object representing the message queue
 	 */
 	public static MessageQueue getMessageQueue(QueueService service, String msgQueueName)
 			throws SQSException {

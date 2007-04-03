@@ -1,6 +1,12 @@
 
 package com.xerox.amazonws.sqs;
 
+/**
+ * This class is a wrapper for a message received from a queue.
+ *
+ * @author D. Kavanagh
+ * @author developer@dotech.com
+ */
 public class Message {
 	private String messageId;
 	private String messageBody;
@@ -27,6 +33,6 @@ public class Message {
 	}
 
 	public String toString() {
-		return "id: "+messageId+" text: "+messageBody;
+		return "id: "+messageId+" body: "+messageBody;
 	}
 }

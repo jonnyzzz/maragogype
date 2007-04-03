@@ -20,6 +20,13 @@ import com.xerox.amazonws.sqs.jaxb.PeekMessageResponse;
 import com.xerox.amazonws.sqs.jaxb.ReceiveMessageResponse;
 import com.xerox.amazonws.sqs.jaxb.SendMessageResponse;
 
+/**
+ * This class provides an interface with the Amazon SQS message queue. It provides methods
+ * for sending / receiving messages and deleting queues and messsages on queues.
+ *
+ * @author D. Kavanagh
+ * @author developer@dotech.com
+ */
 public class MessageQueue extends QueueService {
     public static final int MAX_MESSAGES = 600;
     public static final int MAX_MESSAGE_BODIES_SIZE = 4096;
@@ -34,6 +41,11 @@ public class MessageQueue extends QueueService {
 		queueId = queueId.substring(queueId.indexOf("/")+1);
     }
 
+	/**
+	 * This method provides the URL for the message queue represented by this object.
+	 *
+	 * @return generated queue service url
+	 */
 	public URL getUrl() {
 		try {
 			return new URL(super.getUrl().toString()+queueId);
@@ -42,6 +54,12 @@ public class MessageQueue extends QueueService {
 		}
 	}
 
+	/**
+	 * Sends a message to a specified queue. The message must be between 1 and 256K bytes long.
+	 *
+	 * @param msg the message to be sent (should be base64 encoded)
+	 * @return the message id for the message just sent
+	 */
     public String sendMessage(String msg) throws SQSException {
 		try {
 			String request = queueId+"/back";
@@ -62,6 +80,12 @@ public class MessageQueue extends QueueService {
 		}
 	}
 
+	/**
+	 * Attempts to receive a message from the queue. The queue default visibility timeout
+	 * is used.
+	 *
+	 * @return the message object
+	 */
     public Message receiveMessage() throws SQSException {
         Message amessage[] = receiveMessages(BigInteger.valueOf(1L), ((BigInteger) (null)));
         if(amessage.length > 0)
@@ -70,6 +94,13 @@ public class MessageQueue extends QueueService {
             return null;
 	}
 
+	/**
+	 * Attempts to receive a message from the queue.
+	 *
+	 * @param visibilityTimeout the duration (in seconds) the retrieved message is hidden from
+	 *                          subsequent calls to retrieve.
+	 * @return the message object
+	 */
     public Message receiveMessage(int visibilityTimeout) throws SQSException {
         Message amessage[] = receiveMessages(BigInteger.valueOf(1L), BigInteger.valueOf(visibilityTimeout));
         if(amessage.length > 0)
@@ -78,14 +109,38 @@ public class MessageQueue extends QueueService {
             return null;
 	}
 
+	/**
+	 * Attempts to retrieve a number of messages from the queue. If less than that are availble,
+	 * the max returned is the number of messages in the queue, but not necessarily all messages
+	 * in the queue will be returned. The queue default visibility timeout is used.
+	 *
+	 * @param numMessages the maximum number of messages to return
+	 * @return an array of message objects
+	 */
     public Message[] receiveMessages(int numMessages) throws SQSException {
         return receiveMessages(BigInteger.valueOf(numMessages), ((BigInteger) (null)));
 	}
 
+	/**
+	 * Attempts to retrieve a number of messages from the queue. If less than that are availble,
+	 * the max returned is the number of messages in the queue, but not necessarily all messages
+	 * in the queue will be returned.
+	 *
+	 * @param numMessages the maximum number of messages to return
+	 * @param visibilityTimeout the duration (in seconds) the retrieved message is hidden from
+	 *                          subsequent calls to retrieve.
+	 * @return an array of message objects
+	 */
     public Message[] receiveMessages(int numMessages, int visibilityTimeout) throws SQSException {
         return receiveMessages(BigInteger.valueOf(numMessages), BigInteger.valueOf(visibilityTimeout));
 	}
 
+	/**
+	 * Internal implementation of receiveMessages.
+	 *
+	 * @param
+	 * @return
+	 */
     protected Message[] receiveMessages(BigInteger numMessages, BigInteger visibilityTimeout) throws SQSException {
 		try {
 			String request = queueId+"/front?NumberOfMessages="+numMessages;
@@ -117,6 +172,13 @@ public class MessageQueue extends QueueService {
 		}
 	}
 
+	/**
+	 * Returns a specified message. This does not affect and is not affected by the visibility
+	 * timeout of either the queue or the message.
+	 *
+	 * @param
+	 * @return
+	 */
     public Message peekMessage(String msgId) throws SQSException {
 		try {
 			InputStream iStr = makeRequest("GET", queueId+"/"+msgId, super.headers).getInputStream();
@@ -137,6 +199,11 @@ public class MessageQueue extends QueueService {
 		}
 	}
 
+	/**
+	 * Deletes the message identified by msgid on the queue this object represents.
+	 *
+	 * @param msgId the id of the message to be deleted
+	 */
     public void deleteMessage(String msgId) throws SQSException {
 		try {
 			HttpURLConnection conn = makeRequest("DELETE", queueId+"/"+msgId, super.headers);
@@ -156,6 +223,9 @@ public class MessageQueue extends QueueService {
 		}
 	}
 
+	/**
+	 * Deletes the message queue represented by this object.
+	 */
     public void deleteQueue() throws SQSException {
         int respCode;
 		try {
@@ -176,16 +246,28 @@ public class MessageQueue extends QueueService {
 		}
 	}
 
+	/**
+	 * Placeholder. Not implemented.
+	 */
     public int getVisibilityTimeout() throws SQSException {
 		return 0;
 	}
 
+	/**
+	 * Placeholder. Not implemented.
+	 */
     public void setVisibilityTimeout(int timeout) throws SQSException {
 	}
 
+	/**
+	 * Placeholder. Not implemented.
+	 */
     public void setVisibilityTimeout(String msgId, int timeout) throws SQSException {
 	}
 
+	/**
+	 * Placeholder. Not implemented.
+	 */
     public void setVisibilityTimeout(String[] msgIds, int timeout) throws SQSException {
 	}
 
