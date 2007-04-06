@@ -27,8 +27,8 @@ public class DequeueSample {
     //------------------------------------------------------------------------
     public static void main( String[] args ) {
 
-        final String AWSAccessKeyId = "1SEQ6QDW2YNW8T6K64R2";
-        final String SecretAccessKey = "7P1KY+a4FTtiVBuU935NHHOI19eYrbyWG7CDklmk";
+        final String AWSAccessKeyId = "[AWS Access Id]";
+        final String SecretAccessKey = "[AWS Secret Key]";
 
 		int count = 0;
         try {

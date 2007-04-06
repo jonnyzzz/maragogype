@@ -16,9 +16,11 @@ import javax.xml.bind.JAXBException;
 import com.xerox.amazonws.common.JAXBuddy;
 import com.xerox.amazonws.sqs.jaxb.DeleteMessageResponse;
 import com.xerox.amazonws.sqs.jaxb.DeleteQueueResponse;
+import com.xerox.amazonws.sqs.jaxb.GetVisibilityTimeoutResponse;
 import com.xerox.amazonws.sqs.jaxb.PeekMessageResponse;
 import com.xerox.amazonws.sqs.jaxb.ReceiveMessageResponse;
 import com.xerox.amazonws.sqs.jaxb.SendMessageResponse;
+import com.xerox.amazonws.sqs.jaxb.SetVisibilityTimeoutResponse;
 
 /**
  * This class provides an interface with the Amazon SQS message queue. It provides methods
@@ -247,26 +249,71 @@ public class MessageQueue extends QueueService {
 	}
 
 	/**
-	 * Placeholder. Not implemented.
+	 * Gets the visibility timeout for the queue. 
 	 */
     public int getVisibilityTimeout() throws SQSException {
-		return 0;
+		try {
+			String request = queueId+"/";
+			HttpURLConnection conn = makeRequest("GET", request, super.headers);
+			if (conn.getResponseCode() < 400) {
+				InputStream iStr = conn.getInputStream();
+				GetVisibilityTimeoutResponse response = JAXBuddy.deserializeXMLStream(GetVisibilityTimeoutResponse.class, iStr);
+				if (response.getResponseStatus().getStatusCode().equals("Success")) {
+					return response.getVisibilityTimeout().intValue();
+				}
+				else {
+					throw new SQSException("Error getting timeout. Response msg = "+response.getResponseStatus().getMessage());
+				}
+			}
+			else {
+				throw new SQSException("Error getting timeout. Response code = "+conn.getResponseCode());
+			}
+		} catch (JAXBException ex) {
+			throw new SQSException("Problem getting the visilibity timeout.", ex);
+		} catch (MalformedURLException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		}
 	}
 
 	/**
 	 * Placeholder. Not implemented.
 	 */
     public void setVisibilityTimeout(int timeout) throws SQSException {
+		try {
+			String request = queueId+"?VisibilityTimeout="+timeout;
+			HttpURLConnection conn = makeRequest("PUT", request, super.headers);
+			if (conn.getResponseCode() < 400) {
+				InputStream iStr = conn.getInputStream();
+				SetVisibilityTimeoutResponse response = JAXBuddy.deserializeXMLStream(SetVisibilityTimeoutResponse.class, iStr);
+				if (response.getResponseStatus().getStatusCode().equals("Success")) {
+					return;
+				}
+				else {
+					throw new SQSException("Error setting timeout. Response msg = "+response.getResponseStatus().getMessage());
+				}
+			}
+			else {
+				throw new SQSException("Error setting timeout. Response code = "+conn.getResponseCode());
+			}
+		} catch (JAXBException ex) {
+			throw new SQSException("Problem setting the visibility timeout.", ex);
+		} catch (MalformedURLException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		}
 	}
 
 	/**
-	 * Placeholder. Not implemented.
+	 * Placeholder. Not implemented by REST.
 	 */
     public void setVisibilityTimeout(String msgId, int timeout) throws SQSException {
 	}
 
 	/**
-	 * Placeholder. Not implemented.
+	 * Placeholder. Not implemented by REST.
 	 */
     public void setVisibilityTimeout(String[] msgIds, int timeout) throws SQSException {
 	}
