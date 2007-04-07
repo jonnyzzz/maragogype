@@ -98,6 +98,7 @@
 		<mkdir dir="${typica.dist}"/>
 		<zip destfile="${typica.dist}/typica-${rel.version}.zip">
 			<fileset file="${typica.jar.file}"/>
+			<fileset file="README"/>
 			<fileset dir="${typica.build}">
 				<include name="apidocs/**/*"/>
 			</fileset>

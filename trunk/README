@@ -1,0 +1,22 @@
+typica 0.3
+06-Apr-2007
+
+http://code.google.com/p/typica
+
+This is a simple API to access Amazon's SQS web service. It uses the REST interface and patterns the methods after those available from Amazon in their SOAP client for this service. This code is thread-safe and works very reliably to the best of my knowledge. I've been using it on a system where sending messages in SQS is critical.
+
+Distribution files;
+README      - this file
+typica.jar  - the classes for this release
+apidocs     - JavaDoc for this release
+
+Test files
+In subversion, the test directory contains some java test files. These can be used as sample files and to test various features of the client code. There is a target "test.main". To invoke the sample code, you can use this target like this;
+ant test.main -Dclass=TestQueueService -Dargs=testQueue
+
+Change history for this version;
+------------------------------------------------------------------------
+r13 | dkavanagh | 2007-04-06 16:03:17 -0400 (Fri, 06 Apr 2007) | 1 line
+
+added support for getting/setting visibility timeout on a message queue (issue ID #2)
+------------------------------------------------------------------------
