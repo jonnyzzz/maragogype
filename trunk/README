@@ -14,6 +14,9 @@ Test files
 In subversion, the test directory contains some java test files. These can be used as sample files and to test various features of the client code. There is a target "test.main". To invoke the sample code, you can use this target like this;
 ant test.main -Dclass=TestQueueService -Dargs=testQueue
 
+Base64 coder included. 
+I've included the encoder/decoder written by Christian d'Heureuse. The full class name is ch.inventec.Base64Coder. (that is the domain where I found the code). Typica doesn't yet use it directly, but since many SQS messages need base64 encoding, I've included it for convenience.
+
 Change history for this version;
 ------------------------------------------------------------------------
 r13 | dkavanagh | 2007-04-06 16:03:17 -0400 (Fri, 06 Apr 2007) | 1 line
