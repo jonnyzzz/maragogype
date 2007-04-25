@@ -34,6 +34,8 @@ import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseInfoType;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponseInfoType;
+import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponseItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeSecurityGroupsResponse;
 import com.xerox.amazonws.typica.jaxb.GetConsoleOutputResponse;
 import com.xerox.amazonws.typica.jaxb.GroupItemType;
@@ -754,30 +756,44 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Creates a public/private keypair.
 	 * 
-	 * @param keyName
-	 *             Name of the keypair.
-	 * @return
-	 *             A keypair description ({@link KeyPairInfo}).
-	 * @throws Jec2SoapFaultException
-	 *             If a SOAP fault is received from the EC2 API.
-	 * @throws Exception
-	 *             If any other error occurs issuing the SOAP call.
+	 * @param keyName Name of the keypair.
+	 * @return A keypair description ({@link KeyPairInfo}).
+	 * @throws EC2Exception wraps checked exceptions
 	 */
-	public KeyPairInfo createKeyPair(String keyName) throws Exception {
-		return null;
+	public KeyPairInfo createKeyPair(String keyName) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("KeyName", keyName);
+		try {
+			InputStream iStr =
+				makeRequest("GET", "CreateKeyPair", params).getInputStream();
+			CreateKeyPairResponse response =
+					JAXBuddy.deserializeXMLStream(CreateKeyPairResponse.class, iStr);
+			return new KeyPairInfo(response.getKeyName(),
+									response.getKeyFingerprint(),
+									response.getKeyMaterial());
+		} catch (ArrayStoreException ex) {
+			logger.error("ArrayStore problem, fetching response again to aid in debug.");
+			try {
+				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
+			} catch (Exception e) {
+				logger.error("Had trouble re-fetching the request response.", e);
+			}
+			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		}
 	}
 
 	/**
 	 * Lists public/private keypairs.
 	 * 
-	 * @param keyIds
-	 *             An array of keypairs.
-	 * @return
-	 *             A list of keypair descriptions ({@link KeyPairInfo}).
-	 * @throws Jec2SoapFaultException
-	 *             If a SOAP fault is received from the EC2 API.
-	 * @throws Exception
-	 *             If any other error occurs issuing the SOAP call.
+	 * @param keyIds An array of keypairs.
+	 * @return A list of keypair descriptions ({@link KeyPairInfo}).
+	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<KeyPairInfo> describeKeyPairs(String[] keyIds) throws Exception {
 		return describeKeyPairs(Arrays.asList(keyIds));
@@ -786,36 +802,78 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Lists public/private keypairs.
 	 * 
-	 * @param keyIds
-	 *             A list of keypairs.
-	 * @return
-	 *             A list of keypair descriptions ({@link KeyPairInfo}).
-	 * @throws Jec2SoapFaultException
-	 *             If a SOAP fault is received from the EC2 API.
-	 * @throws Exception
-	 *             If any other error occurs issuing the SOAP call.
+	 * @param keyIds A list of keypairs.
+	 * @return A list of keypair descriptions ({@link KeyPairInfo}).
+	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<KeyPairInfo> describeKeyPairs(List<String> keyIds)
 			throws Exception {
-		List<KeyPairInfo> result = new ArrayList<KeyPairInfo>();
-
-		return result;
+		Map<String, String> params = new HashMap<String, String>();
+		for (int i=0 ; i<keyIds.size(); i++) {
+			params.put("KeyName."+(i+1), keyIds.get(i));
+		}
+		try {
+			InputStream iStr =
+				makeRequest("GET", "DescribeKeyPairs", params).getInputStream();
+			DescribeKeyPairsResponse response =
+					JAXBuddy.deserializeXMLStream(DescribeKeyPairsResponse.class, iStr);
+			List<KeyPairInfo> result = new ArrayList<KeyPairInfo>();
+			DescribeKeyPairsResponseInfoType set = response.getKeySet();
+			Iterator set_iter = set.getItems().iterator();
+			while (set_iter.hasNext()) {
+				DescribeKeyPairsResponseItemType item = (DescribeKeyPairsResponseItemType) set_iter.next();
+				result.add(new KeyPairInfo(item.getKeyName(), item.getKeyFingerprint(), null));
+			}
+			return result;
+		} catch (ArrayStoreException ex) {
+			logger.error("ArrayStore problem, fetching response again to aid in debug.");
+			try {
+				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
+			} catch (Exception e) {
+				logger.error("Had trouble re-fetching the request response.", e);
+			}
+			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		}
 	}
 
 	/**
 	 * Deletes a public/private keypair.
 	 * 
-	 * @param keyName
-	 *             Name of the keypair.
-	 * @return
-	 *             <code>true</code> if keypair is deleted, <code>false</code> otherwise.
-	 * @throws Jec2SoapFaultException
-	 *             If a SOAP fault is received from the EC2 API.
-	 * @throws Exception
-	 *             If any other error occurs issuing the SOAP call.
+	 * @param keyName Name of the keypair.
+	 * @throws EC2Exception wraps checked exceptions
 	 */
-	public boolean deleteKeyPair(String keyName) throws Exception {
-		return false;
+	public void deleteKeyPair(String keyName) throws Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("KeyName", keyName);
+		try {
+			InputStream iStr =
+				makeRequest("GET", "DeleteKeyPair", params).getInputStream();
+			DeleteKeyPairResponse response =
+					JAXBuddy.deserializeXMLStream(DeleteKeyPairResponse.class, iStr);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not delete keypair : "+keyName+". No reason given.");
+			}
+		} catch (ArrayStoreException ex) {
+			logger.error("ArrayStore problem, fetching response again to aid in debug.");
+			try {
+				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
+			} catch (Exception e) {
+				logger.error("Had trouble re-fetching the request response.", e);
+			}
+			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		}
 	}
 
 //			copy(iStr, System.err);

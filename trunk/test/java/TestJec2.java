@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import com.xerox.amazonws.ec2.ConsoleOutput;
 import com.xerox.amazonws.ec2.Jec2;
 import com.xerox.amazonws.ec2.ImageDescription;
+import com.xerox.amazonws.ec2.KeyPairInfo;
 import com.xerox.amazonws.ec2.ReservationDescription;
 import com.xerox.amazonws.ec2.ReservationDescription.Instance;
 import com.xerox.amazonws.tools.LoggingConfigurator;
@@ -37,8 +38,28 @@ public class TestJec2 {
 				}
 			}
 		}
-		ConsoleOutput consOutput = ec2.getConsoleOutput(instanceId);
-		log.info("Console Output:");
-		log.info(consOutput.output);
+		// test console output
+//		ConsoleOutput consOutput = ec2.getConsoleOutput(instanceId);
+//		log.info("Console Output:");
+//		log.info(consOutput.output);
+
+		// test keypair methods
+//		List<KeyPairInfo> info = ec2.describeKeyPairs(new String [] {});
+//		log.info("keypair list");
+//		for (KeyPairInfo i : info) {
+//			log.info("keypair : "+i.keyName+", "+i.keyFingerprint);
+//		}
+//		ec2.createKeyPair("test-keypair");
+//		info = ec2.describeKeyPairs(new String [] {});
+//		log.info("keypair list");
+//		for (KeyPairInfo i : info) {
+//			log.info("keypair : "+i.keyName+", "+i.keyFingerprint);
+//		}
+//		ec2.deleteKeyPair("test-keypair");
+//		info = ec2.describeKeyPairs(new String [] {});
+//		log.info("keypair list");
+//		for (KeyPairInfo i : info) {
+//			log.info("keypair : "+i.keyName+", "+i.keyFingerprint);
+//		}
 	}
 }
