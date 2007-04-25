@@ -12,7 +12,7 @@ public class TestQueueService {
     private static Logger log = LoggingConfigurator.configureLogging(TestQueueService.class);
 
 	public static void main(String [] args) throws Exception {
-		QueueService qs = new QueueService("[AWS Access Id]", "[AWS Secret Key]");
+		QueueService qs = new QueueService("1SEQ6QDW2YNW8T6K64R2", "7P1KY+a4FTtiVBuU935NHHOI19eYrbyWG7CDklmk");
 		List<MessageQueue> queues = qs.listMessageQueues(null);
 		for (MessageQueue queue : queues) {
 			log.debug("Queue : "+queue.getUrl().toString());

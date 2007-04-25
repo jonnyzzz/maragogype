@@ -38,11 +38,11 @@
 	</target>
 
 	<target name="schema" depends="init">
-        <mkdir dir="${typica.generated}/com/xerox/amazonws/sqs/jaxb"/>
-		<echo>compiling the schema files in xsd to java files in ${typica.generated}/com/xerox/amazonws/sqs/jaxb</echo>
-		<xjc destdir="${typica.generated}" extension="true" removeOldOutput="yes" package="com.xerox.amazonws.sqs.jaxb">
+        <mkdir dir="${typica.generated}/com/xerox/amazonws/typica/jaxb"/>
+		<echo>compiling the schema files in xsd to java files in ${typica.generated}/com/xerox/amazonws/typica/jaxb</echo>
+		<xjc destdir="${typica.generated}" extension="true" removeOldOutput="yes" package="com.xerox.amazonws.typica.jaxb">
 			<schema dir="xsd" includes="**/*.xsd"/>
-			<produces dir="${typica.generated}/com/xerox/amazonws/sqs/jaxb" includes="**/"/>
+			<produces dir="${typica.generated}/com/xerox/amazonws/typica/jaxb" includes="**/"/>
 		</xjc>
 	</target>
 

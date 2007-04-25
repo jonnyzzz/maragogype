@@ -14,13 +14,13 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 
 import com.xerox.amazonws.common.JAXBuddy;
-import com.xerox.amazonws.sqs.jaxb.DeleteMessageResponse;
-import com.xerox.amazonws.sqs.jaxb.DeleteQueueResponse;
-import com.xerox.amazonws.sqs.jaxb.GetVisibilityTimeoutResponse;
-import com.xerox.amazonws.sqs.jaxb.PeekMessageResponse;
-import com.xerox.amazonws.sqs.jaxb.ReceiveMessageResponse;
-import com.xerox.amazonws.sqs.jaxb.SendMessageResponse;
-import com.xerox.amazonws.sqs.jaxb.SetVisibilityTimeoutResponse;
+import com.xerox.amazonws.typica.jaxb.DeleteMessageResponse;
+import com.xerox.amazonws.typica.jaxb.DeleteQueueResponse;
+import com.xerox.amazonws.typica.jaxb.GetVisibilityTimeoutResponse;
+import com.xerox.amazonws.typica.jaxb.PeekMessageResponse;
+import com.xerox.amazonws.typica.jaxb.ReceiveMessageResponse;
+import com.xerox.amazonws.typica.jaxb.SendMessageResponse;
+import com.xerox.amazonws.typica.jaxb.SetVisibilityTimeoutResponse;
 
 /**
  * This class provides an interface with the Amazon SQS message queue. It provides methods
@@ -151,12 +151,12 @@ public class MessageQueue extends QueueService {
 			if (conn.getResponseCode() < 400) {
 				InputStream iStr = conn.getInputStream();
 				ReceiveMessageResponse response = JAXBuddy.deserializeXMLStream(ReceiveMessageResponse.class, iStr);
-				if (response.getMessage() == null) {
+				if (response.getMessages() == null) {
 					return new Message[0];
 				}
 				else {
 					ArrayList<Message> msgs = new ArrayList();
-					for (com.xerox.amazonws.sqs.jaxb.Message msg : response.getMessage()) {
+					for (com.xerox.amazonws.typica.jaxb.Message msg : response.getMessages()) {
 						msgs.add(new Message(msg.getMessageId(), msg.getMessageBody()));
 					}
 					return msgs.toArray(new Message [msgs.size()]);
@@ -185,7 +185,7 @@ public class MessageQueue extends QueueService {
 		try {
 			InputStream iStr = makeRequest("GET", queueId+"/"+msgId, super.headers).getInputStream();
 			PeekMessageResponse response = JAXBuddy.deserializeXMLStream(PeekMessageResponse.class, iStr);
-			com.xerox.amazonws.sqs.jaxb.Message msg = response.getMessage();
+			com.xerox.amazonws.typica.jaxb.Message msg = response.getMessage();
 			if (msg == null) {
 				return null;
 			}

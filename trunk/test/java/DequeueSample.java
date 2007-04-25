@@ -27,8 +27,8 @@ public class DequeueSample {
     //------------------------------------------------------------------------
     public static void main( String[] args ) {
 
-        final String AWSAccessKeyId = "[AWS Access Id]";
-        final String SecretAccessKey = "[AWS Secret Key]";
+        final String AWSAccessKeyId = "1SEQ6QDW2YNW8T6K64R2";
+        final String SecretAccessKey = "7P1KY+a4FTtiVBuU935NHHOI19eYrbyWG7CDklmk";
 
 		int count = 0;
         try {
@@ -49,15 +49,18 @@ public class DequeueSample {
             }
 
             // Try to retrieve (dequeue) the message, and then delete it.
-			Message msg = null;
-			while ((msg = msgQueue.receiveMessage()) != null) {
-                if ( msg == null ) {
+			Message [] msg = null;
+			//while ((msg = msgQueue.receiveMessage()) != null) {
+			while (true) {
+				msg = msgQueue.receiveMessages(1);
+                if ( msg == null || msg.length == 0 ) {
                     // Sleep for 1 second before the next try
+                    log.info("Nothing to read, sleep a second and retry");
                     Thread.sleep(1000);
                 } else {                    
-                    msgQueue.setVisibilityTimeout( msg.getMessageId(), 60 );
+//                    msgQueue.setVisibilityTimeout( msg[0].getMessageId(), 60 );
 					if (showMsg) {
-                       	String text = msg.getMessageBody();
+                       	String text = msg[0].getMessageBody();
 						try {
                        		text = Base64Coder.decodeString(text);
 						} catch (IllegalArgumentException ex) {
@@ -66,13 +69,13 @@ public class DequeueSample {
 // un-comment these lines and comment out the delete line down lower
 // to delete select messages including some specifc content
 //						if (text.indexOf("1003") > -1) {
-//		                    msgQueue.deleteMessage( msg.getMessageId() );
+//		                    msgQueue.deleteMessage( msg[0].getMessageId() );
 //							log.debug("Deleted message");
 //						}
 						log.debug("msg : "+text);
 					}
-                    msgQueue.deleteMessage( msg.getMessageId() );
-                    log.info( "Deleted message id " + msg.getMessageId());
+                    msgQueue.deleteMessage( msg[0].getMessageId() );
+                    log.info( "Deleted message id " + msg[0].getMessageId());
 					count++;
                 }
             }
