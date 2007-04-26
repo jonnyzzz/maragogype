@@ -94,7 +94,15 @@ public class AWSQueryConnection extends AWSConnection {
 		String canonical = resource.toString().replaceAll("&", "").replaceAll("=", "").replaceAll("\\?", "");
         String encoded = urlencode(encode(getSecretAccessKey(), canonical, false));
 
-		// append request signature
+		// build param string, encoding values and adding request signature
+		resource = new StringBuilder();
+		for (String key : keys) {
+			resource.append("&");
+			resource.append(key);
+			resource.append("=");
+			resource.append(urlencode(qParams.get(key)));
+		}
+		resource.setCharAt(0, '?');	// set first param delimeter
 		resource.append("&Signature=");
 		resource.append(encoded);
 

@@ -12,7 +12,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 /**
- * This class implements some helful methods to marshal and unmarshal xml.
+ * This class implements some helpful methods to marshal and unmarshal xml.
  *
  * @author D. Kavanagh
  * @author developer@dotech.com

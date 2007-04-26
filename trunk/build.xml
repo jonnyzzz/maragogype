@@ -83,7 +83,7 @@
 				author="true"
 				version="true"
 				use="true"
-				windowtitle="Typica - Amazon SQS REST Client">
+				windowtitle="Typica - Amazon EC2/SQS Client">
 			<classpath refid="typica.compile.classpath"/>
 			<link href="http://java.sun.com/j2se/1.5.0/docs/api"/>
 		</javadoc>

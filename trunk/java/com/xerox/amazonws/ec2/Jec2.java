@@ -29,6 +29,7 @@ import com.xerox.amazonws.typica.jaxb.CreateSecurityGroupResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteKeyPairResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteSecurityGroupResponse;
 import com.xerox.amazonws.typica.jaxb.DeregisterImageResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeImageAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseInfoType;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseItemType;
@@ -41,17 +42,24 @@ import com.xerox.amazonws.typica.jaxb.GetConsoleOutputResponse;
 import com.xerox.amazonws.typica.jaxb.GroupItemType;
 import com.xerox.amazonws.typica.jaxb.GroupSetType;
 import com.xerox.amazonws.typica.jaxb.IpPermissionSetType;
+import com.xerox.amazonws.typica.jaxb.IpPermissionSetType;
 import com.xerox.amazonws.typica.jaxb.IpPermissionType;
 import com.xerox.amazonws.typica.jaxb.IpRangeItemType;
 import com.xerox.amazonws.typica.jaxb.IpRangeSetType;
+import com.xerox.amazonws.typica.jaxb.LaunchPermissionItemType;
+import com.xerox.amazonws.typica.jaxb.LaunchPermissionListType;
+import com.xerox.amazonws.typica.jaxb.ModifyImageAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.ObjectFactory;
 import com.xerox.amazonws.typica.jaxb.RebootInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.RegisterImageResponse;
 import com.xerox.amazonws.typica.jaxb.RevokeSecurityGroupIngressResponse;
 import com.xerox.amazonws.typica.jaxb.ReservationSetType;
+import com.xerox.amazonws.typica.jaxb.ResetImageAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.RunningInstancesItemType;
 import com.xerox.amazonws.typica.jaxb.RunningInstancesSetType;
 import com.xerox.amazonws.typica.jaxb.RunInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.SecurityGroupSetType;
+import com.xerox.amazonws.typica.jaxb.SecurityGroupItemType;
 import com.xerox.amazonws.typica.jaxb.TerminateInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.TerminateInstancesResponseInfoType;
 import com.xerox.amazonws.typica.jaxb.TerminateInstancesResponseItemType;
@@ -622,46 +630,81 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Creates a security group.
 	 * 
-	 * @param name
-	 *             The name of the security group. 
-	 * @param desc
-	 *             The description of the security group.
-	 * @return
-	 *             <code>true</code> if the group was created, otherwise <code>false</code>
-	 * @throws Jec2SoapFaultException
-	 *             If a SOAP fault is received from the EC2 API.
-	 * @throws Exception
-	 *             If any other error occurs issuing the SOAP call.
+	 * @param name The name of the security group. 
+	 * @param desc The description of the security group.
+	 * @return <code>true</code> if the group was created, otherwise <code>false</code>
+	 * @throws EC2Exception wraps checked exceptions
 	 */
-	public boolean createSecurityGroup(String name, String desc) throws Exception {
-		return false;
+	public void createSecurityGroup(String name, String desc) throws Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("GroupName", name);
+		params.put("GroupDescription", desc);
+		try {
+			InputStream iStr =
+				makeRequest("GET", "CreateSecurityGroup", params).getInputStream();
+			CreateSecurityGroupResponse response =
+					JAXBuddy.deserializeXMLStream(CreateSecurityGroupResponse.class, iStr);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not create security group : "+name+". No reason given.");
+			}
+		} catch (ArrayStoreException ex) {
+			logger.error("ArrayStore problem, fetching response again to aid in debug.");
+			try {
+				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
+			} catch (Exception e) {
+				logger.error("Had trouble re-fetching the request response.", e);
+			}
+			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		}
 	}
 
 	/**
 	 * Deletes a security group. 
-	 * @param name
-	 *             The name of the security group. 
-	 * @return
-	 *             <code>true</code> if the group was deleted, otherwise <code>false</code>
-	 * @throws Jec2SoapFaultException
-	 *             If a SOAP fault is received from the EC2 API.
-	 * @throws Exception
-	 *             If any other error occurs issuing the SOAP call.
+	 *
+	 * @param name The name of the security group. 
+	 * @return <code>true</code> if the group was deleted, otherwise <code>false</code>
+	 * @throws EC2Exception wraps checked exceptions
 	 */
-	public boolean deleteSecurityGroup(String name) throws Exception {
-		return false;
+	public void deleteSecurityGroup(String name) throws Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("GroupName", name);
+		try {
+			InputStream iStr =
+				makeRequest("GET", "DeleteSecurityGroup", params).getInputStream();
+			DeleteSecurityGroupResponse response =
+					JAXBuddy.deserializeXMLStream(DeleteSecurityGroupResponse.class, iStr);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not delete security group : "+name+". No reason given.");
+			}
+		} catch (ArrayStoreException ex) {
+			logger.error("ArrayStore problem, fetching response again to aid in debug.");
+			try {
+				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
+			} catch (Exception e) {
+				logger.error("Had trouble re-fetching the request response.", e);
+			}
+			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		}
 	}
 
 	/**
 	 * Gets a list of security groups and their associated permissions.  
-	 * @param groupNames
-	 *             An array of groups to describe.
-	 * @return
-	 *             A list of groups ({@link GroupDescription}.
-	 * @throws Jec2SoapFaultException
-	 *             If a SOAP fault is received from the EC2 API.
-	 * @throws Exception
-	 *             If any other error occurs issuing the SOAP call.
+	 *
+	 * @param groupNames An array of groups to describe.
+	 * @return A list of groups ({@link GroupDescription}.
+	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<GroupDescription> describeSecurityGroups(String[] groupNames)
 			throws Exception {
@@ -671,19 +714,69 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Gets a list of security groups and their associated permissions.  
 	 * 
-	 * @param groupNames
-	 *             A list of groups to describe.
-	 * @return
-	 *             A list of groups ({@link GroupDescription}.
-	 * @throws Jec2SoapFaultException
-	 *             If a SOAP fault is received from the EC2 API.
-	 * @throws Exception
-	 *             If any other error occurs issuing the SOAP call.
+	 * @param groupNames A list of groups to describe.
+	 * @return A list of groups ({@link GroupDescription}.
+	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<GroupDescription> describeSecurityGroups(List<String> groupNames)
 			throws Exception {
-		List<GroupDescription> result = new ArrayList<GroupDescription>();
-		return result;
+		Map<String, String> params = new HashMap<String, String>();
+		for (int i=0 ; i<groupNames.size(); i++) {
+			params.put("GroupName."+(i+1), groupNames.get(i));
+		}
+		try {
+			InputStream iStr =
+				makeRequest("GET", "DescribeSecurityGroups", params).getInputStream();
+			DescribeSecurityGroupsResponse response =
+					JAXBuddy.deserializeXMLStream(DescribeSecurityGroupsResponse.class, iStr);
+			List<GroupDescription> result = new ArrayList<GroupDescription>();
+			SecurityGroupSetType rsp_set = response.getSecurityGroupInfo();
+			Iterator set_iter = rsp_set.getItems().iterator();
+			while (set_iter.hasNext()) {
+				SecurityGroupItemType item = (SecurityGroupItemType) set_iter
+						.next();
+				GroupDescription group = new GroupDescription(item.getGroupName(),
+						item.getGroupDescription(), item.getOwnerId());
+				IpPermissionSetType perms = item.getIpPermissions();
+				Iterator perm_iter = perms.getItems().iterator();
+				while (perm_iter.hasNext()) {
+					IpPermissionType perm = (IpPermissionType) perm_iter.next();
+					GroupDescription.IpPermission group_perms = group
+							.addPermission(perm.getIpProtocol(),
+									perm.getFromPort(), perm.getToPort());
+
+					Iterator group_iter = perm.getGroups().getItems().iterator();
+					while (group_iter.hasNext()) {
+						UserIdGroupPairType uid_group = (UserIdGroupPairType) group_iter
+								.next();
+						group_perms.addUserGroupPair(uid_group.getUserId(),
+								uid_group.getGroupName());
+					}
+					Iterator iprange_iter = perm.getIpRanges().getItems().iterator();
+					while (iprange_iter.hasNext()) {
+						IpRangeItemType range = (IpRangeItemType) iprange_iter
+								.next();
+						group_perms.addIpRange(range.getCidrIp());
+					}
+				}
+				result.add(group);
+			}
+			return result;
+		} catch (ArrayStoreException ex) {
+			logger.error("ArrayStore problem, fetching response again to aid in debug.");
+			try {
+				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
+			} catch (Exception e) {
+				logger.error("Had trouble re-fetching the request response.", e);
+			}
+			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		}
 	}
 
 	/**
@@ -876,9 +969,169 @@ public class Jec2 extends AWSQueryConnection {
 		}
 	}
 
+	/**
+	 * Enumarates image list attribute operation types.
+	 */
+	public enum ImageListAttributeOperationType {
+		add,
+		remove
+	}
+	
+	/**
+	 * Modifies an attribute by the given items with the given operation. 
+	 *
+	 * @param imageID The ID of the AMI to modify the attributes for.
+	 * @param attribute The name of the attribute to change.
+	 * @param operationType The name of the operation to change. May be add or remove.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public void modifyImageAttribute(String imageId, ImageListAttribute attribute,
+								ImageListAttributeOperationType operationType) throws Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("ImageId", imageId);
+		if (attribute.type.equals(ImageAttribute.ImageAttributeType.launchPermission)) {
+			params.put("Attribute", "launchPermission");
+		}
+
+		switch (operationType) {
+			case add: params.put("OperationType", "add"); break;
+			case remove: params.put("OperationType", "remove"); break;
+			default:
+				throw new IllegalArgumentException("Unknown attribute operation.");
+		}
+
+		int gNum = 1;
+		int iNum = 1;
+		for(ImageListAttributeItem item : attribute.items) {
+			switch (item.type) {
+				case group: params.put("UserGroup."+gNum, item.value); gNum++; break;
+				case userId: params.put("UserId."+iNum, item.value); iNum++; break;
+				default:
+					throw new IllegalArgumentException("Unknown item type.");
+			}
+		}
+
+		try {
+			InputStream iStr =
+				makeRequest("GET", "ModifyImageAttribute", params).getInputStream();
+			ModifyImageAttributeResponse response =
+					JAXBuddy.deserializeXMLStream(ModifyImageAttributeResponse.class, iStr);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not reset image attribute. No reason given.");
+			}
+		} catch (ArrayStoreException ex) {
+			logger.error("ArrayStore problem, fetching response again to aid in debug.");
+			try {
+				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
+			} catch (Exception e) {
+				logger.error("Had trouble re-fetching the request response.", e);
+			}
+			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		}
+	}
+	
+	/**
+	 * Resets an attribute on an AMI.
+	 *
+	 * @param imageId The AMI to reset the attribute on.
+	 * @param imageAttribute The attribute type to reset.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public void resetImageAttribute(String imageId, ImageAttribute.ImageAttributeType imageAttribute) throws Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("ImageId", imageId);
+		if (imageAttribute.equals(ImageAttribute.ImageAttributeType.launchPermission)) {
+			params.put("Attribute", "launchPermission");
+		}
+		try {
+			InputStream iStr =
+				makeRequest("GET", "ResetImageAttribute", params).getInputStream();
+			ResetImageAttributeResponse response =
+					JAXBuddy.deserializeXMLStream(ResetImageAttributeResponse.class, iStr);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not reset image attribute. No reason given.");
+			}
+		} catch (ArrayStoreException ex) {
+			logger.error("ArrayStore problem, fetching response again to aid in debug.");
+			try {
+				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
+			} catch (Exception e) {
+				logger.error("Had trouble re-fetching the request response.", e);
+			}
+			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		}
+	}
+	
+	/**
+	 * Describes an attribute of an AMI.
+	 *
+	 * @param imageId The AMI for which the attribute is described.
+	 * @param imageAttribute The attribute type to describe.
+	 * @return An object containing the imageId and a list of list attribute item types and values.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public DescribeImageAttributeResult describeImageAttribute(String imageId,
+						ImageAttribute.ImageAttributeType imageAttribute) throws Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("ImageId", imageId);
+		if (imageAttribute.equals(ImageAttribute.ImageAttributeType.launchPermission)) {
+			params.put("Attribute", "launchPermission");
+		}
+		try {
+			InputStream iStr =
+				makeRequest("GET", "DescribeImageAttribute", params).getInputStream();
+			DescribeImageAttributeResponse rsp =
+					JAXBuddy.deserializeXMLStream(DescribeImageAttributeResponse.class, iStr);
+			ImageListAttribute attribute = null;
+			if (rsp.getLaunchPermission() != null) {
+				LaunchPermissionListType list = rsp.getLaunchPermission();
+				attribute = new LaunchPermissionAttribute();
+				java.util.ListIterator i = list.getItems().listIterator();
+				while (i.hasNext()) {
+					LaunchPermissionItemType item = (LaunchPermissionItemType) i.next();
+					if (item.getGroup() != null) {
+						attribute.addImageListAttributeItem(ImageListAttribute.ImageListAttributeItemType.group,
+													item.getGroup());
+					} else if (item.getUserId() != null) {
+						attribute.addImageListAttributeItem(ImageListAttribute.ImageListAttributeItemType.userId,
+													item.getUserId());
+					}
+				}
+			}
+			
+			return new DescribeImageAttributeResult(rsp.getImageId(), attribute);
+		} catch (ArrayStoreException ex) {
+			logger.error("ArrayStore problem, fetching response again to aid in debug.");
+			try {
+				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
+			} catch (Exception e) {
+				logger.error("Had trouble re-fetching the request response.", e);
+			}
+			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		}
+	}
+
 //			copy(iStr, System.err);
 //			iStr = makeRequest("GET", "DescribeImage", params).getInputStream();
-    public static void copy(InputStream iStr, OutputStream oStr) throws IOException {
+    private static void copy(InputStream iStr, OutputStream oStr) throws IOException {
 		byte [] buffer = new byte [16384];
 		int count = iStr.read(buffer);
 		while (count != -1) {
