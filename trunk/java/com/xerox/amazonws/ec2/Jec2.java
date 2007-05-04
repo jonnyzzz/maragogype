@@ -1,3 +1,21 @@
+//
+// typica - A client library for Amazon Web Services
+// Copyright (C) 2007 Xerox Corporation
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
 
 package com.xerox.amazonws.ec2;
 
@@ -350,7 +368,7 @@ public class Jec2 extends AWSQueryConnection {
 		if (userData != null && !userData.trim().equals("")) {
 			params.put("UserData", userData);
 		}
-		params.put("AddressingType", "public");
+		params.put("AddressingType", "direct");
 		if (keyName != null && !keyName.trim().equals("")) {
 			params.put("KeyName", keyName);
 		}
@@ -782,69 +800,173 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Adds incoming permissions to a security group.
 	 * 
-	 * @param gDesc
-	 *             A group description ({@link GroupDescription}
-	 *             containing permissions to add.
-	 * @return
-	 *             A group description ({@link GroupDescription}
-	 *             containing the modified rules.
-	 * @throws Jec2SoapFaultException
-	 *             If a SOAP fault is received from the EC2 API.
-	 * @throws Exception
-	 *             If any other error occurs issuing the SOAP call.
+	 * @param groupName name of group to modify
+	 * @param secGroupName name of security group to authorize access to
+	 * @param secGroupOwnerId owner of security group to authorize access to
+	 * @return A group description ({@link GroupDescription} containing the modified rules.
+	 * @throws EC2Exception wraps checked exceptions
 	 */
-	public boolean authorizeSecurityGroupIngress(GroupDescription gDesc) throws Exception {
-		return false;
+	public void authorizeSecurityGroupIngress(String groupName, String secGroupName,
+											String secGroupOwnerId) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("GroupName", groupName);
+		params.put("SourceSecurityGroupOwnerId", secGroupOwnerId);
+		params.put("SourceSecurityGroupName", secGroupName);
+		try {
+			InputStream iStr =
+				makeRequest("GET", "AuthorizeSecurityGroupIngress", params).getInputStream();
+			AuthorizeSecurityGroupIngressResponse response =
+				JAXBuddy.deserializeXMLStream(AuthorizeSecurityGroupIngressResponse.class, iStr);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not authorize security ingress : "+groupName+". No reason given.");
+			}
+		} catch (ArrayStoreException ex) {
+			logger.error("ArrayStore problem, fetching response again to aid in debug.");
+			try {
+				logger.error(makeRequest("GET", "AuthorizeSecurityGroupIngress", params).getResponseMessage());
+			} catch (Exception e) {
+				logger.error("Had trouble re-fetching the request response.", e);
+			}
+			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		}
+	}
+
+	/**
+	 * Adds incoming permissions to a security group.
+	 * 
+	 * @param groupName name of group to modify
+	 * @param ipProtocol protocol to authorize (tcp, udp, icmp)
+	 * @param fromPort bottom of port range to authorize
+	 * @param toPort top of port range to authorize
+	 * @param cidrIp CIDR IP range to authorize (i.e. 0.0.0.0/0)
+	 * @return A group description ({@link GroupDescription} containing the modified rules.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public void authorizeSecurityGroupIngress(String groupName, String ipProtocol,
+											int fromPort, int toPort,
+											String cidrIp) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("GroupName", groupName);
+		params.put("IpProtocol", ipProtocol);
+		params.put("FromPort", ""+fromPort);
+		params.put("ToPort", ""+toPort);
+		params.put("CidrIp", cidrIp);
+		try {
+			InputStream iStr =
+				makeRequest("GET", "AuthorizeSecurityGroupIngress", params).getInputStream();
+			AuthorizeSecurityGroupIngressResponse response =
+				JAXBuddy.deserializeXMLStream(AuthorizeSecurityGroupIngressResponse.class, iStr);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not authorize security ingress : "+groupName+". No reason given.");
+			}
+		} catch (ArrayStoreException ex) {
+			logger.error("ArrayStore problem, fetching response again to aid in debug.");
+			try {
+				logger.error(makeRequest("GET", "AuthorizeSecurityGroupIngress", params).getResponseMessage());
+			} catch (Exception e) {
+				logger.error("Had trouble re-fetching the request response.", e);
+			}
+			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		}
 	}
 
 	/**
 	 * Revokes incoming permissions from a security group.
 	 * 
-	 * @param gDesc
-	 *             A group description ({@link GroupDescription})
-	 *             containing permissions to add.
-	 * @return
-	 *             A group description ({@link GroupDescription})
-	 *             containing the modified rules.
-	 * @throws Jec2SoapFaultException
-	 *             If a SOAP fault is received from the EC2 API.
-	 * @throws Exception
-	 *             If any other error occurs issuing the SOAP call.
+	 * @param groupName name of group to modify
+	 * @param secGroupName name of security group to revoke access from
+	 * @param secGroupOwnerId owner of security group to revoke access from
+	 * @return A group description ({@link GroupDescription} containing the modified rules.
+	 * @throws EC2Exception wraps checked exceptions
 	 */
-	public boolean revokeSecurityGroupIngress(GroupDescription gDesc) throws Exception {
-		return false;
-	}
-
-	private IpPermissionSetType putIpPermissionsInIpPermissionSetType(
-			List<GroupDescription.IpPermission> perms) throws Exception {
-		IpPermissionSetType ipst = new ObjectFactory().createIpPermissionSetType();
-		for (GroupDescription.IpPermission ip : perms) {
-			IpPermissionType ipit = new ObjectFactory().createIpPermissionType();
-			ipit.setFromPort(ip.fromPort);
-			ipit.setToPort(ip.toPort);
-			ipit.setIpProtocol(ip.protocol);
-
-			UserIdGroupPairSetType uidgpst = new ObjectFactory().createUserIdGroupPairSetType();
-			for (String[] uidgp : ip.uid_group_pairs) {
-				UserIdGroupPairType uidgpt = new ObjectFactory().createUserIdGroupPairType();
-				uidgpt.setUserId(uidgp[0]);
-				uidgpt.setGroupName(uidgp[1]);
-				uidgpst.getItems().add(uidgpt);
+	public void revokeSecurityGroupIngress(String groupName, String secGroupName,
+											String secGroupOwnerId) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("GroupName", groupName);
+		params.put("SourceSecurityGroupOwnerId", secGroupOwnerId);
+		params.put("SourceSecurityGroupName", secGroupName);
+		try {
+			InputStream iStr =
+				makeRequest("GET", "RevokeSecurityGroupIngress", params).getInputStream();
+			RevokeSecurityGroupIngressResponse response =
+				JAXBuddy.deserializeXMLStream(RevokeSecurityGroupIngressResponse.class, iStr);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not revoke security ingress : "+groupName+". No reason given.");
 			}
-			ipit.setGroups(uidgpst);
-
-			IpRangeSetType iprst = new ObjectFactory().createIpRangeSetType();
-			for (String ipRange : ip.cidrIps) {
-				IpRangeItemType ipRangeItem = new ObjectFactory().createIpRangeItemType();
-				ipRangeItem.setCidrIp(ipRange);
-				iprst.getItems().add(ipRangeItem);
+		} catch (ArrayStoreException ex) {
+			logger.error("ArrayStore problem, fetching response again to aid in debug.");
+			try {
+				logger.error(makeRequest("GET", "RevokeSecurityGroupIngress", params).getResponseMessage());
+			} catch (Exception e) {
+				logger.error("Had trouble re-fetching the request response.", e);
 			}
-			ipit.setIpRanges(iprst);
-
-			ipst.getItems().add(ipit);
+			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
 		}
-		return ipst;
 	}
+
+	/**
+	 * Revokes incoming permissions from a security group.
+	 * 
+	 * @param groupName name of group to modify
+	 * @param ipProtocol protocol to revoke (tcp, udp, icmp)
+	 * @param fromPort bottom of port range to revoke
+	 * @param toPort top of port range to revoke
+	 * @param cidrIp CIDR IP range to revoke (i.e. 0.0.0.0/0)
+	 * @return A group description ({@link GroupDescription} containing the modified rules.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public void revokeSecurityGroupIngress(String groupName, String ipProtocol,
+											int fromPort, int toPort,
+											String cidrIp) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("GroupName", groupName);
+		params.put("IpProtocol", ipProtocol);
+		params.put("FromPort", ""+fromPort);
+		params.put("ToPort", ""+toPort);
+		params.put("CidrIp", cidrIp);
+		try {
+			InputStream iStr =
+				makeRequest("GET", "RevokeSecurityGroupIngress", params).getInputStream();
+			RevokeSecurityGroupIngressResponse response =
+				JAXBuddy.deserializeXMLStream(RevokeSecurityGroupIngressResponse.class, iStr);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not revoke security ingress : "+groupName+". No reason given.");
+			}
+		} catch (ArrayStoreException ex) {
+			logger.error("ArrayStore problem, fetching response again to aid in debug.");
+			try {
+				logger.error(makeRequest("GET", "RevokeSecurityGroupIngress", params).getResponseMessage());
+			} catch (Exception e) {
+				logger.error("Had trouble re-fetching the request response.", e);
+			}
+			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		}
+	}
+
 
 	/**
 	 * Creates a public/private keypair.

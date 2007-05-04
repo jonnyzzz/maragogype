@@ -99,6 +99,8 @@
 		<zip destfile="${typica.dist}/typica-${rel.version}.zip">
 			<fileset file="${typica.jar.file}"/>
 			<fileset file="README"/>
+			<fileset file="lgpl.txt"/>
+            <fileset dir="${typica.conf}" includes="**/*"/>
 			<fileset dir="${typica.build}">
 				<include name="apidocs/**/*"/>
 			</fileset>

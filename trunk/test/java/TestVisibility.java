@@ -12,7 +12,10 @@ public class TestVisibility {
     private static Logger log = LoggingConfigurator.configureLogging(TestVisibility.class);
 
 	public static void main(String [] args) throws Exception {
-		QueueService qs = new QueueService("[AWS Access Id]", "[AWS Secret Key]");
+        final String AWSAccessKeyId = "[AWS Access Id]";
+        final String SecretAccessKey = "[AWS Secret Key]";
+
+		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey);
 		MessageQueue mq = qs.getOrCreateMessageQueue(args[0]);
 		int timeout = mq.getVisibilityTimeout();
 		log.debug("Queue timeout = "+timeout);

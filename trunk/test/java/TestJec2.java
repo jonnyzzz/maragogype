@@ -24,7 +24,10 @@ public class TestJec2 {
     private static Logger log = LoggingConfigurator.configureLogging(TestJec2.class);
 
 	public static void main(String [] args) throws Exception {
-		Jec2 ec2 = new Jec2("1SEQ6QDW2YNW8T6K64R2", "7P1KY+a4FTtiVBuU935NHHOI19eYrbyWG7CDklmk", false, "localhost");
+        final String AWSAccessKeyId = "[AWS Access Id]";
+        final String SecretAccessKey = "[AWS Secret Key]";
+
+		Jec2 ec2 = new Jec2(AWSAccessKeyId, SecretAccessKey);
 		List<String> params = new ArrayList<String>();
 	
 /*
@@ -45,6 +48,9 @@ public class TestJec2 {
 		}
 */
 
+//		ec2.runInstances("ami-20b65349", 1, 1, new ArrayList<String>(), null, "xrxdak-keypair");
+
+/*
 		params = new ArrayList<String>();
 		List<ReservationDescription> instances = ec2.describeInstances(params);
 		log.info("Instances");
@@ -58,6 +64,7 @@ public class TestJec2 {
 				}
 			}
 		}
+*/
 		// test console output
 /*
 		ConsoleOutput consOutput = ec2.getConsoleOutput(instanceId);
@@ -87,12 +94,12 @@ public class TestJec2 {
 */
 
 		// test security group methods
-/*
 		List<GroupDescription> info = ec2.describeSecurityGroups(new String [] {});
 		log.info("SecurityGroup list");
 		for (GroupDescription i : info) {
-			log.info("group : "+i.name+", "+i.desc);
+			log.info("group : "+i.name+", "+i.desc+", "+i.owner);
 		}
+/*
 		ec2.createSecurityGroup("test-group", "My test security group");
 		info = ec2.describeSecurityGroups(new String [] {});
 		log.info("SecurityGroup list");
@@ -106,8 +113,13 @@ public class TestJec2 {
 			log.info("group : "+i.name+", "+i.desc);
 		}
 */
+		ec2.authorizeSecurityGroupIngress("default", "tcp", 1000, 1001, "0.0.0.0/0");
+		ec2.revokeSecurityGroupIngress("default", "tcp", 1000, 1001, "0.0.0.0/0");
 
-		// test security group methods
+		ec2.authorizeSecurityGroupIngress("default", "test-group", "291944132575");
+		ec2.revokeSecurityGroupIngress("default", "test-group", "291944132575");
+
+		// test image attribute methods
 /*
 		DescribeImageAttributeResult res = ec2.describeImageAttribute("ami-5e836637", ImageAttributeType.launchPermission);
 		Iterator<ImageListAttributeItem> iter = res.imageListAttribute.items.iterator();

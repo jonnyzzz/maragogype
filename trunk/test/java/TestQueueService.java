@@ -12,14 +12,17 @@ public class TestQueueService {
     private static Logger log = LoggingConfigurator.configureLogging(TestQueueService.class);
 
 	public static void main(String [] args) throws Exception {
-		QueueService qs = new QueueService("1SEQ6QDW2YNW8T6K64R2", "7P1KY+a4FTtiVBuU935NHHOI19eYrbyWG7CDklmk");
+        final String AWSAccessKeyId = "[AWS Access Id]";
+        final String SecretAccessKey = "[AWS Secret Key]";
+
+		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey);
 		List<MessageQueue> queues = qs.listMessageQueues(null);
 		for (MessageQueue queue : queues) {
 			log.debug("Queue : "+queue.getUrl().toString());
 			// delete queues that contain a certain phrase
-//			if (queue.getUrl().toString().indexOf("test")>-1) {
-//				queue.deleteQueue();
-//			}
+			if (queue.getUrl().toString().indexOf("test")>-1) {
+				queue.deleteQueue();
+			}
 		}
 		for (int i=0; i<args.length; i++) {
 			MessageQueue mq = qs.getOrCreateMessageQueue(args[i]);
