@@ -1,12 +1,14 @@
-typica 0.3
-06-Apr-2007
+typica 0.4
+04-May-2007
 
 http://code.google.com/p/typica
 
-This is a simple API to access Amazon's SQS web service. It uses the REST interface and patterns the methods after those available from Amazon in their SOAP client for this service. This code is thread-safe and works very reliably to the best of my knowledge. I've been using it on a system where sending messages in SQS is critical.
+This is a simple API to access Amazon's SQS and EC2 web services. It uses the REST/QUERY interface and patterns the methods after those available from Amazon in their SOAP client for these services. This code is thread-safe and works very reliably to the best of my knowledge. I've been using it on a system where sending messages in SQS is critical and we manage pools of servers in EC2.
 
 Distribution files;
 README      - this file
+lgpl.txt    - full version of the LGPL license
+Log4J.xml   - a Log4J config file you can include in your classpath
 typica.jar  - the classes for this release
 apidocs     - JavaDoc for this release
 
@@ -19,7 +21,27 @@ I've included the encoder/decoder written by Christian d'Heureuse. The full clas
 
 Change history for this version;
 ------------------------------------------------------------------------
-r13 | dkavanagh | 2007-04-06 16:03:17 -0400 (Fri, 06 Apr 2007) | 1 line
+r21 | dkavanagh | 2007-05-04 16:06:20 -0400 (Fri, 04 May 2007) | 1 line
 
-added support for getting/setting visibility timeout on a message queue (issue ID #2)
+re-factored support objects to have getters and private data
+------------------------------------------------------------------------
+r20 | dkavanagh | 2007-05-04 11:39:02 -0400 (Fri, 04 May 2007) | 1 line
+
+added security group ingress support for EC2; added LGPL in full and header in each library source file
+------------------------------------------------------------------------
+r19 | dkavanagh | 2007-04-26 15:33:05 -0400 (Thu, 26 Apr 2007) | 1 line
+
+added support for image attribute, and security groups
+------------------------------------------------------------------------
+r18 | dkavanagh | 2007-04-25 17:03:33 -0400 (Wed, 25 Apr 2007) | 1 line
+
+implemented keypair support for EC2
+------------------------------------------------------------------------
+r17 | dkavanagh | 2007-04-25 13:10:30 -0400 (Wed, 25 Apr 2007) | 1 line
+
+refactored AWS authentication code for REST and QUERY; added start of EC2 support. Supports many commonly used commands at this point.
+------------------------------------------------------------------------
+r16 | dkavanagh | 2007-04-09 18:03:16 -0400 (Mon, 09 Apr 2007) | 1 line
+
+Added info about Base64Coder
 ------------------------------------------------------------------------
