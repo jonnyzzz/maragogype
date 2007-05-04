@@ -23,6 +23,8 @@ package com.xerox.amazonws.ec2;
  * The base class for all AMI attributes.
  */
 public abstract class ImageAttribute {
+	private ImageAttributeType type;
+
 	/**
 	 * Enumerates image attribute types.
 	 */
@@ -34,6 +36,8 @@ public abstract class ImageAttribute {
 		type = _type;
 	}		
 
-	public ImageAttributeType type;
+	public ImageAttributeType getType() {
+		return type;
+	}
 }
 

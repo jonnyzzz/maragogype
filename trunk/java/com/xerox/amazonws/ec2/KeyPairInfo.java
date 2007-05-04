@@ -28,17 +28,27 @@ package com.xerox.amazonws.ec2;
  * {@link Jec2#describeKeyPairs(String[])}.
  */
 public class KeyPairInfo {
-	public String keyName;
-
-	public String keyFingerprint;
-
-	public String keyMaterial;
+	private String keyName;
+	private String keyFingerprint;
+	private String keyMaterial;
 
 	public KeyPairInfo(String keyName, String keyFingerprint,
 			String keyMaterial) {
 		this.keyName = keyName;
 		this.keyFingerprint = keyFingerprint;
 		this.keyMaterial = keyMaterial;
+	}
+
+	public String getKeyName() {
+		return keyName;
+	}
+
+	public String getKeyFingerprint() {
+		return keyFingerprint;
+	}
+
+	public String getKeyMaterial() {
+		return keyMaterial;
 	}
 
 	public String toString() {

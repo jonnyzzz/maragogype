@@ -25,9 +25,20 @@ package com.xerox.amazonws.ec2;
  * ImageListAttributeItems are keyed on type and value. 
  */
 public class ImageListAttributeItem {
+	private ImageListAttribute.ImageListAttributeItemType type;
+	private String value;
+
 	public ImageListAttributeItem(ImageListAttribute.ImageListAttributeItemType _type, String _value) {
 		type = _type;
 		value = _value;
+	}
+
+	public ImageListAttribute.ImageListAttributeItemType getType() {
+		return type;
+	}
+
+	public String getValue() {
+		return value;
 	}
 
 	public boolean equals(Object other) {
@@ -41,8 +52,5 @@ public class ImageListAttributeItem {
 		return (type == null ? 17 : type.hashCode()) ^
 			   (value == null ? 31 : value.hashCode());
 	}
-	
-	public ImageListAttribute.ImageListAttributeItemType type;
-	public String value;
 }
 

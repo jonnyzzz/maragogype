@@ -30,18 +30,27 @@ import java.util.List;
  * {@link Jec2#describeSecurityGroups(String[])}.
  */
 public class GroupDescription {
-	public String name;
-
-	public String desc;
-
-	public String owner;
-
-	public List<IpPermission> perms = new ArrayList<IpPermission>();
+	private String name;
+	private String desc;
+	private String owner;
+	private List<IpPermission> perms = new ArrayList<IpPermission>();
 
 	public GroupDescription(String name, String desc, String owner) {
 		this.name = name;
 		this.desc = desc;
 		this.owner = owner;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getDescription() {
+		return desc;
+	}
+
+	public String getOwner() {
+		return owner;
 	}
 
 	public IpPermission addPermission(String protocol, int fromPort,
@@ -51,16 +60,16 @@ public class GroupDescription {
 		return perm;
 	}
 
+	public List<IpPermission> getPermissions() {
+		return perms;
+	}
+
 	public class IpPermission {
-		public String protocol;
-
-		public int fromPort;
-
-		public int toPort;
-
-		public List<String> cidrIps = new ArrayList<String>();
-
-		public List<String[]> uid_group_pairs = new ArrayList<String[]>();
+		private String protocol;
+		private int fromPort;
+		private int toPort;
+		private List<String> cidrIps = new ArrayList<String>();
+		private List<String[]> uid_group_pairs = new ArrayList<String[]>();
 		
 		public IpPermission(String protocol, int fromPort, int toPort) {
 			this.protocol = protocol;
@@ -68,12 +77,32 @@ public class GroupDescription {
 			this.toPort = toPort;
 		}
 
+		public String getProtocol() {
+			return protocol;
+		}
+
+		public int getFromPort() {
+			return fromPort;
+		}
+
+		public int getToPort() {
+			return toPort;
+		}
+
 		public void addIpRange(String cidrIp) {
 			this.cidrIps.add(cidrIp);
 		}
 
+		public List<String> getIpRanges() {
+			return cidrIps;
+		}
+
 		public void addUserGroupPair(String userId, String groupName) {
 			this.uid_group_pairs.add(new String[] { userId, groupName });
+		}
+
+		public List<String []> getUidGroupPairs() {
+			return uid_group_pairs;
 		}
 
 		public String toString() {

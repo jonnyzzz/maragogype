@@ -27,15 +27,11 @@ package com.xerox.amazonws.ec2;
  * and {@link Jec2#terminateInstances(String[])}.
  */
 public class TerminatingInstanceDescription {
-	public String instanceId;
-
-	public String prevState;
-
-	public String shutdownState;
-
-	public int prevStateCode;
-
-	public int shutdownStateCode;
+	private String instanceId;
+	private String prevState;
+	private String shutdownState;
+	private int prevStateCode;
+	private int shutdownStateCode;
 
 	public TerminatingInstanceDescription(String id, String prevState,
 			int prevStateCode, String shutdownState, int shutdownStateCode) {
@@ -44,6 +40,26 @@ public class TerminatingInstanceDescription {
 		this.prevStateCode = prevStateCode;
 		this.shutdownState = shutdownState;
 		this.shutdownStateCode = shutdownStateCode;
+	}
+
+	public String getInstanceId() {
+		return instanceId;
+	}
+
+	public String getPreviousState() {
+		return prevState;
+	}
+
+	public String getShutdownState() {
+		return shutdownState;
+	}
+
+	public int getPreviousStateCode() {
+		return prevStateCode;
+	}
+
+	public int getShutdownStateCode() {
+		return shutdownStateCode;
 	}
 
 	public String toString() {

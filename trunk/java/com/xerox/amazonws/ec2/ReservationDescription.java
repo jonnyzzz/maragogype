@@ -33,17 +33,22 @@ import com.xerox.amazonws.typica.jaxb.InstanceStateType;
  * {@link Jec2#DescribeInstances(String[])}.
  */
 public class ReservationDescription {
-	public String owner;
-
-	public String resId;
-
-	public List<Instance> instances = new ArrayList<Instance>();
-
-	public List<String> groups = new ArrayList<String>();
+	private String owner;
+	private String resId;
+	private List<Instance> instances = new ArrayList<Instance>();
+	private List<String> groups = new ArrayList<String>();
 
 	public ReservationDescription(String owner, String resId) {
 		this.owner = owner;
 		this.resId = resId;
+	}
+
+	public String getOwner() {
+		return owner;
+	}
+
+	public String getReservationId() {
+		return resId;
 	}
 
 	public Instance addInstance(String imageId, String instanceId,
@@ -55,9 +60,17 @@ public class ReservationDescription {
 		return instance;
 	}
 
+	public List<Instance> getInstances() {
+		return instances;
+	}
+
 	public String addGroup(String groupId) {
 		groups.add(groupId);
 		return groupId;
+	}
+
+	public List<String> getGroups() {
+		return groups;
 	}
 
 	/**
@@ -65,16 +78,11 @@ public class ReservationDescription {
 	 * {@link Jec2.ReservationDescription}.
 	 */
 	public class Instance {
-		public String imageId;
-
-		public String instanceId;
-
-		public String dnsName;
-
-		public String reason;
-
-		public String keyName;
-
+		private String imageId;
+		private String instanceId;
+		private String dnsName;
+		private String reason;
+		private String keyName;
 		/**
 		 * An EC2 instance may be in one of four states:
 		 * <ol>
@@ -87,9 +95,8 @@ public class ReservationDescription {
 		 * <li><b>terminated</b> - the instance is no longer running.</li>
 		 * </ol>
 		 */
-		public String state;
-
-		public int stateCode;
+		private String state;
+		private int stateCode;
 
 		public Instance(String imageId, String instanceId, String dnsName,
 				String stateName, int stateCode, String reason,
@@ -101,6 +108,30 @@ public class ReservationDescription {
 			this.stateCode = stateCode;
 			this.reason = reason;
 			this.keyName = keyName;
+		}
+
+		public String getImageId() {
+			return imageId;
+		}
+
+		public String getInstanceId() {
+			return instanceId;
+		}
+
+		public String getDnsName() {
+			return dnsName;
+		}
+
+		public String getReason() {
+			return reason;
+		}
+
+		public String getKeyName() {
+			return keyName;
+		}
+
+		public String getState() {
+			return state;
 		}
 
 		public boolean isRunning() {
@@ -117,6 +148,10 @@ public class ReservationDescription {
 
 		public boolean isTerminated() {
 			return this.state.equalsIgnoreCase("terminated");
+		}
+
+		public int getStateCode() {
+			return stateCode;
 		}
 
 		public String toString() {

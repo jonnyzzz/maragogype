@@ -19,15 +19,17 @@
 
 package com.xerox.amazonws.ec2;
 
+import java.util.Calendar;
+
 /**
  * An instance of this class represents an instance's console output.
  * <p>
  * {@link Jec2#getConsoleOutput(String instanceId)}
  */
 public class ConsoleOutput {
-	public String instanceId;
-	public java.util.Calendar timestamp;
-	public String output;                     // naked (i.e. not escaped, not BASE64)
+	private String instanceId;
+	private Calendar timestamp;
+	private String output;                     // naked (i.e. not escaped, not BASE64)
 
 	public ConsoleOutput(String instanceId,
 						java.util.Calendar timestamp,
@@ -35,6 +37,18 @@ public class ConsoleOutput {
 		this.instanceId = instanceId;
 		this.timestamp = timestamp;
 		this.output = output;
+	}
+
+	public String getInstanceId() {
+		return instanceId;
+	}
+
+	public Calendar getTimestamp() {
+		return timestamp;
+	}
+
+	public String getOutput() {
+		return output;
 	}
 
 	public String toString() {

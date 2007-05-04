@@ -344,16 +344,11 @@ public class Jec2 extends AWSQueryConnection {
 	 * If less than <code>minCount</code> instances are available no instances
 	 * will be reserved.
 	 * 
-	 * @param imageId
-	 *            An AMI ID as returned by {@link #registerImage(String)}.
-	 * @param minCount
-	 *            The minimum number of instances to attempt to reserve.
-	 * @param maxCount
-	 *            The maximum number of instances to attempt to reserve.
-	 * @param groupSet
-	 *            A (possibly empty) set of security group definitions.
-	 * @param userData
-	 *            User supplied data that will be made available to the instance(s)
+	 * @param imageId An AMI ID as returned by {@link #registerImage(String)}.
+	 * @param minCount The minimum number of instances to attempt to reserve.
+	 * @param maxCount The maximum number of instances to attempt to reserve.
+	 * @param groupSet A (possibly empty) set of security group definitions.
+	 * @param userData User supplied data that will be made available to the instance(s)
 	 * @return A {@link ReservationDescription} describing the instances that
 	 *         have been reserved.
 	 * @throws EC2Exception wraps checked exceptions
@@ -420,13 +415,9 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Terminates a selection of running instances.
 	 * 
-	 * @param instanceIds
-	 *            An array of instances ({@link ReservationDescription.Instance#instanceId}.
+	 * @param instanceIds An array of instances ({@link ReservationDescription.Instance#instanceId}.
 	 * @return A list of {@link TerminatingInstanceDescription} instances.
-	 * @throws Jec2SoapFaultException
-	 *             If a SOAP fault is received from the EC2 API.
-	 * @throws Exception
-	 *             If any other error occurs issuing the SOAP call.
+	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<TerminatingInstanceDescription> terminateInstances(
 			String[] instanceIds) throws Exception {
@@ -490,8 +481,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * by the caller will be returned. Otherwise the list will contain
 	 * information for the requested instances only.
 	 * 
-	 * @param instanceIds
-	 *            An array of instances ({@link ReservationDescription.Instance#instanceId}.
+	 * @param instanceIds An array of instances ({@link ReservationDescription.Instance#instanceId}.
 	 * @return A list of {@link ReservationDescription} instances.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
@@ -506,8 +496,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * by the caller will be returned. Otherwise the list will contain
 	 * information for the requested instances only.
 	 * 
-	 * @param instanceIds
-	 *            A list of instances ({@link ReservationDescription.Instance#instanceId}.
+	 * @param instanceIds A list of instances ({@link ReservationDescription.Instance#instanceId}.
 	 * @return A list of {@link ReservationDescription} instances.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
@@ -1111,7 +1100,7 @@ public class Jec2 extends AWSQueryConnection {
 								ImageListAttributeOperationType operationType) throws Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ImageId", imageId);
-		if (attribute.type.equals(ImageAttribute.ImageAttributeType.launchPermission)) {
+		if (attribute.getType().equals(ImageAttribute.ImageAttributeType.launchPermission)) {
 			params.put("Attribute", "launchPermission");
 		}
 
@@ -1124,10 +1113,10 @@ public class Jec2 extends AWSQueryConnection {
 
 		int gNum = 1;
 		int iNum = 1;
-		for(ImageListAttributeItem item : attribute.items) {
-			switch (item.type) {
-				case group: params.put("UserGroup."+gNum, item.value); gNum++; break;
-				case userId: params.put("UserId."+iNum, item.value); iNum++; break;
+		for(ImageListAttributeItem item : attribute.getImageListAttributeItems()) {
+			switch (item.getType()) {
+				case group: params.put("UserGroup."+gNum, item.getValue()); gNum++; break;
+				case userId: params.put("UserId."+iNum, item.getValue()); iNum++; break;
 				default:
 					throw new IllegalArgumentException("Unknown item type.");
 			}
@@ -1250,17 +1239,4 @@ public class Jec2 extends AWSQueryConnection {
 			throw new EC2Exception(ex.getMessage(), ex);
 		}
 	}
-
-//			copy(iStr, System.err);
-//			iStr = makeRequest("GET", "DescribeImage", params).getInputStream();
-    private static void copy(InputStream iStr, OutputStream oStr) throws IOException {
-		byte [] buffer = new byte [16384];
-		int count = iStr.read(buffer);
-		while (count != -1) {
-			if (count > 0) {
-				oStr.write(buffer, 0, count);
-            }
-			count = iStr.read(buffer);
-		}
-    }
 }

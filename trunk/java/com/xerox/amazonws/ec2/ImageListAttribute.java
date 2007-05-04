@@ -26,6 +26,8 @@ import java.util.HashSet;
  * The base class for all AMI list attributes.
  */
 public abstract class ImageListAttribute extends ImageAttribute {
+	private Set<ImageListAttributeItem> items;
+
 	/**
 	 * Enumerates image list attribute item types.
 	 */
@@ -53,6 +55,10 @@ public abstract class ImageListAttribute extends ImageAttribute {
 		else
 		  return false;
 	}
+
+	public Set<ImageListAttributeItem> getImageListAttributeItems() {
+		return items;
+	}
 	
 	/**
 	 * Indicates if the list attribute may contain items of the given type.
@@ -62,7 +68,5 @@ public abstract class ImageListAttribute extends ImageAttribute {
 	 * 
 	 */
 	public abstract boolean itemTypeCompatible(ImageListAttributeItemType type);
-	
-	public Set<ImageListAttributeItem> items;
 }
 

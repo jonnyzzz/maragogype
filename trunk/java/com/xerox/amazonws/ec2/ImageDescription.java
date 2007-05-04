@@ -26,15 +26,11 @@ package com.xerox.amazonws.ec2;
  * {@link Jec2#describeImages(String[])}.
  */
 public class ImageDescription {
-	public String imageId;
-
-	public String imageLocation;
-
-	public String imageOwnerId;
-
-	public String imageState;
-
-	public boolean isPublic;
+	private String imageId;
+	private String imageLocation;
+	private String imageOwnerId;
+	private String imageState;
+	private boolean isPublic;
 
 	public ImageDescription(String id, String loc, String owner,
 			String state, Boolean isPublic) {
@@ -43,6 +39,26 @@ public class ImageDescription {
 		this.imageOwnerId = owner;
 		this.imageState = state;
 		this.isPublic = isPublic;
+	}
+
+	public String getImageId() {
+		return imageId;
+	}
+
+	public String getImageLocation() {
+		return imageLocation;
+	}
+
+	public String getImageOwnerId() {
+		return imageOwnerId;
+	}
+
+	public String getImageState() {
+		return imageState;
+	}
+
+	public boolean isPublic() {
+		return isPublic;
 	}
 
 	public String toString() {

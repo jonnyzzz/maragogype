@@ -38,8 +38,8 @@ public class TestJec2 {
 			List<ImageDescription> images = ec2.describeImages(params);
 			log.info("Available Images");
 			for (ImageDescription img : images) {
-				if (img.imageState.equals("available")) {
-					log.info(img.imageId+"\t"+img.imageLocation+"\t"+img.imageOwnerId);
+				if (img.getImageState().equals("available")) {
+					log.info(img.getImageId()+"\t"+img.getImageLocation()+"\t"+img.getImageOwnerId());
 				}
 			}
 /*
@@ -51,45 +51,45 @@ public class TestJec2 {
 //		ec2.runInstances("ami-20b65349", 1, 1, new ArrayList<String>(), null, "xrxdak-keypair");
 
 /*
+*/
 		params = new ArrayList<String>();
 		List<ReservationDescription> instances = ec2.describeInstances(params);
 		log.info("Instances");
 		String instanceId = "";
 		for (ReservationDescription res : instances) {
-			log.info(res.owner+"\t"+res.resId+"\t"+res.owner);
-			if (res.instances != null) {
-				for (Instance inst : res.instances) {
-					log.info("\t"+inst.imageId+"\t"+inst.dnsName+"\t"+inst.state+"\t"+inst.keyName);
-					instanceId = inst.instanceId;
+			log.info(res.getOwner()+"\t"+res.getReservationId());
+			if (res.getInstances() != null) {
+				for (Instance inst : res.getInstances()) {
+					log.info("\t"+inst.getImageId()+"\t"+inst.getDnsName()+"\t"+inst.getState()+"\t"+inst.getKeyName());
+					instanceId = inst.getInstanceId();
 				}
 			}
 		}
-*/
 		// test console output
 /*
+*/
 		ConsoleOutput consOutput = ec2.getConsoleOutput(instanceId);
 		log.info("Console Output:");
-		log.info(consOutput.output);
-*/
+		log.info(consOutput.getOutput());
 
 		// test keypair methods
 /*
 		List<KeyPairInfo> info = ec2.describeKeyPairs(new String [] {});
 		log.info("keypair list");
 		for (KeyPairInfo i : info) {
-			log.info("keypair : "+i.keyName+", "+i.keyFingerprint);
+			log.info("keypair : "+i.getKeyName()+", "+i.getKeyFingerprint());
 		}
 		ec2.createKeyPair("test-keypair");
 		info = ec2.describeKeyPairs(new String [] {});
 		log.info("keypair list");
 		for (KeyPairInfo i : info) {
-			log.info("keypair : "+i.keyName+", "+i.keyFingerprint);
+			log.info("keypair : "+i.getKeyName()+", "+i.getKeyFingerprint());
 		}
 		ec2.deleteKeyPair("test-keypair");
 		info = ec2.describeKeyPairs(new String [] {});
 		log.info("keypair list");
 		for (KeyPairInfo i : info) {
-			log.info("keypair : "+i.keyName+", "+i.keyFingerprint);
+			log.info("keypair : "+i.getKeyName()+", "+i.getKeyFingerprint());
 		}
 */
 
@@ -97,22 +97,24 @@ public class TestJec2 {
 		List<GroupDescription> info = ec2.describeSecurityGroups(new String [] {});
 		log.info("SecurityGroup list");
 		for (GroupDescription i : info) {
-			log.info("group : "+i.name+", "+i.desc+", "+i.owner);
+			log.info("group : "+i.getName()+", "+i.getDescription()+", "+i.getOwner());
 		}
 /*
+*/
 		ec2.createSecurityGroup("test-group", "My test security group");
 		info = ec2.describeSecurityGroups(new String [] {});
 		log.info("SecurityGroup list");
 		for (GroupDescription i : info) {
-			log.info("group : "+i.name+", "+i.desc);
+			log.info("group : "+i.getName()+", "+i.getDescription());
 		}
 		ec2.deleteSecurityGroup("test-group");
 		info = ec2.describeSecurityGroups(new String [] {});
 		log.info("GroupDescription list");
 		for (GroupDescription i : info) {
-			log.info("group : "+i.name+", "+i.desc);
+			log.info("group : "+i.getName()+", "+i.getDescription());
 		}
-*/
+		ec2.authorizeSecurityGroupIngress("default", "tcp", 1000, 1001, "0.0.0.0/0");
+		ec2.revokeSecurityGroupIngress("default", "tcp", 1000, 1001, "0.0.0.0/0");
 		ec2.authorizeSecurityGroupIngress("default", "tcp", 1000, 1001, "0.0.0.0/0");
 		ec2.revokeSecurityGroupIngress("default", "tcp", 1000, 1001, "0.0.0.0/0");
 
@@ -121,31 +123,32 @@ public class TestJec2 {
 
 		// test image attribute methods
 /*
+*/
 		DescribeImageAttributeResult res = ec2.describeImageAttribute("ami-5e836637", ImageAttributeType.launchPermission);
-		Iterator<ImageListAttributeItem> iter = res.imageListAttribute.items.iterator();
+		Iterator<ImageListAttributeItem> iter = res.getImageListAttribute().getImageListAttributeItems().iterator();
 		log.info("image attrs");
 		while (iter.hasNext()) {
 			ImageListAttributeItem item = iter.next();
-			log.info("image : "+res.imageId+", "+item.value);
+			log.info("image : "+res.getImageId()+", "+item.getValue());
 		}
 		LaunchPermissionAttribute attr = new LaunchPermissionAttribute();
-		attr.items.add(new ImageListAttributeItem(ImageListAttributeItemType.userId, "291944132575"));
+		attr.getImageListAttributeItems().add(new ImageListAttributeItem(ImageListAttributeItemType.userId, "291944132575"));
 		ec2.modifyImageAttribute("ami-5e836637", attr, ImageListAttributeOperationType.add);
 		res = ec2.describeImageAttribute("ami-5e836637", ImageAttributeType.launchPermission);
-		iter = res.imageListAttribute.items.iterator();
+		iter = res.getImageListAttribute().getImageListAttributeItems().iterator();
 		log.info("image attrs");
 		while (iter.hasNext()) {
 			ImageListAttributeItem item = iter.next();
-			log.info("image : "+res.imageId+", "+item.value);
+			log.info("image : "+res.getImageId()+", "+item.getValue());
 		}
 		ec2.resetImageAttribute("ami-5e836637", ImageAttributeType.launchPermission);
 		res = ec2.describeImageAttribute("ami-5e836637", ImageAttributeType.launchPermission);
-		iter = res.imageListAttribute.items.iterator();
+		iter = res.getImageListAttribute().getImageListAttributeItems().iterator();
 		log.info("image attrs");
 		while (iter.hasNext()) {
 			ImageListAttributeItem item = iter.next();
-			log.info("image : "+res.imageId+", "+item.value);
+			log.info("image : "+res.getImageId()+", "+item.getValue());
 		}
-*/
 	}
 }
+
