@@ -1,12 +1,12 @@
 #labels Featured
-#Here is some simple code that demonstrates using typica for SQS and EC2.
+Here is some simple code that demonstrates using typica for SQS and EC2.
 
 = Introduction =
 
 This code can be found in Subverion, but it is sometimes helpful to document code sample in something approximating a users manual.
 
-= Details =
-
+= SQS =
 Usage of SQS is simple. First, you create or get an existing queue. For that, you have the QueueService object. When using a specific queue, the MessageQueue object provides methods for queue interaction.
 
-
+= EC2 =
+The Jec2 class provides methods to perform all of the functions you can perform using the EC2 QUERY API.
