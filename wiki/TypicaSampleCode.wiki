@@ -9,6 +9,7 @@ This code can be found in Subverion, but it is sometimes helpful to document cod
 Usage of SQS is simple. First, you create or get an existing queue. For that, you have the QueueService object. When using a specific queue, the MessageQueue object provides methods for queue interaction.
 
 === Enqueue Sample ===
+[http://typica.googlecode.com/svn/trunk/test/java/EnqueueSample.java]
 {{{
 import org.apache.log4j.Logger;
 
@@ -51,6 +52,7 @@ public class EnqueueSample {
 }}}
 
 === Dequeue Sample ===
+[http://typica.googlecode.com/svn/trunk/test/java/DequeueSample.java]
 {{{
 import org.apache.log4j.Logger;
 
@@ -107,3 +109,5 @@ public class DequeueSample {
 
 = EC2 =
 The Jec2 class provides methods to perform all of the functions you can perform using the EC2 QUERY API.
+
+
