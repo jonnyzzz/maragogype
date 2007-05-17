@@ -420,7 +420,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<TerminatingInstanceDescription> terminateInstances(
-			String[] instanceIds) throws Exception {
+			String[] instanceIds) throws EC2Exception {
 		return this.terminateInstances(Arrays.asList(instanceIds));
 	}
 
@@ -432,7 +432,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<TerminatingInstanceDescription> terminateInstances(List<String> instanceIds)
-			throws Exception {
+			throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		for (int i=0 ; i<instanceIds.size(); i++) {
 			params.put("InstanceId."+(i+1), instanceIds.get(i));
@@ -642,7 +642,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @return <code>true</code> if the group was created, otherwise <code>false</code>
 	 * @throws EC2Exception wraps checked exceptions
 	 */
-	public void createSecurityGroup(String name, String desc) throws Exception {
+	public void createSecurityGroup(String name, String desc) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("GroupName", name);
 		params.put("GroupDescription", desc);
@@ -678,7 +678,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @return <code>true</code> if the group was deleted, otherwise <code>false</code>
 	 * @throws EC2Exception wraps checked exceptions
 	 */
-	public void deleteSecurityGroup(String name) throws Exception {
+	public void deleteSecurityGroup(String name) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("GroupName", name);
 		try {
@@ -714,7 +714,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<GroupDescription> describeSecurityGroups(String[] groupNames)
-			throws Exception {
+			throws EC2Exception {
 		return describeSecurityGroups(Arrays.asList(groupNames));
 	}
 
@@ -726,7 +726,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<GroupDescription> describeSecurityGroups(List<String> groupNames)
-			throws Exception {
+			throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		for (int i=0 ; i<groupNames.size(); i++) {
 			params.put("GroupName."+(i+1), groupNames.get(i));
@@ -999,7 +999,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @return A list of keypair descriptions ({@link KeyPairInfo}).
 	 * @throws EC2Exception wraps checked exceptions
 	 */
-	public List<KeyPairInfo> describeKeyPairs(String[] keyIds) throws Exception {
+	public List<KeyPairInfo> describeKeyPairs(String[] keyIds) throws EC2Exception {
 		return describeKeyPairs(Arrays.asList(keyIds));
 	}
 
@@ -1011,7 +1011,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<KeyPairInfo> describeKeyPairs(List<String> keyIds)
-			throws Exception {
+			throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		for (int i=0 ; i<keyIds.size(); i++) {
 			params.put("KeyName."+(i+1), keyIds.get(i));
@@ -1052,7 +1052,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param keyName Name of the keypair.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
-	public void deleteKeyPair(String keyName) throws Exception {
+	public void deleteKeyPair(String keyName) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("KeyName", keyName);
 		try {
@@ -1097,7 +1097,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public void modifyImageAttribute(String imageId, ImageListAttribute attribute,
-								ImageListAttributeOperationType operationType) throws Exception {
+								ImageListAttributeOperationType operationType) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ImageId", imageId);
 		if (attribute.getType().equals(ImageAttribute.ImageAttributeType.launchPermission)) {
@@ -1154,7 +1154,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param imageAttribute The attribute type to reset.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
-	public void resetImageAttribute(String imageId, ImageAttribute.ImageAttributeType imageAttribute) throws Exception {
+	public void resetImageAttribute(String imageId, ImageAttribute.ImageAttributeType imageAttribute) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ImageId", imageId);
 		if (imageAttribute.equals(ImageAttribute.ImageAttributeType.launchPermission)) {
@@ -1194,7 +1194,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public DescribeImageAttributeResult describeImageAttribute(String imageId,
-						ImageAttribute.ImageAttributeType imageAttribute) throws Exception {
+						ImageAttribute.ImageAttributeType imageAttribute) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ImageId", imageId);
 		if (imageAttribute.equals(ImageAttribute.ImageAttributeType.launchPermission)) {
