@@ -220,6 +220,15 @@ public class MessageQueue extends QueueService {
 	}
 
 	/**
+	 * Deletes the message identified by message object on the queue this object represents.
+	 *
+	 * @param msg the message to be deleted
+	 */
+    public void deleteMessage(Message msg) throws SQSException {
+		deleteMessage(msg.getMessageId());
+	}
+
+	/**
 	 * Deletes the message identified by msgid on the queue this object represents.
 	 *
 	 * @param msgId the id of the message to be deleted
