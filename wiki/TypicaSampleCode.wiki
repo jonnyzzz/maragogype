@@ -1,4 +1,3 @@
-#labels Featured
 Here is some simple code that demonstrates using typica for SQS and EC2.
 
 = Introduction =
