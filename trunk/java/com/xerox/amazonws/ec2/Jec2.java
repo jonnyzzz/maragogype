@@ -343,6 +343,8 @@ public class Jec2 extends AWSQueryConnection {
 	 * <p>
 	 * If less than <code>minCount</code> instances are available no instances
 	 * will be reserved.
+	 * <p>
+	 * NOTE: this method defaults to the AWS desired "public" addressing type.
 	 * 
 	 * @param imageId An AMI ID as returned by {@link #registerImage(String)}.
 	 * @param minCount The minimum number of instances to attempt to reserve.
@@ -356,6 +358,31 @@ public class Jec2 extends AWSQueryConnection {
 	public ReservationDescription runInstances(String imageId, int minCount,
 			int maxCount, List<String> groupSet, String userData, String keyName)
 				throws EC2Exception {
+		return runInstances(imageId, minCount, maxCount, groupSet, userData, keyName, true);
+	}
+
+	/**
+	 * Requests reservation of a number of instances.
+	 * <p>
+	 * This will begin launching those instances for which a reservation was
+	 * successfully obtained.
+	 * <p>
+	 * If less than <code>minCount</code> instances are available no instances
+	 * will be reserved.
+	 * 
+	 * @param imageId An AMI ID as returned by {@link #registerImage(String)}.
+	 * @param minCount The minimum number of instances to attempt to reserve.
+	 * @param maxCount The maximum number of instances to attempt to reserve.
+	 * @param groupSet A (possibly empty) set of security group definitions.
+	 * @param userData User supplied data that will be made available to the instance(s)
+	 * @param publicAddr sets addressing mode to public
+	 * @return A {@link ReservationDescription} describing the instances that
+	 *         have been reserved.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public ReservationDescription runInstances(String imageId, int minCount,
+			int maxCount, List<String> groupSet, String userData, String keyName, boolean publicAddr)
+				throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ImageId", imageId);
 		params.put("MinCount", ""+minCount);
@@ -363,7 +390,12 @@ public class Jec2 extends AWSQueryConnection {
 		if (userData != null && !userData.trim().equals("")) {
 			params.put("UserData", userData);
 		}
-		params.put("AddressingType", "direct");
+		if (publicAddr) {
+			params.put("AddressingType", "public");
+		}
+		else {
+			params.put("AddressingType", "direct");
+		}
 		if (keyName != null && !keyName.trim().equals("")) {
 			params.put("KeyName", keyName);
 		}
