@@ -1,0 +1,22 @@
+Release Process Documentation
+
+check that no AWS ids/keys are in the test code
+
+ensure everything is checked in, run "svn stat"
+
+clean workspace;
+  ant clean
+
+build release
+  ant dist  - entering version number (i.e. 0.5)
+
+update REAME with feature change and change log (use "svn log" in trunk to get change history)
+
+add dist file to svn and commit dist and README changes
+
+tag release
+  svn copy https://typica.googlecode.com/svn/trunk/ https://typica.googlecode.com/svn/tags/v0.5 -m "tagging the 0.5 release"
+
+upload release to google code downloads. feature it, remove feature tag from older release 
+
+post anouncement in SQS forum, EC2 forum, etc. as appropriate
