@@ -24,8 +24,8 @@ public class TestJec2 {
     private static Logger log = LoggingConfigurator.configureLogging(TestJec2.class);
 
 	public static void main(String [] args) throws Exception {
-        final String AWSAccessKeyId = "[AWS Access Id]";
-        final String SecretAccessKey = "[AWS Secret Key]";
+		final String AWSAccessKeyId = "[AWS Access Id]";
+		final String SecretAccessKey = "[AWS Secret Key]";
 
 		Jec2 ec2 = new Jec2(AWSAccessKeyId, SecretAccessKey);
 		List<String> params = new ArrayList<String>();

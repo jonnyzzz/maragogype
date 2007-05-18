@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 import com.xerox.amazonws.sqs.QueueService;
 import com.xerox.amazonws.sqs.Message;
 import com.xerox.amazonws.sqs.MessageQueue;
+import com.xerox.amazonws.sqs.SQSException;
 import com.xerox.amazonws.tools.LoggingConfigurator;
 
 public class TestQueueService {
@@ -35,6 +36,23 @@ public class TestQueueService {
 				mq.deleteMessage(msg.getMessageId());
 			}
 //			msg = mq.peekMessage(msg.getMessageId());
+		}
+		// test forced deletion
+		MessageQueue mq = qs.getOrCreateMessageQueue("deleteTest-12345");
+		for (int j=0; j<10; j++) {	// throw 10 messages in the queue
+			mq.sendMessage("Testing 1, 2, 3");
+		}
+		try {
+			mq.deleteQueue();
+			log.error("Queue deletion was allowed, even with messages and force=false !!");
+		} catch (SQSException ex) {
+			log.debug("queue can't be deleted (this is exptected)");
+		}
+		try {
+			mq.deleteQueue(true);
+			log.debug("queue deleted with force=true (this is exptected)");
+		} catch (SQSException ex) {
+			log.error("Queue deletion failed (this is not exptected) !!");
 		}
 	}
 }

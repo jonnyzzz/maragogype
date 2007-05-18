@@ -6,16 +6,12 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import com.xerox.amazonws.ec2.ConsoleOutput;
-import com.xerox.amazonws.ec2.DescribeImageAttributeResult;
 import com.xerox.amazonws.ec2.GroupDescription;
 import com.xerox.amazonws.ec2.Jec2;
-import com.xerox.amazonws.ec2.Jec2.ImageListAttributeOperationType;
-import com.xerox.amazonws.ec2.ImageAttribute.ImageAttributeType;
 import com.xerox.amazonws.ec2.ImageDescription;
 import com.xerox.amazonws.ec2.ImageListAttributeItem;
 import com.xerox.amazonws.ec2.ImageListAttribute.ImageListAttributeItemType;
 import com.xerox.amazonws.ec2.KeyPairInfo;
-import com.xerox.amazonws.ec2.LaunchPermissionAttribute;
 import com.xerox.amazonws.ec2.ReservationDescription;
 import com.xerox.amazonws.ec2.ReservationDescription.Instance;
 import com.xerox.amazonws.tools.LoggingConfigurator;

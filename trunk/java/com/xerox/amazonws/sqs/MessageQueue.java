@@ -253,12 +253,21 @@ public class MessageQueue extends QueueService {
 	}
 
 	/**
-	 * Deletes the message queue represented by this object.
+	 * Deletes the message queue represented by this object. Will fail if queue isn't empty.
 	 */
     public void deleteQueue() throws SQSException {
+		deleteQueue(false);
+	}
+
+	/**
+	 * Deletes the message queue represented by this object.
+	 *
+	 * @param force when true, non-empty queues will be deleted
+	 */
+    public void deleteQueue(boolean force) throws SQSException {
         int respCode;
 		try {
-			HttpURLConnection conn = makeRequest("DELETE", queueId, super.headers);
+			HttpURLConnection conn = makeRequest("DELETE", queueId+"?ForceDeletion="+Boolean.toString(force), super.headers);
 			if ((respCode = conn.getResponseCode()) < 400) {
 				InputStream iStr = conn.getInputStream();
 				DeleteQueueResponse response = JAXBuddy.deserializeXMLStream(DeleteQueueResponse.class, iStr);
