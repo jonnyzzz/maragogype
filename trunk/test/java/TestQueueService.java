@@ -16,13 +16,13 @@ public class TestQueueService {
         final String AWSAccessKeyId = "[AWS Access Id]";
         final String SecretAccessKey = "[AWS Secret Key]";
 
-		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey);
+		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey, false, "localhost");
 		List<MessageQueue> queues = qs.listMessageQueues(null);
 		for (MessageQueue queue : queues) {
 			log.debug("Queue : "+queue.getUrl().toString());
 			// delete queues that contain a certain phrase
 			if (queue.getUrl().toString().indexOf("test")>-1) {
-				queue.deleteQueue();
+//				queue.deleteQueue();
 			}
 		}
 		for (int i=0; i<args.length; i++) {
@@ -33,15 +33,16 @@ public class TestQueueService {
 			for (int j=0; j<50; j++) {
 				Message msg = mq.receiveMessage();
 				log.debug("Message "+(j+1)+" = "+msg.getMessageBody());
+				msg = mq.peekMessage(msg.getMessageId());
 				mq.deleteMessage(msg.getMessageId());
 			}
-//			msg = mq.peekMessage(msg.getMessageId());
 		}
 		// test forced deletion
 		MessageQueue mq = qs.getOrCreateMessageQueue("deleteTest-12345");
 		for (int j=0; j<10; j++) {	// throw 10 messages in the queue
 			mq.sendMessage("Testing 1, 2, 3");
 		}
+		log.debug("approximate queue size = "+mq.getApproximateNumberOfMessages());
 		try {
 			mq.deleteQueue();
 			log.error("Queue deletion was allowed, even with messages and force=false !!");

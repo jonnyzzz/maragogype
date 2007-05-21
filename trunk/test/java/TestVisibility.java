@@ -15,7 +15,7 @@ public class TestVisibility {
         final String AWSAccessKeyId = "[AWS Access Id]";
         final String SecretAccessKey = "[AWS Secret Key]";
 
-		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey);
+		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey, false, "localhost");
 		MessageQueue mq = qs.getOrCreateMessageQueue(args[0]);
 		int timeout = mq.getVisibilityTimeout();
 		log.debug("Queue timeout = "+timeout);

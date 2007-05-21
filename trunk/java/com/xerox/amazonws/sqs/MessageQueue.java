@@ -27,18 +27,21 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
 import com.xerox.amazonws.common.JAXBuddy;
+import com.xerox.amazonws.typica.jaxb.AttributedValue;
 import com.xerox.amazonws.typica.jaxb.DeleteMessageResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteQueueResponse;
-import com.xerox.amazonws.typica.jaxb.GetVisibilityTimeoutResponse;
+import com.xerox.amazonws.typica.jaxb.GetQueueAttributesResponse;
 import com.xerox.amazonws.typica.jaxb.PeekMessageResponse;
 import com.xerox.amazonws.typica.jaxb.ReceiveMessageResponse;
 import com.xerox.amazonws.typica.jaxb.SendMessageResponse;
-import com.xerox.amazonws.typica.jaxb.SetVisibilityTimeoutResponse;
+import com.xerox.amazonws.typica.jaxb.SetQueueAttributesResponse;
 
 /**
  * This class provides an interface with the Amazon SQS message queue. It provides methods
@@ -81,9 +84,10 @@ public class MessageQueue extends QueueService {
 	 * @return the message id for the message just sent
 	 */
     public String sendMessage(String msg) throws SQSException {
+		Map<String, String> params = new HashMap<String, String>();
 		try {
-			String request = queueId+"/back";
-			URLConnection conn = makeRequest("PUT", request, super.headers);
+			URLConnection conn = makeRequest("POST", "SendMessage", params);
+			conn.setRequestProperty("content-type", "text/plain");
 			conn.setDoOutput(true);
 			OutputStream oStr = conn.getOutputStream();
 			oStr.write(new String(msg).getBytes());
@@ -162,10 +166,15 @@ public class MessageQueue extends QueueService {
 	 * @return
 	 */
     protected Message[] receiveMessages(BigInteger numMessages, BigInteger visibilityTimeout) throws SQSException {
+		Map<String, String> params = new HashMap<String, String>();
+		if (numMessages != null) {
+			params.put("NumberOfMessages", numMessages.toString());
+		}
+		if (visibilityTimeout != null) {
+			params.put("VisibilityTimeout", visibilityTimeout.toString());
+		}
 		try {
-			String request = queueId+"/front?NumberOfMessages="+numMessages;
-			if (visibilityTimeout != null) request += "&VisibilityTimeout="+visibilityTimeout;
-			HttpURLConnection conn = makeRequest("GET", request, super.headers);
+			HttpURLConnection conn = makeRequest("GET", "ReceiveMessage", params);
 			if (conn.getResponseCode() < 400) {
 				InputStream iStr = conn.getInputStream();
 				ReceiveMessageResponse response = JAXBuddy.deserializeXMLStream(ReceiveMessageResponse.class, iStr);
@@ -200,8 +209,10 @@ public class MessageQueue extends QueueService {
 	 * @return
 	 */
     public Message peekMessage(String msgId) throws SQSException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("MessageId", msgId);
 		try {
-			InputStream iStr = makeRequest("GET", queueId+"/"+msgId, super.headers).getInputStream();
+			InputStream iStr = makeRequest("GET", "PeekMessage", params).getInputStream();
 			PeekMessageResponse response = JAXBuddy.deserializeXMLStream(PeekMessageResponse.class, iStr);
 			com.xerox.amazonws.typica.jaxb.Message msg = response.getMessage();
 			if (msg == null) {
@@ -234,8 +245,10 @@ public class MessageQueue extends QueueService {
 	 * @param msgId the id of the message to be deleted
 	 */
     public void deleteMessage(String msgId) throws SQSException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("MessageId", msgId);
 		try {
-			HttpURLConnection conn = makeRequest("DELETE", queueId+"/"+msgId, super.headers);
+			HttpURLConnection conn = makeRequest("GET", "DeleteMessage", params);
 			if (conn.getResponseCode() < 400) {
 				InputStream iStr = conn.getInputStream();
 				DeleteMessageResponse response = JAXBuddy.deserializeXMLStream(DeleteMessageResponse.class, iStr);
@@ -265,9 +278,13 @@ public class MessageQueue extends QueueService {
 	 * @param force when true, non-empty queues will be deleted
 	 */
     public void deleteQueue(boolean force) throws SQSException {
+		Map<String, String> params = new HashMap<String, String>();
+		if (force) {
+			params.put("ForceDeletion", "true");
+		}
         int respCode;
 		try {
-			HttpURLConnection conn = makeRequest("DELETE", queueId+"?ForceDeletion="+Boolean.toString(force), super.headers);
+			HttpURLConnection conn = makeRequest("GET", "DeleteQueue", params);
 			if ((respCode = conn.getResponseCode()) < 400) {
 				InputStream iStr = conn.getInputStream();
 				DeleteQueueResponse response = JAXBuddy.deserializeXMLStream(DeleteQueueResponse.class, iStr);
@@ -285,17 +302,42 @@ public class MessageQueue extends QueueService {
 	}
 
 	/**
-	 * Gets the visibility timeout for the queue. 
+	 * Gets the visibility timeout for the queue. Uses {@link getQueueAttribute()}.
 	 */
     public int getVisibilityTimeout() throws SQSException {
+		return Integer.parseInt(getQueueAttributes(QueueAttribute.VISIBILITY_TIMEOUT)
+										.values().iterator().next());
+	}
+
+	/**
+	 * Gets the visibility timeout for the queue. Uses {@link getQueueAttribute()}.
+	 */
+    public int getApproximateNumberOfMessages() throws SQSException {
+		return Integer.parseInt(getQueueAttributes(QueueAttribute.APPROXIMATE_NUMBER_OF_MESSAGES)
+										.values().iterator().next());
+	}
+
+	/**
+	 * Gets queue attributes. This is provided to expose the underlying functionality.
+	 * Currently supported attributes are ApproximateNumberOfMessages and VisibilityTimeout.
+	 *
+	 * @return a map of attributes and their values
+	 */
+	public Map<String,String> getQueueAttributes(QueueAttribute qAttr) throws SQSException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("Attribute", qAttr.queryAttribute());
 		try {
-			String request = queueId+"/";
-			HttpURLConnection conn = makeRequest("GET", request, super.headers);
+			HttpURLConnection conn = makeRequest("GET", "GetQueueAttributes", params);
 			if (conn.getResponseCode() < 400) {
 				InputStream iStr = conn.getInputStream();
-				GetVisibilityTimeoutResponse response = JAXBuddy.deserializeXMLStream(GetVisibilityTimeoutResponse.class, iStr);
+				GetQueueAttributesResponse response = JAXBuddy.deserializeXMLStream(GetQueueAttributesResponse.class, iStr);
 				if (response.getResponseStatus().getStatusCode().equals("Success")) {
-					return response.getVisibilityTimeout().intValue();
+					Map<String,String> ret = new HashMap<String,String>();
+					List<AttributedValue> attrs = response.getAttributedValues();
+					for (AttributedValue attr : attrs) {
+						ret.put(attr.getAttribute(), attr.getValue());
+					}
+					return ret;
 				}
 				else {
 					throw new SQSException("Error getting timeout. Response msg = "+response.getResponseStatus().getMessage());
@@ -314,15 +356,31 @@ public class MessageQueue extends QueueService {
 	}
 
 	/**
-	 * Placeholder. Not implemented.
+	 * Sets the visibility timeout of the queue. Uses {@link setQueueAttribute(String, String)}.
+	 *
+	 * @param timeout the duration (in seconds) the retrieved message is hidden from
+	 *                          subsequent calls to retrieve.
 	 */
     public void setVisibilityTimeout(int timeout) throws SQSException {
+		setQueueAttribute("VisibilityTimeout", ""+timeout);
+	}
+
+	/**
+	 * Sets a queue attribute. This is provided to expose the underlying functionality, although
+	 * the only attribute at this time is visibility timeout.
+	 *
+	 * @param attribute name of the attribute being set
+	 * @param value the value being set for this attribute
+	 */
+    public void setQueueAttribute(String attribute, String value) throws SQSException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("Attribute", attribute);
+		params.put("Value", value);
 		try {
-			String request = queueId+"?VisibilityTimeout="+timeout;
-			HttpURLConnection conn = makeRequest("PUT", request, super.headers);
+			HttpURLConnection conn = makeRequest("GET", "SetQueueAttributes", params);
 			if (conn.getResponseCode() < 400) {
 				InputStream iStr = conn.getInputStream();
-				SetVisibilityTimeoutResponse response = JAXBuddy.deserializeXMLStream(SetVisibilityTimeoutResponse.class, iStr);
+				SetQueueAttributesResponse response = JAXBuddy.deserializeXMLStream(SetQueueAttributesResponse.class, iStr);
 				if (response.getResponseStatus().getStatusCode().equals("Success")) {
 					return;
 				}
@@ -366,9 +424,42 @@ public class MessageQueue extends QueueService {
 
     public void removeGrantByCustomerId(String, String) throws Exception {
 	}
-    public Grant[] listGrants(Grantee, String) throws Exception {
+    public Grant[] listGrants(Grantee grantee, String queueName) throws Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		if (queueName != null && !queueName.trim().equals("")) {
+			params.put("QueueName", queueName);
+		}
+		try {
+			InputStream iStr =
+				makeRequest("GET", "ListGrants", params).getInputStream();
+			ListGrantsResponse response =
+					JAXBuddy.deserializeXMLStream(ListGrantsResponse.class, iStr);
+			return null;
+		} catch (ArrayStoreException ex) {
+			logger.error("ArrayStore problem, fetching response again to aid in debug.");
+			try {
+				logger.error(makeRequest("GET", "ListGrants", params).getResponseMessage());
+			} catch (Exception e) {
+				logger.error("Had trouble re-fetching the request response.", e);
+			}
+			throw new SQSException("ArrayStore problem, maybe SQS responded poorly?", ex);
+		} catch (JAXBException ex) {
+			throw new SQSException("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		}
 	}
 */
+
+	/**
+	 * Overriding this because the queue name is baked into the URL and QUERY
+	 * assembles the URL within the baseclass.
+	 */
+    protected URL makeURL(String resource) throws MalformedURLException {
+		return super.makeURL(queueId+resource);
+	}
 
 	public static List<MessageQueue> createList(String [] queueUrls, String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure, String server) throws SQSException {
 		ArrayList<MessageQueue> ret = new ArrayList<MessageQueue>();
