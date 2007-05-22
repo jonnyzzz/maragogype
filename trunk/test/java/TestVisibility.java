@@ -13,9 +13,9 @@ public class TestVisibility {
 
 	public static void main(String [] args) throws Exception {
         final String AWSAccessKeyId = "[AWS Access Id]";
-        final String SecretAccessKey = "[AWS Secret Key]";
+        final String SecretAccessKey = "[AWS Access Id]";
 
-		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey, false, "localhost");
+		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey);
 		MessageQueue mq = qs.getOrCreateMessageQueue(args[0]);
 		int timeout = mq.getVisibilityTimeout();
 		log.debug("Queue timeout = "+timeout);
@@ -24,12 +24,14 @@ public class TestVisibility {
 		Message msg = mq.receiveMessage();
 		log.debug("Message = "+msg.getMessageBody());
 		int i=0;
+		long start = System.currentTimeMillis();
 		while ((msg = mq.receiveMessage()) == null) {
 			log.debug(".");
 			try { Thread.sleep(1000); } catch (InterruptedException ex) {}
 			i++;
 		}
-		log.debug("Message was invisible for "+i+" seconds");
+		long end = System.currentTimeMillis();
+		log.debug("Message was invisible for "+(end-start)/1000.0+" seconds");
 		mq.deleteMessage(msg.getMessageId());
 
 		// test queue visibility
@@ -40,12 +42,36 @@ public class TestVisibility {
 		msg = mq.receiveMessage();
 		log.debug("Message = "+msg.getMessageBody());
 		i=0;
+		start = System.currentTimeMillis();
 		while ((msg = mq.receiveMessage()) == null) {
 			log.debug(".");
 			try { Thread.sleep(1000); } catch (InterruptedException ex) {}
 			i++;
 		}
-		log.debug("Message was invisible for "+i+" seconds");
+		end = System.currentTimeMillis();
+		log.debug("Message was invisible for "+(end-start)/1000.0+" seconds");
+		mq.deleteMessage(msg.getMessageId());
+
+		// test change message visibility
+		log.debug("setting timeout to 10 seconds.");
+		mq.setVisibilityTimeout(10);
+		String msgId = mq.sendMessage("Testing 1, 2, 3");
+		try { Thread.sleep(5000); } catch (InterruptedException ex) {}
+		msg = mq.receiveMessage();
+		log.debug("Message = "+msg.getMessageBody());
+		i=0;
+		start = System.currentTimeMillis();
+		while ((msg = mq.receiveMessage()) == null) {
+			log.debug(".");
+			if (i == 4) {
+				log.debug("change timeout to 60 seconds.");
+				mq.setMessageVisibilityTimeout(msgId, 60);
+			}
+			try { Thread.sleep(1000); } catch (InterruptedException ex) {}
+			i++;
+		}
+		end = System.currentTimeMillis();
+		log.debug("Message was invisible for "+(end-start)/1000.0+" seconds");
 		mq.deleteMessage(msg.getMessageId());
 
 		// test receive visibility
@@ -54,12 +80,14 @@ public class TestVisibility {
 		msg = mq.receiveMessage(30);
 		log.debug("Message = "+msg.getMessageBody());
 		i=0;
+		start = System.currentTimeMillis();
 		while ((msg = mq.receiveMessage()) == null) {
 			log.debug(".");
 			try { Thread.sleep(1000); } catch (InterruptedException ex) {}
 			i++;
 		}
-		log.debug("Message was invisible for "+i+" seconds");
+		end = System.currentTimeMillis();
+		log.debug("Message was invisible for "+(end-start)/1000.0+" seconds");
 		mq.deleteMessage(msg.getMessageId());
 		// reset queue timeout
 		mq.setVisibilityTimeout(timeout);

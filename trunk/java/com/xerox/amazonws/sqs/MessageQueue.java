@@ -35,6 +35,7 @@ import javax.xml.bind.JAXBException;
 
 import com.xerox.amazonws.common.JAXBuddy;
 import com.xerox.amazonws.typica.jaxb.AttributedValue;
+import com.xerox.amazonws.typica.jaxb.ChangeMessageVisibilityResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteMessageResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteQueueResponse;
 import com.xerox.amazonws.typica.jaxb.GetQueueAttributesResponse;
@@ -294,6 +295,41 @@ public class MessageQueue extends QueueService {
 			}
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		}
+	}
+
+	/**
+	 * Sets the message visibility timeout. 
+	 *
+	 * @param msgId the id of the message to be deleted
+	 * @param timeout the duration (in seconds) the retrieved message is hidden from
+	 *                          subsequent calls to retrieve.
+	 */
+    public void setMessageVisibilityTimeout(String msgId, int timeout) throws SQSException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("MessageId", ""+msgId);
+		params.put("VisibilityTimeout", ""+timeout);
+		try {
+			HttpURLConnection conn = makeRequest("GET", "ChangeMessageVisibility", params);
+			if (conn.getResponseCode() < 400) {
+				InputStream iStr = conn.getInputStream();
+				ChangeMessageVisibilityResponse response = JAXBuddy.deserializeXMLStream(ChangeMessageVisibilityResponse.class, iStr);
+				if (response.getResponseStatus().getStatusCode().equals("Success")) {
+					return;
+				}
+				else {
+					throw new SQSException("Error setting timeout. Response msg = "+response.getResponseStatus().getMessage());
+				}
+			}
+			else {
+				throw new SQSException("Error setting timeout. Response code = "+conn.getResponseCode());
+			}
+		} catch (JAXBException ex) {
+			throw new SQSException("Problem setting the visibility timeout.", ex);
 		} catch (MalformedURLException ex) {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
