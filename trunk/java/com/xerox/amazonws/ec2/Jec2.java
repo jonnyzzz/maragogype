@@ -430,7 +430,7 @@ public class Jec2 extends AWSQueryConnection {
 		} catch (ArrayStoreException ex) {
 			logger.error("ArrayStore problem, fetching response again to aid in debug.");
 			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
+				logger.error(makeRequest("GET", "RunInstances", params).getResponseMessage());
 			} catch (Exception e) {
 				logger.error("Had trouble re-fetching the request response.", e);
 			}
