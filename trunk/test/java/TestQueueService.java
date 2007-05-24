@@ -17,7 +17,7 @@ public class TestQueueService {
         final String AWSAccessKeyId = "[AWS Access Id]";
         final String SecretAccessKey = "[AWS Secret Key]";
 
-		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey, false, "localhost");
+		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey);
 		List<MessageQueue> queues = qs.listMessageQueues(null);
 		for (MessageQueue queue : queues) {
 			log.debug("Queue : "+queue.getUrl().toString());

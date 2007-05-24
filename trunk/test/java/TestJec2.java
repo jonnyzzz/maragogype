@@ -27,7 +27,7 @@ public class TestJec2 {
 		final String AWSAccessKeyId = "[AWS Access Id]";
 		final String SecretAccessKey = "[AWS Secret Key]";
 
-		Jec2 ec2 = new Jec2(AWSAccessKeyId, SecretAccessKey, false, "localhost");
+		Jec2 ec2 = new Jec2(AWSAccessKeyId, SecretAccessKey);
 		List<String> params = new ArrayList<String>();
 	
 /*
