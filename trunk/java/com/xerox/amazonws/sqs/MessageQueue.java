@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -34,13 +35,16 @@ import java.util.Map;
 import javax.xml.bind.JAXBException;
 
 import com.xerox.amazonws.common.JAXBuddy;
+import com.xerox.amazonws.typica.jaxb.AddGrantResponse;
 import com.xerox.amazonws.typica.jaxb.AttributedValue;
 import com.xerox.amazonws.typica.jaxb.ChangeMessageVisibilityResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteMessageResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteQueueResponse;
 import com.xerox.amazonws.typica.jaxb.GetQueueAttributesResponse;
+import com.xerox.amazonws.typica.jaxb.ListGrantsResponse;
 import com.xerox.amazonws.typica.jaxb.PeekMessageResponse;
 import com.xerox.amazonws.typica.jaxb.ReceiveMessageResponse;
+import com.xerox.amazonws.typica.jaxb.RemoveGrantResponse;
 import com.xerox.amazonws.typica.jaxb.SendMessageResponse;
 import com.xerox.amazonws.typica.jaxb.SetQueueAttributesResponse;
 
@@ -305,11 +309,22 @@ public class MessageQueue extends QueueService {
 	/**
 	 * Sets the message visibility timeout. 
 	 *
-	 * @param msgId the id of the message to be deleted
+	 * @param msg the message
 	 * @param timeout the duration (in seconds) the retrieved message is hidden from
 	 *                          subsequent calls to retrieve.
 	 */
-    public void setMessageVisibilityTimeout(String msgId, int timeout) throws SQSException {
+    public void setVisibilityTimeout(Message msg, int timeout) throws SQSException {
+		setVisibilityTimeout(msg.getMessageId(), timeout);
+	}
+
+	/**
+	 * Sets the message visibility timeout. 
+	 *
+	 * @param msgId the id of the message
+	 * @param timeout the duration (in seconds) the retrieved message is hidden from
+	 *                          subsequent calls to retrieve.
+	 */
+    public void setVisibilityTimeout(String msgId, int timeout) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("MessageId", ""+msgId);
 		params.put("VisibilityTimeout", ""+timeout);
@@ -334,6 +349,19 @@ public class MessageQueue extends QueueService {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SQSException(ex.getMessage(), ex);
+		}
+	}
+
+	/**
+	 * Sets the messages' visibility timeout. 
+	 *
+	 * @param msgIds the ids of the messages
+	 * @param timeout the duration (in seconds) the retrieved message is hidden from
+	 *                          subsequent calls to retrieve.
+	 */
+    public void setVisibilityTimeout(String[] msgIds, int timeout) throws SQSException {
+		for (String id : msgIds) {
+			setVisibilityTimeout(id, timeout);
 		}
 	}
 
@@ -437,48 +465,52 @@ public class MessageQueue extends QueueService {
 	}
 
 	/**
-	 * Placeholder. Not implemented by REST.
+	 * Adds a grant for a specific user.
+	 *
+	 * @param eMailAddress the amazon address of the user
+	 * @param permission the permission to add (ReceiveMessage | SendMessage | FullControl)
 	 */
-    public void setVisibilityTimeout(String msgId, int timeout) throws SQSException {
+    public void addGrantByEmailAddress(String eMailAddress, String permission) throws SQSException {
+		Map<String, String> params = new HashMap<String, String>();
+		if (permission != null && !permission.trim().equals("")) {
+			params.put("Permission", permission);
+		}
+		params.put("Grantee.EmailAddress", eMailAddress);
+		addGrant(params);
 	}
 
 	/**
-	 * Placeholder. Not implemented by REST.
+	 * Adds a grant for a specific user.
+	 *
+	 * @param id the amazon user id of the user
+	 * @param displayName not sure if this can even be used
+	 * @param permission the permission to add (ReceiveMessage | SendMessage | FullControl)
 	 */
-    public void setVisibilityTimeout(String[] msgIds, int timeout) throws SQSException {
-	}
-
-/*  grants not supported in REST at this time
-    public void addGrantByEmail(String, String) throws Exception {
-	}
-
-    public void addGrantByCustomerId(String, String, String) throws Exception {
-	}
-
-    public void removeGrantByEmailAddress(String, String) throws Exception {
-	}
-
-    public void removeGrantByCustomerId(String, String) throws Exception {
-	}
-    public Grant[] listGrants(Grantee grantee, String queueName) throws Exception {
+    public void addGrantByCustomerId(String id, String displayName, String permission) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
-		if (queueName != null && !queueName.trim().equals("")) {
-			params.put("QueueName", queueName);
+		if (permission != null && !permission.trim().equals("")) {
+			params.put("Permission", permission);
 		}
+		params.put("Grantee.ID", id);
+		addGrant(params);
+	}
+
+	private void addGrant(Map<String, String> params) throws SQSException {
 		try {
-			InputStream iStr =
-				makeRequest("GET", "ListGrants", params).getInputStream();
-			ListGrantsResponse response =
-					JAXBuddy.deserializeXMLStream(ListGrantsResponse.class, iStr);
-			return null;
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "ListGrants", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
+			HttpURLConnection conn = makeRequest("GET", "AddGrant", params);
+			if (conn.getResponseCode() < 400) {
+				InputStream iStr = conn.getInputStream();
+				AddGrantResponse response = JAXBuddy.deserializeXMLStream(AddGrantResponse.class, iStr);
+				if (response.getResponseStatus().getStatusCode().equals("Success")) {
+					return;
+				}
+				else {
+					throw new SQSException("Error adding grant. Response msg = "+response.getResponseStatus().getMessage());
+				}
 			}
-			throw new SQSException("ArrayStore problem, maybe SQS responded poorly?", ex);
+			else {
+				throw new SQSException("Error adding grant. Response code = "+conn.getResponseCode());
+			}
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
@@ -487,7 +519,115 @@ public class MessageQueue extends QueueService {
 			throw new SQSException(ex.getMessage(), ex);
 		}
 	}
-*/
+
+	/**
+	 * Removes a grant for a specific user.
+	 *
+	 * @param eMailAddress the amazon address of the user
+	 * @param permission the permission to add (ReceiveMessage | SendMessage | FullControl)
+	 */
+    public void removeGrantByEmailAddress(String eMailAddress, String permission) throws Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		if (permission != null && !permission.trim().equals("")) {
+			params.put("Permission", permission);
+		}
+		params.put("Grantee.EmailAddress", eMailAddress);
+		removeGrant(params);
+	}
+
+	/**
+	 * Removes a grant for a specific user.
+	 *
+	 * @param id the amazon user id of the user
+	 * @param displayName not sure if this can even be used
+	 * @param permission the permission to add (ReceiveMessage | SendMessage | FullControl)
+	 */
+    public void removeGrantByCustomerId(String id, String permission) throws Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		if (permission != null && !permission.trim().equals("")) {
+			params.put("Permission", permission);
+		}
+		params.put("Grantee.ID", id);
+		removeGrant(params);
+	}
+
+	private void removeGrant(Map<String, String> params) throws SQSException {
+		try {
+			HttpURLConnection conn = makeRequest("GET", "RemoveGrant", params);
+			if (conn.getResponseCode() < 400) {
+				InputStream iStr = conn.getInputStream();
+				RemoveGrantResponse response = JAXBuddy.deserializeXMLStream(RemoveGrantResponse.class, iStr);
+				if (response.getResponseStatus().getStatusCode().equals("Success")) {
+					return;
+				}
+				else {
+					throw new SQSException("Error removing grant. Response msg = "+response.getResponseStatus().getMessage());
+				}
+			}
+			else {
+				throw new SQSException("Error adding grant. Response code = "+conn.getResponseCode());
+			}
+		} catch (JAXBException ex) {
+			throw new SQSException("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		}
+	}
+
+	/**
+	 * Retrieves a list of grants for this queue. The results can be filtered by specifying
+	 * a grantee or a particular permission.
+	 *
+	 * @param grantee the optional user or group
+	 * @param permission the optional permission
+	 * @return a list of objects representing the grants
+	 */
+    public Grant[] listGrants(Grantee grantee, String permission) throws Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		if (permission != null && !permission.trim().equals("")) {
+			params.put("Permission", permission);
+		}
+		if (grantee instanceof CanonicalUser) {
+			params.put("Grantee.ID", ((CanonicalUser)grantee).getID());
+		}
+		try {
+			InputStream iStr =
+				makeRequest("GET", "ListGrants", params).getInputStream();
+			ListGrantsResponse response =
+					JAXBuddy.deserializeXMLStream(ListGrantsResponse.class, iStr);
+			if (response.getResponseStatus().getStatusCode().equals("Success")) {
+				Grant [] grants = new Grant[response.getGrantLists().size()];
+				int i=0;
+				for (com.xerox.amazonws.typica.jaxb.Grant g : response.getGrantLists()) {
+					Grantee g2 = null;
+					if (g.getGrantee() instanceof com.xerox.amazonws.typica.jaxb.Group) {
+						com.xerox.amazonws.typica.jaxb.Group grp =
+								(com.xerox.amazonws.typica.jaxb.Group)g.getGrantee();
+						g2 = new Group(new URI(grp.getURI()));
+					}
+					else if (g.getGrantee() instanceof com.xerox.amazonws.typica.jaxb.CanonicalUser) {
+						com.xerox.amazonws.typica.jaxb.CanonicalUser u =
+								(com.xerox.amazonws.typica.jaxb.CanonicalUser)g.getGrantee();
+						g2 = new CanonicalUser(u.getID(), u.getDisplayName());
+					}
+					grants[i] = new Grant(g2, g.getPermission());
+					i++;
+				}
+				return grants;
+			}
+			else {
+				throw new SQSException("Error getting grants. Response msg = "+response.getResponseStatus().getMessage());
+			}
+		} catch (JAXBException ex) {
+			throw new SQSException("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		}
+	}
 
 	/**
 	 * Overriding this because the queue name is baked into the URL and QUERY

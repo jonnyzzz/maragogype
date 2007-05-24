@@ -1,15 +1,16 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           xmlns:tns="http://queue.amazonaws.com/doc/2007-05-01/"
-           targetNamespace="http://queue.amazonaws.com/doc/2007-05-01/"
-           elementFormDefault="qualified">
+
+	   xmlns:tns="http://queue.amazonaws.com/doc/2007-05-01/"
+	   targetNamespace="http://queue.amazonaws.com/doc/2007-05-01/"
+	   elementFormDefault="qualified">
 
   <xs:element name="ResponseStatus">
     <xs:complexType>
       <xs:sequence>
         <xs:element name="StatusCode" type="xs:string" minOccurs="1"/>
-        <xs:element name="Message" type="xs:string" minOccurs="0"/>  
-        <xs:element name="RequestId" type="xs:string" minOccurs="1"/>
+        <xs:element name="Message"    type="xs:string" minOccurs="0"/>  
+        <xs:element name="RequestId"  type="xs:string" minOccurs="1"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -17,8 +18,8 @@
   <xs:element name="AttributedValue">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="Attribute" type="xs:string" minOccurs="1"/>
-        <xs:element name="Value" type="xs:string" minOccurs="1"/>  
+        <xs:element name="Attribute"  type="xs:string" minOccurs="1"/>
+        <xs:element name="Value"      type="xs:string" minOccurs="1"/>  
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -48,7 +49,8 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element name="QueueName" type="xs:NCName" minOccurs="0"/>
-        <xs:element name="DefaultVisibilityTimeout" type="xs:integer" minOccurs="0"/>
+        <xs:element name="DefaultVisibilityTimeout"
+                    type="xs:integer" minOccurs="0"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -72,7 +74,7 @@
   <xs:element name="Message">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="tns:MessageId" minOccurs="1"/>
+        <xs:element ref="tns:MessageId"  minOccurs="1"/>
         <xs:element ref="tns:MessageBody" minOccurs="1"/>
       </xs:sequence>
     </xs:complexType>
@@ -133,8 +135,8 @@
   <xs:element name="ChangeMessageVisibility">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="MessageId" type="xs:string" minOccurs="1"/>
-        <xs:element name="VisibilityTimeout" type="xs:integer" minOccurs="1"/>
+        <xs:element name="MessageId" type="xs:string" minOccurs="1" />
+        <xs:element name="VisibilityTimeout" type="xs:integer" minOccurs="1" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -182,7 +184,7 @@
   <xs:element name="SetQueueAttributes">
     <xs:complexType>
       <xs:sequence>
-	<xs:element ref="tns:AttributedValue" minOccurs="1" maxOccurs="100"/>
+	<xs:element ref="tns:AttributedValue" minOccurs="1" maxOccurs="100" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -198,7 +200,7 @@
   <xs:element name="GetQueueAttributes">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="Attribute" type="xs:string" minOccurs="0" maxOccurs="100"/>
+        <xs:element name="Attribute" type="xs:string" minOccurs="0" maxOccurs="100" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -206,7 +208,7 @@
   <xs:element name="GetQueueAttributesResponse">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="tns:AttributedValue" minOccurs="1" maxOccurs="100"/>
+        <xs:element ref="tns:AttributedValue" minOccurs="1" maxOccurs="100" />
         <xs:element ref="tns:ResponseStatus" minOccurs="1"/>
       </xs:sequence>
     </xs:complexType>
@@ -266,45 +268,57 @@
     </xs:sequence>
   </xs:complexType>
 
-  <xs:complexType name="AddGrant">
-    <xs:sequence>
-      <xs:element name="Grantee" type="tns:Grantee"/>
+  <xs:element name="AddGrant">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Grantee" type="tns:Grantee"/>
       <xs:element name="Permission" type="xs:string"/>
-    </xs:sequence>
-  </xs:complexType>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
 
-  <xs:complexType name="AddGrantResponse">
-    <xs:sequence>
-      <xs:element ref="tns:ResponseStatus" minOccurs="1"/>
-    </xs:sequence>
-  </xs:complexType>			
+  <xs:element name="AddGrantResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="tns:ResponseStatus" minOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>			
+  </xs:element>
 
-  <xs:complexType name="RemoveGrant">
-    <xs:sequence>
-      <xs:element name="Grantee" type="tns:Grantee"/>
-      <xs:element name="Permission" type="xs:string"/>
-    </xs:sequence>
-  </xs:complexType>
+  <xs:element name="RemoveGrant">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Grantee" type="tns:Grantee"/>
+        <xs:element name="Permission" type="xs:string"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
 
-  <xs:complexType name="RemoveGrantResponse">
-    <xs:sequence>
-      <xs:element ref="tns:ResponseStatus" minOccurs="1"/>
-    </xs:sequence>
-  </xs:complexType>
+  <xs:element name="RemoveGrantResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="tns:ResponseStatus" minOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
   
-  <xs:complexType name="ListGrants">
-    <xs:sequence>
-      <xs:element name="Grantee" type="tns:Grantee" minOccurs="0"/>
+  <xs:element name="ListGrants">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Grantee" type="tns:Grantee" minOccurs="0"/>
       <xs:element name="Permission" type="xs:string" minOccurs="0"/>
-    </xs:sequence>
-  </xs:complexType>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
 
-  <xs:complexType name="ListGrantsResponse">
-    <xs:sequence>
-      <xs:element name="GrantList" type="tns:Grant" minOccurs="0" maxOccurs="unbounded"/>
+  <xs:element name="ListGrantsResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="GrantList" type="tns:Grant" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="tns:ResponseStatus" minOccurs="1"/>
-    </xs:sequence>
-  </xs:complexType>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
   
     <xs:element name="SetVisibilityTimeout">
         <xs:complexType>

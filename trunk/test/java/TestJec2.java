@@ -27,7 +27,7 @@ public class TestJec2 {
 		final String AWSAccessKeyId = "[AWS Access Id]";
 		final String SecretAccessKey = "[AWS Secret Key]";
 
-		Jec2 ec2 = new Jec2(AWSAccessKeyId, SecretAccessKey);
+		Jec2 ec2 = new Jec2(AWSAccessKeyId, SecretAccessKey, false, "localhost");
 		List<String> params = new ArrayList<String>();
 	
 /*
@@ -107,12 +107,6 @@ public class TestJec2 {
 		for (GroupDescription i : info) {
 			log.info("group : "+i.getName()+", "+i.getDescription());
 		}
-		ec2.deleteSecurityGroup("test-group");
-		info = ec2.describeSecurityGroups(new String [] {});
-		log.info("GroupDescription list");
-		for (GroupDescription i : info) {
-			log.info("group : "+i.getName()+", "+i.getDescription());
-		}
 		ec2.authorizeSecurityGroupIngress("default", "tcp", 1000, 1001, "0.0.0.0/0");
 		ec2.revokeSecurityGroupIngress("default", "tcp", 1000, 1001, "0.0.0.0/0");
 		ec2.authorizeSecurityGroupIngress("default", "tcp", 1000, 1001, "0.0.0.0/0");
@@ -121,10 +115,17 @@ public class TestJec2 {
 		ec2.authorizeSecurityGroupIngress("default", "test-group", "291944132575");
 		ec2.revokeSecurityGroupIngress("default", "test-group", "291944132575");
 
+		ec2.deleteSecurityGroup("test-group");
+		info = ec2.describeSecurityGroups(new String [] {});
+		log.info("GroupDescription list");
+		for (GroupDescription i : info) {
+			log.info("group : "+i.getName()+", "+i.getDescription());
+		}
+
 		// test image attribute methods
 /*
 */
-		DescribeImageAttributeResult res = ec2.describeImageAttribute("ami-5e836637", ImageAttributeType.launchPermission);
+		DescribeImageAttributeResult res = ec2.describeImageAttribute("ami-11816478", ImageAttributeType.launchPermission);
 		Iterator<ImageListAttributeItem> iter = res.getImageListAttribute().getImageListAttributeItems().iterator();
 		log.info("image attrs");
 		while (iter.hasNext()) {
@@ -133,16 +134,16 @@ public class TestJec2 {
 		}
 		LaunchPermissionAttribute attr = new LaunchPermissionAttribute();
 		attr.getImageListAttributeItems().add(new ImageListAttributeItem(ImageListAttributeItemType.userId, "291944132575"));
-		ec2.modifyImageAttribute("ami-5e836637", attr, ImageListAttributeOperationType.add);
-		res = ec2.describeImageAttribute("ami-5e836637", ImageAttributeType.launchPermission);
+		ec2.modifyImageAttribute("ami-11816478", attr, ImageListAttributeOperationType.add);
+		res = ec2.describeImageAttribute("ami-11816478", ImageAttributeType.launchPermission);
 		iter = res.getImageListAttribute().getImageListAttributeItems().iterator();
 		log.info("image attrs");
 		while (iter.hasNext()) {
 			ImageListAttributeItem item = iter.next();
 			log.info("image : "+res.getImageId()+", "+item.getValue());
 		}
-		ec2.resetImageAttribute("ami-5e836637", ImageAttributeType.launchPermission);
-		res = ec2.describeImageAttribute("ami-5e836637", ImageAttributeType.launchPermission);
+		ec2.resetImageAttribute("ami-11816478", ImageAttributeType.launchPermission);
+		res = ec2.describeImageAttribute("ami-11816478", ImageAttributeType.launchPermission);
 		iter = res.getImageListAttribute().getImageListAttributeItems().iterator();
 		log.info("image attrs");
 		while (iter.hasNext()) {

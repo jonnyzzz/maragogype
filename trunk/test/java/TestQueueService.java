@@ -3,9 +3,10 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.xerox.amazonws.sqs.QueueService;
+import com.xerox.amazonws.sqs.Grant;
 import com.xerox.amazonws.sqs.Message;
 import com.xerox.amazonws.sqs.MessageQueue;
+import com.xerox.amazonws.sqs.QueueService;
 import com.xerox.amazonws.sqs.SQSException;
 import com.xerox.amazonws.tools.LoggingConfigurator;
 
@@ -27,6 +28,7 @@ public class TestQueueService {
 		}
 		for (int i=0; i<args.length; i++) {
 			MessageQueue mq = qs.getOrCreateMessageQueue(args[i]);
+/* test send/receive
 			for (int j=0; j<50; j++) {
 				mq.sendMessage("Testing 1, 2, 3");
 			}
@@ -35,6 +37,28 @@ public class TestQueueService {
 				log.debug("Message "+(j+1)+" = "+msg.getMessageBody());
 				msg = mq.peekMessage(msg.getMessageId());
 				mq.deleteMessage(msg.getMessageId());
+			}
+*/
+/* test grants
+*/
+			log.debug("Grants for "+mq.getUrl());
+			Grant [] grants = mq.listGrants(null, null);
+			for (Grant g : grants) {
+				log.debug("grant : "+g.getGrantee()+" perm : "+g.getPermission());
+			}
+			log.debug("Adding Grant");
+			mq.addGrantByEmailAddress("xrxs33@gmail.com", "ReceiveMessage");
+			log.debug("Grants for "+mq.getUrl());
+			grants = mq.listGrants(null, null);
+			for (Grant g : grants) {
+				log.debug("grant : "+g.getGrantee()+" perm : "+g.getPermission());
+			}
+			log.debug("Removing Grant");
+			mq.removeGrantByEmailAddress("xrxs33@gmail.com", "ReceiveMessage");
+			log.debug("Grants for "+mq.getUrl());
+			grants = mq.listGrants(null, null);
+			for (Grant g : grants) {
+				log.debug("grant : "+g.getGrantee()+" perm : "+g.getPermission());
 			}
 		}
 		// test forced deletion

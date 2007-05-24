@@ -131,7 +131,7 @@ public class QueueService extends AWSQueryConnection {
     }
 
 	/**
-	 * Retrieves a list of message queues. A maximum of 10,000 queue URLs are returned.
+	 * Retrieves a list of message queues. A maximum of 1,000 queue URLs are returned.
 	 * If a value is specified for the optional queueNamePrefix parameter, only those queues
 	 * with a queue name beginning with the value specified are returned. The queue name is
 	 * specified in the QueueName parameter when a queue is created.
