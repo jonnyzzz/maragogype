@@ -65,7 +65,7 @@ public class TestVisibility {
 			log.debug(".");
 			if (i == 4) {
 				log.debug("change timeout to 60 seconds.");
-				mq.setMessageVisibilityTimeout(msgId, 60);
+				mq.setVisibilityTimeout(msgId, 60);
 			}
 			try { Thread.sleep(1000); } catch (InterruptedException ex) {}
 			i++;
