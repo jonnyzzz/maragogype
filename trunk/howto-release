@@ -7,10 +7,10 @@ ensure everything is checked in, run "svn stat"
 clean workspace;
   ant clean
 
+update README with feature change and change log (use "svn log --revision N:M" in trunk to get change history)
+
 build release
   ant dist  - entering version number (i.e. 0.5)
-
-update REAME with feature change and change log (use "svn log" in trunk to get change history)
 
 add dist file to svn and commit dist and README changes
 

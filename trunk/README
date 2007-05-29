@@ -3,7 +3,7 @@ typica 0.5
 
 http://code.google.com/p/typica
 
-This is a simple API to access Amazon's SQS and EC2 web services. It uses the REST/QUERY interface and patterns the methods after those available from Amazon in their SOAP client for these services. This code is thread-safe and works very reliably to the best of my knowledge. I've been using it on a system where sending messages in SQS is critical and we manage pools of servers in EC2.
+This is a simple API to access Amazon's SQS and EC2 web services. It uses the QUERY interface and patterns the methods after those available from Amazon in their SOAP client for these services. This code is thread-safe and works very reliably to the best of my knowledge. I've been using it on a system where sending messages in SQS is critical and we manage pools of servers in EC2.
 
 Distribution files;
 README      - this file
@@ -21,23 +21,39 @@ I've included the encoder/decoder written by Christian d'Heureuse. The full clas
 
 Change history for this version;
 ------------------------------------------------------------------------
-r36 | dkavanagh | 2007-05-18 14:54:35 -0400 (Fri, 18 May 2007) | 1 line
+r47 | dkavanagh | 2007-05-25 17:29:44 -0400 (Fri, 25 May 2007) | 1 line
 
-updated to 2007-05-01 SQS schema; added force delete to SQS API
+updated the license to Apache 2.0
 ------------------------------------------------------------------------
-r33 | dkavanagh | 2007-05-17 18:41:41 -0400 (Thu, 17 May 2007) | 1 line
+r46 | dkavanagh | 2007-05-25 01:13:45 -0400 (Fri, 25 May 2007) | 1 line
 
-sample ec2 code
+fixed api call
 ------------------------------------------------------------------------
-r31 | dkavanagh | 2007-05-17 18:04:20 -0400 (Thu, 17 May 2007) | 1 line
+r45 | dkavanagh | 2007-05-24 15:40:41 -0400 (Thu, 24 May 2007) | 1 line
 
-cleaned up sample code
+set test code to use direct host, not localhost (for traffic monitor)
 ------------------------------------------------------------------------
-r26 | dkavanagh | 2007-05-17 09:21:30 -0400 (Thu, 17 May 2007) | 1 line
+r44 | dkavanagh | 2007-05-24 14:47:45 -0400 (Thu, 24 May 2007) | 1 line
 
-added convenience method for deleiting message using Message obj
+added grant control for SQS
 ------------------------------------------------------------------------
-r25 | dkavanagh | 2007-05-17 09:05:46 -0400 (Thu, 17 May 2007) | 1 line
+r43 | dkavanagh | 2007-05-23 14:34:11 -0400 (Wed, 23 May 2007) | 1 line
 
-updated method signatures that still threw Exception to throw EC2Exception
+fixed method of building signature string that doesn't strip the needed '=' from base64 encoded params
+------------------------------------------------------------------------
+r42 | dkavanagh | 2007-05-22 09:01:44 -0400 (Tue, 22 May 2007) | 1 line
+
+added code to change message visibility timeout
+------------------------------------------------------------------------
+r41 | dkavanagh | 2007-05-21 16:37:51 -0400 (Mon, 21 May 2007) | 1 line
+
+QUERY upgrades. Grants missing, rest works
+------------------------------------------------------------------------
+r40 | dkavanagh | 2007-05-18 16:31:19 -0400 (Fri, 18 May 2007) | 1 line
+
+changed default addressing mode to public; can override with another runInstances method
+------------------------------------------------------------------------
+r39 | dkavanagh | 2007-05-18 15:17:17 -0400 (Fri, 18 May 2007) | 1 line
+
+documented release process to help with repeatibility
 ------------------------------------------------------------------------
