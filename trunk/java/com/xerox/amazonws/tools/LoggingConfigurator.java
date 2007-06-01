@@ -41,15 +41,7 @@ public class LoggingConfigurator {
                 System.err.println("The log4j configuration file \""+LOGGER_CONFIG+
                     "\" was not found on the classpath.");
             }
-            File configFile = null;
-            try {   
-                configFile = new File(configFileURL.toURI());
-            }catch (URISyntaxException e) {
-                System.err.println("Log4J config file URL "+configFileURL+
-                        " couldn't be converted to a URI.");
-                e.printStackTrace(System.err);
-            }
-            DOMConfigurator.configureAndWatch(configFile.getAbsolutePath());
+            DOMConfigurator.configureAndWatch(configFileURL.toString());
             loggingConfigured = true;
             System.out.println("\n\nLogging initial configuration complete according to file "+configFileURL);
         }
