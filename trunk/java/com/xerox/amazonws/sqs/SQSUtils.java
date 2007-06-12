@@ -100,10 +100,8 @@ public class SQSUtils {
 			throws SQSException {
 		MessageQueue msgQueue = null;
 		MessageQueue msgQueueFound = null;
-		logger.debug("looking for queue : "+msgQueueName);
 		List<MessageQueue> msgQueuesFound = service.listMessageQueues( null );
 		for ( MessageQueue mq : msgQueuesFound ) {
-			logger.debug("found : "+mq.getUrl());
 			if ( mq.getUrl().toString().endsWith( msgQueueName ) ) {
 				msgQueueFound = mq;
 			}
