@@ -75,7 +75,7 @@ public class MessageQueue extends QueueService {
 	 */
 	public URL getUrl() {
 		try {
-			return new URL(super.getUrl().toString()+queueId);
+			return new URL(super.getUrl().toString());
 		} catch (MalformedURLException ex) {
 			return null;
 		}

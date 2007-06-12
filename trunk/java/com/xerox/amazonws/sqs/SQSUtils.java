@@ -80,7 +80,7 @@ public class SQSUtils {
 			service = new QueueService(accessKey, secretKey);
 		}
 		if (service.getUrl() != null) {
-			logger.info( "Service: " + service.getUrl().toString() );
+			logger.debug( "Service: " + service.getUrl().toString() );
 		} else {
 			logger.error( "Service: null url!" );
 		}
@@ -100,14 +100,16 @@ public class SQSUtils {
 			throws SQSException {
 		MessageQueue msgQueue = null;
 		MessageQueue msgQueueFound = null;
+		logger.debug("looking for queue : "+msgQueueName);
 		List<MessageQueue> msgQueuesFound = service.listMessageQueues( null );
 		for ( MessageQueue mq : msgQueuesFound ) {
+			logger.debug("found : "+mq.getUrl());
 			if ( mq.getUrl().toString().endsWith( msgQueueName ) ) {
 				msgQueueFound = mq;
 			}
 		}
 		if (msgQueueFound == null) {
-			logger.info("Message queue couldn't be listed, going to create it.");
+			logger.debug("Message queue couldn't be listed, going to create it.");
 			msgQueue = service.getOrCreateMessageQueue(msgQueueName.substring(msgQueueName.lastIndexOf("/")+1));
 		} else if (msgQueue == null) {
 			msgQueue = msgQueueFound;
