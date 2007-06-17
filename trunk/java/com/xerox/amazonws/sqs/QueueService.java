@@ -29,13 +29,13 @@ import java.util.TreeMap;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.common.JAXBuddy;
 import com.xerox.amazonws.typica.jaxb.CreateQueueResponse;
 import com.xerox.amazonws.typica.jaxb.ListQueuesResponse;
-import com.xerox.amazonws.tools.LoggingConfigurator;
 
 /**
  * This class provides an interface with the Amazon SQS service. It provides high level
@@ -46,7 +46,7 @@ import com.xerox.amazonws.tools.LoggingConfigurator;
  */
 public class QueueService extends AWSQueryConnection {
 
-    private static Logger logger = LoggingConfigurator.configureLogging(QueueService.class);
+    private static Log logger = LogFactory.getLog(QueueService.class);
 
 	/**
 	 * Initializes the queue service with your AWS login information.

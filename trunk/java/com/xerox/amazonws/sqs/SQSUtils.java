@@ -19,7 +19,8 @@ package com.xerox.amazonws.sqs;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * This class provides helper methods to interact with the Amazon Simple Queue Service.
@@ -28,7 +29,7 @@ import org.apache.log4j.Logger;
  * @author developer@dotech.com
  */
 public class SQSUtils {
-    private static final Logger logger = Logger.getLogger(SQSUtils.class.getName());
+    private static Log logger = LogFactory.getLog(SQSUtils.class);
     
 	/**
 	 * Returns a message queue for a given name, credentials. Uses the default SQS host.

@@ -1,12 +1,12 @@
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import ch.inventec.Base64Coder;
 
 import com.xerox.amazonws.sqs.MessageQueue;
 import com.xerox.amazonws.sqs.Message;
 import com.xerox.amazonws.sqs.SQSUtils;
-import com.xerox.amazonws.tools.LoggingConfigurator;
 
 /**
  * This sample application retrieves (dequeues) a message from the queue specified by
@@ -14,7 +14,7 @@ import com.xerox.amazonws.tools.LoggingConfigurator;
  * On error, it retries a number of times.
  */
 public class DequeueSample {
-	private static Logger log = LoggingConfigurator.configureLogging(DequeueSample.class);
+    private static Log logger = LogFactory.getLog(DequeueSample.class);
 
 	public static void main( String[] args ) {
 		final String AWSAccessKeyId = "[AWS Access Id]";
@@ -23,7 +23,7 @@ public class DequeueSample {
 		int count = 0;
 		try {
 			if (args.length < 1) {
-				log.error("usage: DequeueSample <queueId>");
+				logger.error("usage: DequeueSample <queueId>");
 			}
 			String queueName = args[0];
 
@@ -37,16 +37,16 @@ public class DequeueSample {
 				try {
 					text = Base64Coder.decodeString(text);
 				} catch (IllegalArgumentException ex) {
-					log.warn("Message wasn't base64 encoded.");
+					logger.warn("Message wasn't base64 encoded.");
 				}
-				log.debug("msg : "+text);
-				msgQueue.deleteMessage( msg.getMessageId() );
-				log.info( "Deleted message id " + msg.getMessageId());
+				logger.debug("msg : "+text);
+				msgQueue.deleteMessage(msg);
+				logger.info( "Deleted message id " + msg.getMessageId());
 				count++;
 			}
 		} catch ( Exception ex ) {
-			log.error( "EXCEPTION", ex );
+			logger.error( "EXCEPTION", ex );
 		}
-		log.debug("Deleted "+count+" messages");
+		logger.debug("Deleted "+count+" messages");
 	}
 }

@@ -85,18 +85,18 @@ import com.xerox.amazonws.typica.jaxb.UserIdGroupPairSetType;
 import com.sun.org.apache.xml.internal.serialize.OutputFormat;
 import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.common.JAXBuddy;
-import com.xerox.amazonws.tools.LoggingConfigurator;
 
 /**
  * A Java wrapper for the EC2 web services API
  */
 public class Jec2 extends AWSQueryConnection {
 
-    private static Logger logger = LoggingConfigurator.configureLogging(Jec2.class);
+    private static Log logger = LogFactory.getLog(Jec2.class);
 
 	/**
 	 * Initializes the ec2 service with your AWS login information.
@@ -397,8 +397,10 @@ public class Jec2 extends AWSQueryConnection {
 		if (keyName != null && !keyName.trim().equals("")) {
 			params.put("KeyName", keyName);
 		}
-		for (int i=0 ; i<groupSet.size(); i++) {
-			params.put(""+(i+1), groupSet.get(i));
+		if (groupSet != null) {
+			for (int i=0 ; i<groupSet.size(); i++) {
+				params.put("SecurityGroup."+(i+1), groupSet.get(i));
+			}
 		}
 
 		try {

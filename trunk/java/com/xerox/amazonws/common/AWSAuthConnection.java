@@ -197,7 +197,7 @@ public class AWSAuthConnection extends AWSConnection {
         // Finally, add all the interesting headers (i.e.: all that startwith x-amz- ;-))
         for (Iterator i = interestingHeaders.keySet().iterator(); i.hasNext(); ) {
             String key = (String)i.next();
-            if (key.startsWith("x-amx-")) {
+            if (key.startsWith("x-amz-")) {
                 buf.append(key).append(':').append(interestingHeaders.get(key));
             } else {
                 buf.append(interestingHeaders.get(key));

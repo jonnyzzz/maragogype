@@ -1,17 +1,17 @@
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.xerox.amazonws.sqs.Grant;
 import com.xerox.amazonws.sqs.Message;
 import com.xerox.amazonws.sqs.MessageQueue;
 import com.xerox.amazonws.sqs.QueueService;
 import com.xerox.amazonws.sqs.SQSException;
-import com.xerox.amazonws.tools.LoggingConfigurator;
 
 public class TestQueueService {
-    private static Logger log = LoggingConfigurator.configureLogging(TestQueueService.class);
+    private static Log logger = LogFactory.getLog(TestQueueService.class);
 
 	public static void main(String [] args) throws Exception {
         final String AWSAccessKeyId = "[AWS Access Id]";
@@ -20,64 +20,69 @@ public class TestQueueService {
 		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey);
 		List<MessageQueue> queues = qs.listMessageQueues(null);
 		for (MessageQueue queue : queues) {
-			log.debug("Queue : "+queue.getUrl().toString());
+			logger.info("Queue : "+queue.getUrl().toString());
 			// delete queues that contain a certain phrase
-			if (queue.getUrl().toString().indexOf("test")>-1) {
-//				queue.deleteQueue();
+			if (queue.getUrl().toString().indexOf("A2G998NBSHMEBD")>-1) {
+//				try {
+//					queue.deleteQueue();
+//				} catch (SQSException ex) {
+//					ex.printStackTrace();
+//				}
 			}
 		}
 		for (int i=0; i<args.length; i++) {
 			MessageQueue mq = qs.getOrCreateMessageQueue(args[i]);
 /* test send/receive
+*/
 			for (int j=0; j<50; j++) {
 				mq.sendMessage("Testing 1, 2, 3");
 			}
 			for (int j=0; j<50; j++) {
 				Message msg = mq.receiveMessage();
-				log.debug("Message "+(j+1)+" = "+msg.getMessageBody());
+				logger.info("Message "+(j+1)+" = "+msg.getMessageBody());
 				msg = mq.peekMessage(msg.getMessageId());
 				mq.deleteMessage(msg.getMessageId());
 			}
-*/
 /* test grants
 */
-			log.debug("Grants for "+mq.getUrl());
+			logger.info("Grants for "+mq.getUrl());
 			Grant [] grants = mq.listGrants(null, null);
 			for (Grant g : grants) {
-				log.debug("grant : "+g.getGrantee()+" perm : "+g.getPermission());
+				logger.info("grant : "+g.getGrantee()+" perm : "+g.getPermission());
 			}
-			log.debug("Adding Grant");
+			logger.info("Adding Grant");
 			mq.addGrantByEmailAddress("xrxs33@gmail.com", "ReceiveMessage");
-			log.debug("Grants for "+mq.getUrl());
+			logger.info("Grants for "+mq.getUrl());
 			grants = mq.listGrants(null, null);
 			for (Grant g : grants) {
-				log.debug("grant : "+g.getGrantee()+" perm : "+g.getPermission());
+				logger.info("grant : "+g.getGrantee()+" perm : "+g.getPermission());
 			}
-			log.debug("Removing Grant");
+			logger.info("Removing Grant");
 			mq.removeGrantByEmailAddress("xrxs33@gmail.com", "ReceiveMessage");
-			log.debug("Grants for "+mq.getUrl());
+			logger.info("Grants for "+mq.getUrl());
 			grants = mq.listGrants(null, null);
 			for (Grant g : grants) {
-				log.debug("grant : "+g.getGrantee()+" perm : "+g.getPermission());
+				logger.info("grant : "+g.getGrantee()+" perm : "+g.getPermission());
 			}
 		}
-		// test forced deletion
+		/* test forced deletion
 		MessageQueue mq = qs.getOrCreateMessageQueue("deleteTest-12345");
 		for (int j=0; j<10; j++) {	// throw 10 messages in the queue
 			mq.sendMessage("Testing 1, 2, 3");
 		}
-		log.debug("approximate queue size = "+mq.getApproximateNumberOfMessages());
+		logger.info("approximate queue size = "+mq.getApproximateNumberOfMessages());
 		try {
 			mq.deleteQueue();
-			log.error("Queue deletion was allowed, even with messages and force=false !!");
+			logger.error("Queue deletion was allowed, even with messages and force=false !!");
 		} catch (SQSException ex) {
-			log.debug("queue can't be deleted (this is exptected)");
+			logger.info("queue can't be deleted (this is exptected)");
 		}
 		try {
 			mq.deleteQueue(true);
-			log.debug("queue deleted with force=true (this is exptected)");
+			logger.info("queue deleted with force=true (this is exptected)");
 		} catch (SQSException ex) {
-			log.error("Queue deletion failed (this is not exptected) !!");
+			logger.error("Queue deletion failed (this is not exptected) !!");
 		}
+		*/
 	}
 }

@@ -38,8 +38,6 @@ import java.util.SortedMap;
 import java.util.TimeZone;
 import java.util.TreeMap;
 
-import com.xerox.amazonws.tools.LoggingConfigurator;
-
 /**
  * This class provides an interface with the Amazon SQS service. It provides high level
  * methods for listing and creating message queues.

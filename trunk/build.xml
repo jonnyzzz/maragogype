@@ -9,6 +9,7 @@
 	<property name="typica.jar" value="${typica.build}/jar" />
 	<property name="typica.jar.file" value="${typica.jar}/typica.jar" />
     <property name="typica.classes" value="${typica.build}/classes" />
+    <property name="typica.jar.classes" value="${typica.jar}/classes" />
     <property name="typica.generated" value="${typica.build}/generated" />
     <property name="typica.javadoc" value="${typica.build}/apidocs" />
     <property name="typica.dist" value="${typica}/dist" />
@@ -65,6 +66,7 @@
     </target>
 
 	<target name="test.compile" depends="compile" description="Compile test java files">
+		<property name="test.src.path" value="test/java"/>
 		<javac destdir="${typica.classes}" debug="on">
 			<src path="test/java" />
 			<classpath refid="typica.compile.classpath" />
@@ -114,6 +116,7 @@
 				<pathelement location="${typica.classes}"/>
 			</classpath>
 			<arg line="${args}"/>
+			<jvmarg value="-Djava.util.logging.config.file=conf/logging.properties"/>
 		</java>
 	</target>
 </project>
