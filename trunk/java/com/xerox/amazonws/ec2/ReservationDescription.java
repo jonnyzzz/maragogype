@@ -50,10 +50,10 @@ public class ReservationDescription {
 	}
 
 	public Instance addInstance(String imageId, String instanceId,
-			String dnsName, InstanceStateType state, String reason,
-			String keyName) {
-		Instance instance = new Instance(imageId, instanceId, dnsName,
-				state.getName(), state.getCode(), reason, keyName);
+			String privateDnsName, String dnsName, InstanceStateType state,
+			String reason, String keyName) {
+		Instance instance = new Instance(imageId, instanceId, privateDnsName,
+				dnsName, state.getName(), state.getCode(), reason, keyName);
 		instances.add(instance);
 		return instance;
 	}
@@ -78,6 +78,7 @@ public class ReservationDescription {
 	public class Instance {
 		private String imageId;
 		private String instanceId;
+		private String privateDnsName;
 		private String dnsName;
 		private String reason;
 		private String keyName;
@@ -96,11 +97,12 @@ public class ReservationDescription {
 		private String state;
 		private int stateCode;
 
-		public Instance(String imageId, String instanceId, String dnsName,
-				String stateName, int stateCode, String reason,
+		public Instance(String imageId, String instanceId, String privateDnsName,
+				String dnsName, String stateName, int stateCode, String reason,
 				String keyName) {
 			this.imageId = imageId;
 			this.instanceId = instanceId;
+			this.privateDnsName = privateDnsName;
 			this.dnsName = dnsName;
 			this.state = stateName;
 			this.stateCode = stateCode;
@@ -114,6 +116,10 @@ public class ReservationDescription {
 
 		public String getInstanceId() {
 			return instanceId;
+		}
+
+		public String getPrivateDnsName() {
+			return privateDnsName;
 		}
 
 		public String getDnsName() {
@@ -154,6 +160,7 @@ public class ReservationDescription {
 
 		public String toString() {
 			return "[img=" + this.imageId + ", instance=" + this.instanceId
+					+ ", privateDns=" + this.privateDnsName
 					+ ", dns=" + this.dnsName + ", loc=" + ", state="
 					+ this.state + "(" + this.stateCode + ") reason="
 					+ this.reason + "]";

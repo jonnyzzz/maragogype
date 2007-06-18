@@ -422,8 +422,11 @@ public class Jec2 extends AWSQueryConnection {
 				RunningInstancesItemType rsp_item = (RunningInstancesItemType) instances_iter
 													.next();
 				res.addInstance(rsp_item.getImageId(),
-								rsp_item.getInstanceId(), rsp_item.getDnsName(),
-								rsp_item.getInstanceState(), rsp_item.getReason(),
+								rsp_item.getInstanceId(),
+								rsp_item.getPrivateDnsName(),
+								rsp_item.getDnsName(),
+								rsp_item.getInstanceState(),
+								rsp_item.getReason(),
 								rsp_item.getKeyName());
 			}
 			return res;
@@ -561,8 +564,11 @@ public class Jec2 extends AWSQueryConnection {
 					RunningInstancesItemType rsp_item = (RunningInstancesItemType) instances_iter
 														.next();
 					res.addInstance(rsp_item.getImageId(),
-									rsp_item.getInstanceId(), rsp_item.getDnsName(),
-									rsp_item.getInstanceState(), rsp_item.getReason(),
+									rsp_item.getInstanceId(),
+									rsp_item.getPrivateDnsName(),
+									rsp_item.getDnsName(),
+									rsp_item.getInstanceState(),
+									rsp_item.getReason(),
 									rsp_item.getKeyName());
 				}
 				result.add(res);
