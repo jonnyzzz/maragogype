@@ -386,7 +386,7 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("MinCount", ""+minCount);
 		params.put("MaxCount", ""+maxCount);
 		if (userData != null && !userData.trim().equals("")) {
-			params.put("UserData", userData);
+			params.put("UserData", Base64Coder.encodeString(userData));
 		}
 		if (publicAddr) {
 			params.put("AddressingType", "public");
