@@ -20,8 +20,8 @@ public class ShowQueueLoadHistory {
 	private static final int SAMPLES_PER_MINUTE = 20;
 
 	public static void main(String [] args) throws Exception {
-        final String AWSAccessKeyId = "[AWS Access Id]";
-        final String SecretAccessKey = "[AWS Secret Key]";
+		final String AWSAccessKeyId = "[AWS Access Id]";
+		final String SecretAccessKey = "[AWS Secret Key]";
 
 		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey);
 		MessageQueue mq = qs.getOrCreateMessageQueue(args[0]);
