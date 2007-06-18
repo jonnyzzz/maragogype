@@ -1,0 +1,8 @@
+#labels Featured
+This tool shows the load average for a message queue
+
+= Introduction =
+
+The last API update to SQS added support for getting the approximate number of messages in the queue. Because of this, we can now get an idea of how many messages are waiting instead of guessing! This tool provides something like the unix "uptime" command provides for CPU load average.
+
+= Details =
