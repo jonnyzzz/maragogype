@@ -6,3 +6,33 @@ This tool shows the load average for a message queue
 The last API update to SQS added support for getting the approximate number of messages in the queue. Because of this, we can now get an idea of how many messages are waiting instead of guessing! This tool provides something like the unix "uptime" command provides for CPU load average.
 
 = Details =
+
+= Sample Output =
+
+     [java] load average: 48.0, 48.0, 48.0
+     [java] load average: 47.8, 48.0, 48.0
+     [java] load average: 47.4, 47.9, 48.0
+     [java] load average: 46.8, 47.8, 47.9
+     [java] load average: 46.2, 47.6, 47.9
+     [java] load average: 45.3, 47.5, 47.8
+     [java] load average: 44.2, 47.2, 47.7
+     [java] load average: 43.0, 47.0, 47.6
+     [java] load average: 41.5, 46.7, 47.5
+     [java] load average: 40.0, 46.4, 47.4
+     [java] load average: 38.2, 46.0, 47.3
+     [java] load average: 36.3, 45.7, 47.1
+     [java] load average: 34.2, 45.2, 47.0
+     [java] load average: 31.9, 44.8, 46.8
+     [java] load average: 29.5, 44.3, 46.6
+     [java] load average: 27.0, 43.8, 46.5
+     [java] load average: 24.6, 43.3, 46.3
+     [java] load average: 22.3, 42.8, 46.1
+     [java] load average: 19.9, 42.4, 46.0
+     [java] load average: 17.5, 41.9, 45.8
+     [java] load average: 15.1, 41.4, 45.6
+     [java] load average: 12.9, 40.9, 45.5
+     [java] load average: 10.9, 40.5, 45.3
+     [java] load average: 9.0, 40.0, 45.1
+     [java] load average: 7.3, 39.5, 45.0
+     [java] load average: 5.8, 39.0, 44.8
+     [java] load average: 4.4, 38.5, 44.7
