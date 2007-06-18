@@ -6,9 +6,62 @@ This tool shows the load average for a message queue
 The last API update to SQS added support for getting the approximate number of messages in the queue. Because of this, we can now get an idea of how many messages are waiting instead of guessing! This tool provides something like the unix "uptime" command provides for CPU load average.
 
 = Details =
+[http://typica.googlecode.com/svn/trunk/test/java/ShowQueueLoadHistory.java]
+{{{
+
+import java.util.ArrayList;
+
+import com.xerox.amazonws.sqs.MessageQueue;
+import com.xerox.amazonws.sqs.QueueService;
+import com.xerox.amazonws.sqs.SQSException;
+
+// measures load average on queues at 1, 5 and 15 minutes
+public class ShowQueueLoadHistory {
+	private static final int SAMPLES_PER_MINUTE = 20;
+
+	public static void main(String [] args) throws Exception {
+        final String AWSAccessKeyId = "[AWS Access Id]";
+        final String SecretAccessKey = "[AWS Secret Key]";
+
+		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey);
+		MessageQueue mq = qs.getOrCreateMessageQueue(args[0]);
+
+		ArrayList<Integer> samples = new ArrayList<Integer>(SAMPLES_PER_MINUTE*15);
+		while (true) {
+			samples.add(0, mq.getApproximateNumberOfMessages());
+			if (samples.size() > (SAMPLES_PER_MINUTE * 15)) {
+				samples.remove(samples.size()-1);
+			}
+			float avg1 = 0;
+			int count1;
+			for (count1=0; count1<SAMPLES_PER_MINUTE && count1<samples.size(); count1++) {
+				avg1 += samples.get(count1);
+			}
+			float avg2 = avg1;
+			int count2;
+			for (count2=SAMPLES_PER_MINUTE; count2<(SAMPLES_PER_MINUTE*5) && count2<samples.size(); count2++) {
+				avg2 += samples.get(count2);
+			}
+			float avg3 = avg2;
+			int count3;
+			for (count3=(SAMPLES_PER_MINUTE*5); count3<(SAMPLES_PER_MINUTE*15) && count3<samples.size(); count3++) {
+				avg3 += samples.get(count3);
+			}
+			avg1 = avg1 / count1;
+			count2 = count1 + (count2-SAMPLES_PER_MINUTE);
+			avg2 = avg2 / count2;
+			count3 = count2 + (count3-(SAMPLES_PER_MINUTE*5));
+			avg3 = avg3 / count3;
+			System.out.printf("load average: %.1f, %.1f, %.1f\n", avg1, avg2, avg3);
+			try { Thread.sleep(60000 / SAMPLES_PER_MINUTE); } catch (InterruptedException ex) {}
+		}
+	}
+}
+}}}
 
 = Sample Output =
 
+{{{
      [java] load average: 48.0, 48.0, 48.0
      [java] load average: 47.8, 48.0, 48.0
      [java] load average: 47.4, 47.9, 48.0
@@ -36,3 +89,4 @@ The last API update to SQS added support for getting the approximate number of m
      [java] load average: 7.3, 39.5, 45.0
      [java] load average: 5.8, 39.0, 44.8
      [java] load average: 4.4, 38.5, 44.7
+}}}
