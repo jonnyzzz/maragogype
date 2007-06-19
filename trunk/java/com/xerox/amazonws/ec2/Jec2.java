@@ -82,9 +82,6 @@ import com.xerox.amazonws.typica.jaxb.TerminateInstancesResponseItemType;
 import com.xerox.amazonws.typica.jaxb.UserIdGroupPairType;
 import com.xerox.amazonws.typica.jaxb.UserIdGroupPairSetType;
 
-import com.sun.org.apache.xml.internal.serialize.OutputFormat;
-import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
