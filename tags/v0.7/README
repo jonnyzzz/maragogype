@@ -1,0 +1,59 @@
+typica 0.5
+04-May-2007
+
+http://code.google.com/p/typica
+
+This is a simple API to access Amazon's SQS and EC2 web services. It uses the QUERY interface and patterns the methods after those available from Amazon in their SOAP client for these services. This code is thread-safe and works very reliably to the best of my knowledge. I've been using it on a system where sending messages in SQS is critical and we manage pools of servers in EC2.
+
+Distribution files;
+README      - this file
+lgpl.txt    - full version of the LGPL license
+Log4J.xml   - a Log4J config file you can include in your classpath
+typica.jar  - the classes for this release
+apidocs     - JavaDoc for this release
+
+Test files
+In subversion, the test directory contains some java test files. Sample code is also documented on the wiki @ http://code.google.com/p/typica/wiki/TypicaSampleCode. These can be used as sample files and to test various features of the client code. There is a target "test.main". To invoke the sample code, you can use this target like this;
+ant test.main -Dclass=TestQueueService -Dargs=testQueue
+
+Base64 coder included. 
+I've included the encoder/decoder written by Christian d'Heureuse. The full class name is ch.inventec.Base64Coder. (that is the domain where I found the code). Typica doesn't yet use it directly, but since many SQS messages need base64 encoding, I've included it for convenience.
+
+Change history for this version;
+------------------------------------------------------------------------
+r61 | dkavanagh | 2007-06-19 14:16:04 -0400 (Tue, 19 Jun 2007) | 1 line
+
+cleaned up XJC task classpath
+------------------------------------------------------------------------
+r60 | dkavanagh | 2007-06-19 14:06:15 -0400 (Tue, 19 Jun 2007) | 1 line
+
+removed un-needed includes that referenced com.sun classes
+------------------------------------------------------------------------
+r59 | dkavanagh | 2007-06-18 13:51:50 -0400 (Mon, 18 Jun 2007) | 1 line
+
+added support for private dns name in instance data
+------------------------------------------------------------------------
+r58 | dkavanagh | 2007-06-18 13:39:28 -0400 (Mon, 18 Jun 2007) | 1 line
+
+encode user data by default on a runInstances call
+------------------------------------------------------------------------
+r53 | dkavanagh | 2007-06-18 10:28:40 -0400 (Mon, 18 Jun 2007) | 1 line
+
+tool to use MessageQueue.getApproximateNumberOfMessage() to calculate and display load average (1,5,15 minute averages)
+------------------------------------------------------------------------
+r52 | dkavanagh | 2007-06-17 10:47:14 -0400 (Sun, 17 Jun 2007) | 2 lines
+
+changed logging to commons-logging; fixed runInstances SecurityGroup bug
+------------------------------------------------------------------------
+r51 | dkavanagh | 2007-06-12 14:37:19 -0400 (Tue, 12 Jun 2007) | 1 line
+
+removed some extra debug that got in the last commit
+------------------------------------------------------------------------
+r50 | dkavanagh | 2007-06-12 14:24:41 -0400 (Tue, 12 Jun 2007) | 1 line
+
+fixed getUrl() which was returning the queue id twice in the string. This broke in the query migration
+------------------------------------------------------------------------
+r49 | dkavanagh | 2007-06-01 09:47:31 -0400 (Fri, 01 Jun 2007) | 1 line
+
+fix from Travis for loading Log4j.xml from jar file
+------------------------------------------------------------------------
