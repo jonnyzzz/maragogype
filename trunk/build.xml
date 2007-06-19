@@ -22,8 +22,7 @@
 
 	<taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
 		<classpath>
-			<fileset dir="${typica.lib}" includes="**/jaxb-xjc.jar"/>
-			<fileset dir="${typica.lib}" includes="**/jaxb*.jar"/>
+			<fileset dir="${typica.lib}" includes="**/jaxb-*.jar"/>
 		</classpath>
 	</taskdef>
 	
