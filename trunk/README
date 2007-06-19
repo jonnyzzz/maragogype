@@ -21,39 +21,39 @@ I've included the encoder/decoder written by Christian d'Heureuse. The full clas
 
 Change history for this version;
 ------------------------------------------------------------------------
-r47 | dkavanagh | 2007-05-25 17:29:44 -0400 (Fri, 25 May 2007) | 1 line
+r61 | dkavanagh | 2007-06-19 14:16:04 -0400 (Tue, 19 Jun 2007) | 1 line
 
-updated the license to Apache 2.0
+cleaned up XJC task classpath
 ------------------------------------------------------------------------
-r46 | dkavanagh | 2007-05-25 01:13:45 -0400 (Fri, 25 May 2007) | 1 line
+r60 | dkavanagh | 2007-06-19 14:06:15 -0400 (Tue, 19 Jun 2007) | 1 line
 
-fixed api call
+removed un-needed includes that referenced com.sun classes
 ------------------------------------------------------------------------
-r45 | dkavanagh | 2007-05-24 15:40:41 -0400 (Thu, 24 May 2007) | 1 line
+r59 | dkavanagh | 2007-06-18 13:51:50 -0400 (Mon, 18 Jun 2007) | 1 line
 
-set test code to use direct host, not localhost (for traffic monitor)
+added support for private dns name in instance data
 ------------------------------------------------------------------------
-r44 | dkavanagh | 2007-05-24 14:47:45 -0400 (Thu, 24 May 2007) | 1 line
+r58 | dkavanagh | 2007-06-18 13:39:28 -0400 (Mon, 18 Jun 2007) | 1 line
 
-added grant control for SQS
+encode user data by default on a runInstances call
 ------------------------------------------------------------------------
-r43 | dkavanagh | 2007-05-23 14:34:11 -0400 (Wed, 23 May 2007) | 1 line
+r53 | dkavanagh | 2007-06-18 10:28:40 -0400 (Mon, 18 Jun 2007) | 1 line
 
-fixed method of building signature string that doesn't strip the needed '=' from base64 encoded params
+tool to use MessageQueue.getApproximateNumberOfMessage() to calculate and display load average (1,5,15 minute averages)
 ------------------------------------------------------------------------
-r42 | dkavanagh | 2007-05-22 09:01:44 -0400 (Tue, 22 May 2007) | 1 line
+r52 | dkavanagh | 2007-06-17 10:47:14 -0400 (Sun, 17 Jun 2007) | 2 lines
 
-added code to change message visibility timeout
+changed logging to commons-logging; fixed runInstances SecurityGroup bug
 ------------------------------------------------------------------------
-r41 | dkavanagh | 2007-05-21 16:37:51 -0400 (Mon, 21 May 2007) | 1 line
+r51 | dkavanagh | 2007-06-12 14:37:19 -0400 (Tue, 12 Jun 2007) | 1 line
 
-QUERY upgrades. Grants missing, rest works
+removed some extra debug that got in the last commit
 ------------------------------------------------------------------------
-r40 | dkavanagh | 2007-05-18 16:31:19 -0400 (Fri, 18 May 2007) | 1 line
+r50 | dkavanagh | 2007-06-12 14:24:41 -0400 (Tue, 12 Jun 2007) | 1 line
 
-changed default addressing mode to public; can override with another runInstances method
+fixed getUrl() which was returning the queue id twice in the string. This broke in the query migration
 ------------------------------------------------------------------------
-r39 | dkavanagh | 2007-05-18 15:17:17 -0400 (Fri, 18 May 2007) | 1 line
+r49 | dkavanagh | 2007-06-01 09:47:31 -0400 (Fri, 01 Jun 2007) | 1 line
 
-documented release process to help with repeatibility
+fix from Travis for loading Log4j.xml from jar file
 ------------------------------------------------------------------------
