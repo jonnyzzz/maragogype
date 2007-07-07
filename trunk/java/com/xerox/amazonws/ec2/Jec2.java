@@ -41,6 +41,7 @@ import ch.inventec.Base64Coder;
 
 import com.xerox.amazonws.typica.jaxb.AuthorizeSecurityGroupIngressResponse;
 import com.xerox.amazonws.typica.jaxb.CreateKeyPairResponse;
+import com.xerox.amazonws.typica.jaxb.ConfirmProductInstanceResponse;
 import com.xerox.amazonws.typica.jaxb.CreateSecurityGroupResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteKeyPairResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteSecurityGroupResponse;
@@ -1279,6 +1280,43 @@ public class Jec2 extends AWSQueryConnection {
 			logger.error("ArrayStore problem, fetching response again to aid in debug.");
 			try {
 				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
+			} catch (Exception e) {
+				logger.error("Had trouble re-fetching the request response.", e);
+			}
+			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		}
+	}
+
+	/**
+	 * Returns true if the productCode is associated with the instance.
+	 *
+	 * @param instanceId An instance's id ({@link ReservationDescription.Instance#instanceId}.
+	 * @returns null if no relationship exists, otherwise information about the owner
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public ProductInstanceInfo confirmProductInstance(String instanceId, String productCode) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("InstanceId", instanceId);
+		params.put("ProductCode", productCode);
+		try {
+			InputStream iStr =
+				makeRequest("GET", "ConfirmProductInstance", params).getInputStream();
+			ConfirmProductInstanceResponse response =
+					JAXBuddy.deserializeXMLStream(ConfirmProductInstanceResponse.class, iStr);
+			if (response.isReturn()) {
+				return new ProductInstanceInfo(instanceId, productCode, response.getOwnerId());
+			}
+			else return null;
+		} catch (ArrayStoreException ex) {
+			logger.error("ArrayStore problem, fetching response again to aid in debug.");
+			try {
+				logger.error(makeRequest("GET", "ConfirmProductInstance", params).getResponseMessage());
 			} catch (Exception e) {
 				logger.error("Had trouble re-fetching the request response.", e);
 			}
