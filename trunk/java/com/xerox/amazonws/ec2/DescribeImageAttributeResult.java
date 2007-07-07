@@ -17,16 +17,21 @@
 
 package com.xerox.amazonws.ec2;
 
+import java.util.List;
+
 /**
  * The results of a call to describe image attributes. 
  */
 public class DescribeImageAttributeResult {
 	private String imageId;
 	private ImageListAttribute imageListAttribute;
+	private List<String> productCodes;
 	
-	public DescribeImageAttributeResult(String imageId, ImageListAttribute imageListAttribute) {
+	public DescribeImageAttributeResult(String imageId, ImageListAttribute imageListAttribute,
+					List<String> productCodes) {
 		this.imageId = imageId;
 		this.imageListAttribute = imageListAttribute;
+		this.productCodes = productCodes;
 	}
 
 	public String getImageId() {
@@ -35,6 +40,10 @@ public class DescribeImageAttributeResult {
 
 	public ImageListAttribute getImageListAttribute() {
 		return imageListAttribute;
+	}
+
+	public List<String> getProductCodes() {
+		return productCodes;
 	}
 }
 

@@ -17,6 +17,8 @@
 
 package com.xerox.amazonws.ec2;
 
+import java.util.List;
+
 /**
  * An instance of this class represents an AMI description.
  * <p>
@@ -29,14 +31,16 @@ public class ImageDescription {
 	private String imageOwnerId;
 	private String imageState;
 	private boolean isPublic;
+	private List<String> productCodes;
 
 	public ImageDescription(String id, String loc, String owner,
-			String state, Boolean isPublic) {
+			String state, Boolean isPublic, List<String> productCodes) {
 		this.imageId = id;
 		this.imageLocation = loc;
 		this.imageOwnerId = owner;
 		this.imageState = state;
 		this.isPublic = isPublic;
+		this.productCodes = productCodes;
 	}
 
 	public String getImageId() {
@@ -57,6 +61,10 @@ public class ImageDescription {
 
 	public boolean isPublic() {
 		return isPublic;
+	}
+
+	public List<String> getProductCodes() {
+		return productCodes;
 	}
 
 	public String toString() {

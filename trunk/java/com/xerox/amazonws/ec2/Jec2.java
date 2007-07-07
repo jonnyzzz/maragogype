@@ -66,6 +66,10 @@ import com.xerox.amazonws.typica.jaxb.LaunchPermissionItemType;
 import com.xerox.amazonws.typica.jaxb.LaunchPermissionListType;
 import com.xerox.amazonws.typica.jaxb.ModifyImageAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.ObjectFactory;
+import com.xerox.amazonws.typica.jaxb.ProductCodeListType;
+import com.xerox.amazonws.typica.jaxb.ProductCodeItemType;
+import com.xerox.amazonws.typica.jaxb.ProductCodesSetType;
+import com.xerox.amazonws.typica.jaxb.ProductCodesSetItemType;
 import com.xerox.amazonws.typica.jaxb.RebootInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.RegisterImageResponse;
 import com.xerox.amazonws.typica.jaxb.RevokeSecurityGroupIngressResponse;
@@ -145,7 +149,7 @@ public class Jec2 extends AWSQueryConnection {
     {
 		super(awsAccessKeyId, awsSecretAccessKey, isSecure, server, port);
 		ArrayList vals = new ArrayList();
-		vals.add("2007-01-19");
+		vals.add("2007-03-01");
 		super.headers.put("Version", vals);
     }
 
@@ -168,7 +172,7 @@ public class Jec2 extends AWSQueryConnection {
 		} catch (ArrayStoreException ex) {
 			logger.error("ArrayStore problem, fetching response again to aid in debug.");
 			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
+				logger.error(makeRequest("GET", "RegisterImages", params).getResponseMessage());
 			} catch (Exception e) {
 				logger.error("Had trouble re-fetching the request response.", e);
 			}
@@ -202,7 +206,7 @@ public class Jec2 extends AWSQueryConnection {
 		} catch (ArrayStoreException ex) {
 			logger.error("ArrayStore problem, fetching response again to aid in debug.");
 			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
+				logger.error(makeRequest("GET", "DeregisterImages", params).getResponseMessage());
 			} catch (Exception e) {
 				logger.error("Had trouble re-fetching the request response.", e);
 			}
@@ -308,9 +312,16 @@ public class Jec2 extends AWSQueryConnection {
 			while (set_iter.hasNext()) {
 				DescribeImagesResponseItemType item = (DescribeImagesResponseItemType) set_iter
 						.next();
+				ArrayList<String> codes = new ArrayList<String>();
+				ProductCodesSetType code_set = item.getProductCodes();
+				if (code_set != null) {
+					for (ProductCodesSetItemType code : code_set.getItems()) {
+						codes.add(code.getProductCode());
+					}
+				}
 				result.add(new ImageDescription(item.getImageId(), item
 						.getImageLocation(), item.getImageOwnerId(), item
-						.getImageState(), item.isIsPublic()));
+						.getImageState(), item.isIsPublic(), codes));
 			}
 			return result;
 		} catch (ArrayStoreException ex) {
@@ -1256,8 +1267,14 @@ public class Jec2 extends AWSQueryConnection {
 					}
 				}
 			}
-			
-			return new DescribeImageAttributeResult(rsp.getImageId(), attribute);
+			ArrayList<String> codes = new ArrayList<String>();
+			ProductCodeListType set = rsp.getProductCodes();
+			if (set != null) {
+				for (ProductCodeItemType code : set.getItems()) {
+					codes.add(code.getProductCode());
+				}
+			}
+			return new DescribeImageAttributeResult(rsp.getImageId(), attribute, codes);
 		} catch (ArrayStoreException ex) {
 			logger.error("ArrayStore problem, fetching response again to aid in debug.");
 			try {

@@ -1,22 +1,22 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xmlns:tns="http://ec2.amazonaws.com/doc/2007-01-19/"
+		xmlns:tns="http://ec2.amazonaws.com/doc/2007-03-01/"
 		xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
 		xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-		targetNamespace="http://ec2.amazonaws.com/doc/2007-01-19/"
+		targetNamespace="http://ec2.amazonaws.com/doc/2007-03-01/"
 		jaxb:extensionBindingPrefixes="xjc"
 		jaxb:version="2.0"
 		elementFormDefault="qualified">
-  
-  <xs:annotation>
-	<xs:documentation xml:lang="en">
-	</xs:documentation>
-	<xs:appinfo>
-      <jaxb:globalBindings>
-      	<xjc:simple/>
-      </jaxb:globalBindings>
-	</xs:appinfo>
-  </xs:annotation>
+
+   <xs:annotation>
+        <xs:documentation xml:lang="en">
+        </xs:documentation>
+		<xs:appinfo>
+			<jaxb:globalBindings>
+				<xjc:simple/>
+			</jaxb:globalBindings>
+		</xs:appinfo>
+   </xs:annotation>
   
   <!-- RegisterImage request definitions -->
   
@@ -81,7 +81,7 @@
 
   <!-- DeleteKeyPair request definitions -->
   
-  <xs:element name="DeleteKeyPair" type="tns:DeleteKeyPairType"/>
+  <xs:element name="DeleteKeyPair" type="tns:DeleteKeyPairType" />
 
   <xs:complexType name="DeleteKeyPairType">
 	<xs:sequence>
@@ -139,8 +139,8 @@
 
   <xs:complexType name="DescribeKeyPairsResponseItemType">
 	<xs:sequence>
-	  <xs:element name="keyName" type="xs:string"/>
-	  <xs:element name="keyFingerprint" type="xs:string"/>
+	  <xs:element name="keyName" type="xs:string" />
+	  <xs:element name="keyFingerprint" type="xs:string" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -169,7 +169,7 @@
 	  <xs:element name="imageId" type="xs:string"/>
 	  <xs:element name="minCount" type="xs:int"/>
 	  <xs:element name="maxCount" type="xs:int"/>
-	  <xs:element name="keyName" type="xs:string" minOccurs="0"/>
+	  <xs:element name="keyName" type="xs:string" minOccurs="0" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -185,9 +185,9 @@
 	</xs:sequence>
   </xs:complexType>
 
-  <xs:complexType name="UserDataType" mixed="false">
+  <xs:complexType name="UserDataType" mixed="true">
 	<xs:sequence>
-	  <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
+	  <xs:element name="data" type="xs:string"/>
 	</xs:sequence>
 	<xs:attribute name="version" type="xs:string" use="required" fixed="1.0"/>
 	<xs:attribute name="encoding" type="xs:string" use="required" fixed="base64"/>
@@ -222,6 +222,7 @@
 	  <xs:element name="reason" type="xs:string" minOccurs="0"/>
 	  <xs:element name="keyName" type="xs:string" minOccurs="0"/>
 	  <xs:element name="amiLaunchIndex" type="xs:string" minOccurs="0" maxOccurs="1"/>
+	  <xs:element name="productCodes" type="tns:ProductCodesSetType" minOccurs="0" maxOccurs="1" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -241,9 +242,9 @@
 
   <xs:complexType name="GetConsoleOutputResponseType">
 	<xs:sequence>
-	  <xs:element name="instanceId" type="xs:string"/>
-	  <xs:element name="timestamp" type="xs:dateTime"/>
-	  <xs:element name="output" type="xs:string"/>
+	  <xs:element name="instanceId" type="xs:string" />
+	  <xs:element name="timestamp" type="xs:dateTime" />
+	  <xs:element name="output" type="xs:string" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -287,9 +288,9 @@
 
   <xs:complexType name="TerminateInstancesResponseItemType">
 	<xs:sequence>
-	  <xs:element name="instanceId" type="xs:string"/>
-	  <xs:element name="shutdownState" type="tns:InstanceStateType"/>
-	  <xs:element name="previousState" type="tns:InstanceStateType"/>
+	  <xs:element name="instanceId" type="xs:string" />
+	  <xs:element name="shutdownState" type="tns:InstanceStateType" />
+	  <xs:element name="previousState" type="tns:InstanceStateType" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -342,7 +343,7 @@
 
   <xs:complexType name="DescribeInstancesItemType">
 	<xs:sequence>
-	  <xs:element name="instanceId" type="xs:string"/>
+	  <xs:element name="instanceId" type="xs:string" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -398,15 +399,15 @@
 	</xs:sequence>
   </xs:complexType>
   
-  <xs:complexType name="DescribeImagesExecutableBySetType">
+  <xs:complexType name="DescribeImagesExecutableBySetType" >
 	<xs:sequence>
 	  <xs:element name="item" type="tns:DescribeImagesExecutableByType" minOccurs="0" maxOccurs="unbounded"/>
 	</xs:sequence>
   </xs:complexType>
   
-  <xs:complexType name="DescribeImagesExecutableByType">
+  <xs:complexType name="DescribeImagesExecutableByType" >
 	<xs:sequence>
-	  <xs:element name="user" type="xs:string"/>
+	  <xs:element name="user" type="xs:string" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -428,17 +429,19 @@
 
   <xs:complexType name="DescribeImagesResponseItemType">
 	<xs:sequence>
-	  <xs:element name="imageId" type="xs:string"/>
-	  <xs:element name="imageLocation" type="xs:string"/>
-	  <xs:element name="imageState" type="xs:string"/>
-	  <xs:element name="imageOwnerId" type="xs:string"/>
-	  <xs:element name="isPublic" type="xs:boolean"/>
+	  <xs:element name="imageId" type="xs:string" />
+	  <xs:element name="imageLocation" type="xs:string" />
+	  <xs:element name="imageState" type="xs:string" />
+	  <xs:element name="imageOwnerId" type="xs:string" />
+	  <xs:element name="isPublic" type="xs:boolean" />
+	  <xs:element name="productCodes" type="tns:ProductCodesSetType" minOccurs="0" />
 	</xs:sequence>
   </xs:complexType>
 
   <!-- CreateSecurityGroup Request definitions -->
 
-  <xs:element name="CreateSecurityGroup" type="tns:CreateSecurityGroupType"/>
+  <xs:element name="CreateSecurityGroup" 
+		  type="tns:CreateSecurityGroupType"/>
 
   <xs:complexType name="CreateSecurityGroupType">
 	<xs:sequence>
@@ -449,7 +452,8 @@
 
   <!-- CreateSecurityGroup Response definitions -->
 
-  <xs:element name="CreateSecurityGroupResponse" type="tns:CreateSecurityGroupResponseType"/>
+  <xs:element name="CreateSecurityGroupResponse" 
+		  type="tns:CreateSecurityGroupResponseType"/>
 
   <xs:complexType name="CreateSecurityGroupResponseType">
 	<xs:sequence>
@@ -459,7 +463,8 @@
 
   <!-- DeleteSecurityGroup Request definitions -->
 
-  <xs:element name="DeleteSecurityGroup" type="tns:DeleteSecurityGroupType"/>
+  <xs:element name="DeleteSecurityGroup" 
+		  type="tns:DeleteSecurityGroupType"/>
 
   <xs:complexType name="DeleteSecurityGroupType">
 	<xs:sequence>
@@ -469,7 +474,8 @@
 
   <!-- DeleteSecurityGroup Response definitions -->
 
-  <xs:element name="DeleteSecurityGroupResponse" type="tns:DeleteSecurityGroupResponseType"/>
+  <xs:element name="DeleteSecurityGroupResponse" 
+		  type="tns:DeleteSecurityGroupResponseType"/>
 
   <xs:complexType name="DeleteSecurityGroupResponseType">
 	<xs:sequence>
@@ -479,7 +485,8 @@
 
   <!-- DescribeSecurityGroups Request definitions -->
 
-  <xs:element name="DescribeSecurityGroups" type="tns:DescribeSecurityGroupsType"/>
+  <xs:element name="DescribeSecurityGroups" 
+		  type="tns:DescribeSecurityGroupsType"/>
 
   <xs:complexType name="DescribeSecurityGroupsType">
 	<xs:sequence>
@@ -489,7 +496,8 @@
 
   <xs:complexType name="DescribeSecurityGroupsSetType">
 	<xs:sequence>
-	  <xs:element name="item" type="tns:DescribeSecurityGroupsSetItemType" minOccurs="0" maxOccurs="unbounded"/>
+	  <xs:element name="item" type="tns:DescribeSecurityGroupsSetItemType"
+		  minOccurs="0" maxOccurs="unbounded"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -501,7 +509,8 @@
 
   <!-- DescribeSecurityGroups Response definitions -->
 
-  <xs:element name="DescribeSecurityGroupsResponse" type="tns:DescribeSecurityGroupsResponseType"/>
+  <xs:element name="DescribeSecurityGroupsResponse" 
+		  type="tns:DescribeSecurityGroupsResponseType"/>
 
   <xs:complexType name="DescribeSecurityGroupsResponseType">
 	<xs:sequence>
@@ -511,7 +520,8 @@
 
   <xs:complexType name="IpPermissionSetType">
 	<xs:sequence>
-	  <xs:element name="item" type="tns:IpPermissionType" minOccurs="0" maxOccurs="unbounded"/>
+	  <xs:element name="item" type="tns:IpPermissionType"
+		  minOccurs="0" maxOccurs="unbounded"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -527,7 +537,8 @@
 
   <xs:complexType name="IpRangeSetType">
 	<xs:sequence>
-	  <xs:element name="item" type="tns:IpRangeItemType" minOccurs="0" maxOccurs="unbounded"/>
+	  <xs:element name="item" type="tns:IpRangeItemType"
+		  minOccurs="0" maxOccurs="unbounded"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -539,7 +550,8 @@
 
   <xs:complexType name="UserIdGroupPairSetType">
 	<xs:sequence>
-	  <xs:element name="item" type="tns:UserIdGroupPairType" minOccurs="0" maxOccurs="unbounded"/>
+	  <xs:element name="item" type="tns:UserIdGroupPairType" 
+		  minOccurs="0" maxOccurs="unbounded"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -552,7 +564,8 @@
 
   <xs:complexType name="SecurityGroupSetType">
 	<xs:sequence>
-	  <xs:element name="item" type="tns:SecurityGroupItemType" minOccurs="0" maxOccurs="unbounded"/>
+	  <xs:element name="item" type="tns:SecurityGroupItemType" 
+		  minOccurs="0" maxOccurs="unbounded"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -578,7 +591,8 @@
 	</xs:documentation>
   </xs:annotation>
 	  
-  <xs:element name="AuthorizeSecurityGroupIngress" type="tns:AuthorizeSecurityGroupIngressType"/>
+  <xs:element name="AuthorizeSecurityGroupIngress" 
+		  type="tns:AuthorizeSecurityGroupIngressType"/>
 
   <xs:complexType name="AuthorizeSecurityGroupIngressType">
 	<xs:sequence>
@@ -590,7 +604,8 @@
 
   <!-- AuthorizeSecurityGroupIngress Response definitions -->
 
-  <xs:element name="AuthorizeSecurityGroupIngressResponse" type="tns:AuthorizeSecurityGroupIngressResponseType"/>
+  <xs:element name="AuthorizeSecurityGroupIngressResponse" 
+		  type="tns:AuthorizeSecurityGroupIngressResponseType"/>
 
   <xs:complexType name="AuthorizeSecurityGroupIngressResponseType">
 	<xs:sequence>
@@ -611,7 +626,8 @@
 	</xs:documentation>
   </xs:annotation>
 
-  <xs:element name="RevokeSecurityGroupIngress" type="tns:RevokeSecurityGroupIngressType"/>
+  <xs:element name="RevokeSecurityGroupIngress" 
+		  type="tns:RevokeSecurityGroupIngressType"/>
 
   <xs:complexType name="RevokeSecurityGroupIngressType">
 	<xs:sequence>
@@ -623,7 +639,8 @@
 
   <!-- RevokeSecurityGroupIngress Response definitions -->
 
-  <xs:element name="RevokeSecurityGroupIngressResponse" type="tns:RevokeSecurityGroupIngressResponseType"/>
+  <xs:element name="RevokeSecurityGroupIngressResponse" 
+		  type="tns:RevokeSecurityGroupIngressResponseType"/>
 
   <xs:complexType name="RevokeSecurityGroupIngressResponseType">
 	<xs:sequence>
@@ -642,13 +659,15 @@
   
   <!-- ModifyImageAttribute Definitions -->
   
-  <xs:element name="ModifyImageAttribute" type="tns:ModifyImageAttributeType"/>
+  <xs:element name="ModifyImageAttribute"
+			  type="tns:ModifyImageAttributeType"/>
   
   <xs:complexType name="ModifyImageAttributeType">
 	<xs:sequence>
 	  <xs:element name="imageId" type="xs:string"/>
 	  <xs:choice>
 		<xs:element name="launchPermission" type="tns:LaunchPermissionOperationType"/>
+		<xs:element name="productCodes" type="tns:ProductCodeListType" />
 	  </xs:choice>
 	</xs:sequence>
   </xs:complexType>
@@ -669,13 +688,26 @@
   <xs:complexType name="LaunchPermissionItemType">
 	<xs:choice>
 	  <xs:element name="userId" type="xs:string"/>
-	  <xs:element name="group" type="xs:string"/>
+	  <xs:element name="group" type="xs:string" />
+	</xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="ProductCodeListType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:ProductCodeItemType" minOccurs="0" maxOccurs="unbounded"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ProductCodeItemType">
+	<xs:choice>
+	  <xs:element name="productCode" type="xs:string"/>
 	</xs:choice>
   </xs:complexType>
 
   <!-- ModifyImageAttributeResponse Definitions -->
 
-  <xs:element name="ModifyImageAttributeResponse" type="tns:ModifyImageAttributeResponseType"/>
+  <xs:element name="ModifyImageAttributeResponse"
+			  type="tns:ModifyImageAttributeResponseType" />
 			  
   <xs:complexType name="ModifyImageAttributeResponseType">
 	<xs:sequence>
@@ -685,16 +717,17 @@
   
   <!-- ResetImageAttribute Definitions -->
   
-  <xs:element name="ResetImageAttribute" type="tns:ResetImageAttributeType"/>
+  <xs:element name="ResetImageAttribute"
+			  type="tns:ResetImageAttributeType" />
 			 
-  <xs:complexType name="ResetImageAttributeType">
+  <xs:complexType name="ResetImageAttributeType" >
 	<xs:sequence>
 	  <xs:element name="imageId" type="xs:string"/>
-	  <xs:group ref="tns:ImageAttributesGroup"/>
+	  <xs:group ref="tns:ResetImageAttributesGroup"/>
 	</xs:sequence>
   </xs:complexType>
   
-  <xs:group name="ImageAttributesGroup">
+  <xs:group name="ResetImageAttributesGroup" >
 	<xs:choice>
 	  <xs:element name="launchPermission" type="tns:EmptyElementType"/>
 	</xs:choice>
@@ -705,36 +738,81 @@
 
   <!-- ResetImageAttributeResponse Definitions -->
 
-  <xs:element name="ResetImageAttributeResponse" type="tns:ResetImageAttributeResponseType"/>
+  <xs:element name="ResetImageAttributeResponse"
+			  type="tns:ResetImageAttributeResponseType" />
 
   <xs:complexType name="ResetImageAttributeResponseType">
 	<xs:sequence>
-	  <xs:element name="return" type="xs:boolean"/>
+	  <xs:element name="return" type="xs:boolean" />
 	</xs:sequence>
   </xs:complexType>
   
   <!-- DescribeImageAttribute Definitions -->
   
-  <xs:element name="DescribeImageAttribute" type="tns:DescribeImageAttributeType"/>
+  <xs:element name="DescribeImageAttribute"
+			  type="tns:DescribeImageAttributeType" />
 
   <xs:complexType name="DescribeImageAttributeType">
 	<xs:sequence>
-	  <xs:element name="imageId" type="xs:string"/>
-	  <xs:group ref="tns:ImageAttributesGroup"/>
+	  <xs:element name="imageId" type="xs:string" />
+	  <xs:group ref="tns:DescribeImageAttributesGroup" />
 	</xs:sequence>
   </xs:complexType>
 
+  <xs:group name="DescribeImageAttributesGroup" >
+	<xs:choice>
+	  <xs:element name="launchPermission" type="tns:EmptyElementType"/>
+	  <xs:element name="productCodes" type="tns:EmptyElementType" />
+	</xs:choice>
+  </xs:group>
+  
   <!-- DescribeImageAttributeResponse Definitions -->
   
-  <xs:element name="DescribeImageAttributeResponse" type="tns:DescribeImageAttributeResponseType"/>
+  <xs:element name="DescribeImageAttributeResponse"
+			  type="tns:DescribeImageAttributeResponseType" />
 			  
   <xs:complexType name="DescribeImageAttributeResponseType">
 	<xs:sequence>
-	  <xs:element name="imageId" type="xs:string"/>
+	  <xs:element name="imageId" type="xs:string" />
 	  <xs:choice>
 		<xs:element name="launchPermission" type="tns:LaunchPermissionListType"/>
+		<xs:element name="productCodes" type="tns:ProductCodeListType" />
 	  </xs:choice>
 	</xs:sequence>
   </xs:complexType>
-
+  
+  <!-- ConfirmProductInstance Definitions -->
+  
+  <xs:element name="ConfirmProductInstance" 
+			  type="tns:ConfirmProductInstanceType" />
+			  
+  <xs:complexType name="ConfirmProductInstanceType" >
+	<xs:sequence>
+	  <xs:element name="productCode" type="xs:string" />
+	  <xs:element name="instanceId" type="xs:string"/>
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="ProductCodesSetType" >
+	<xs:sequence>
+	  <xs:element name="item" type="tns:ProductCodesSetItemType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="ProductCodesSetItemType" >
+	<xs:sequence>
+	  <xs:element name="productCode" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:element name="ConfirmProductInstanceResponse" 
+			  type="tns:ConfirmProductInstanceResponseType" />
+  
+  <xs:complexType name="ConfirmProductInstanceResponseType">
+	<xs:sequence>
+	  <xs:element name="return" type="xs:boolean" />
+	  <xs:element name="ownerId" type="xs:string" minOccurs="0" />
+	</xs:sequence>
+  </xs:complexType>
+  
 </xs:schema>
