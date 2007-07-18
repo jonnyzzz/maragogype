@@ -33,6 +33,8 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
+import ch.inventec.Base64Coder;
+
 import com.xerox.amazonws.common.JAXBuddy;
 import com.xerox.amazonws.typica.jaxb.AddGrantResponse;
 import com.xerox.amazonws.typica.jaxb.AttributedValue;
@@ -89,12 +91,13 @@ public class MessageQueue extends QueueService {
 	 */
     public String sendMessage(String msg) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
+		String encodedMsg = Base64Coder.encodeString(msg);
 		try {
 			URLConnection conn = makeRequest("POST", "SendMessage", params);
 			conn.setRequestProperty("content-type", "text/plain");
 			conn.setDoOutput(true);
 			OutputStream oStr = conn.getOutputStream();
-			oStr.write(new String(msg).getBytes());
+			oStr.write(new String(encodedMsg).getBytes());
 			oStr.flush();
 			InputStream iStr = conn.getInputStream();
 			SendMessageResponse response = JAXBuddy.deserializeXMLStream(SendMessageResponse.class, iStr);
@@ -188,7 +191,8 @@ public class MessageQueue extends QueueService {
 				else {
 					ArrayList<Message> msgs = new ArrayList();
 					for (com.xerox.amazonws.typica.jaxb.Message msg : response.getMessages()) {
-						msgs.add(new Message(msg.getMessageId(), msg.getMessageBody()));
+						String decodedMsg = Base64Coder.decodeString(msg.getMessageBody());
+						msgs.add(new Message(msg.getMessageId(), decodedMsg));
 					}
 					return msgs.toArray(new Message [msgs.size()]);
 				}
@@ -223,7 +227,8 @@ public class MessageQueue extends QueueService {
 				return null;
 			}
 			else {
-				return new Message(msg.getMessageId(), msg.getMessageBody());
+				String decodedMsg = Base64Coder.decodeString(msg.getMessageBody());
+				return new Message(msg.getMessageId(), decodedMsg);
 			}
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);

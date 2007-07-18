@@ -116,7 +116,7 @@ public class SQSUtils {
 		if (msgQueue == null) {
 			logger.error( "Couldn't find message queue " + msgQueueName);
 		} else {
-			logger.info( "Using message queue resource at " + msgQueue.getUrl() ); 
+			logger.debug( "Using message queue resource at " + msgQueue.getUrl() ); 
 		}
 		return msgQueue;
 	}
