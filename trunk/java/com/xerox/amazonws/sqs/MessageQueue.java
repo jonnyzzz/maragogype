@@ -86,7 +86,7 @@ public class MessageQueue extends QueueService {
 	/**
 	 * Sends a message to a specified queue. The message must be between 1 and 256K bytes long.
 	 *
-	 * @param msg the message to be sent (should be base64 encoded)
+	 * @param msg the message to be sent
 	 * @return the message id for the message just sent
 	 */
     public String sendMessage(String msg) throws SQSException {
