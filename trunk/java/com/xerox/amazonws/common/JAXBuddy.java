@@ -35,28 +35,36 @@ import javax.xml.bind.Unmarshaller;
  */
 public class JAXBuddy {
     public static <T> InputStream serializeXMLFile(Class<T> c, Object object) 
-            throws JAXBException, IOException{
+            throws JAXBException, IOException {
         Marshaller m = getMarshaller(c);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         m.marshal(object, baos);
         ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
         return bais;
     }
+
+    public static <T> String serializeXMLString(Class<T> c, Object object) 
+            throws JAXBException, IOException {
+        Marshaller m = getMarshaller(c);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        m.marshal(object, baos);
+		return new String(baos.toByteArray());
+    }
  
-    public static <T> T deserializeXMLStream(Class<T> c, InputStream is) throws JAXBException{
+    public static <T> T deserializeXMLStream(Class<T> c, InputStream is) throws JAXBException {
         Unmarshaller u = getUnmarshaller(c);
         T result = c.cast(u.unmarshal(is));
         return result;
     }
     
-    private static Marshaller getMarshaller(Class<?> c) throws JAXBException{     
+    private static Marshaller getMarshaller(Class<?> c) throws JAXBException {
         String typePackage = c.getPackage().getName();
         JAXBContext jc = JAXBContext.newInstance(typePackage);
         Marshaller m = jc.createMarshaller();
         return m;
     }
 
-    private static Unmarshaller getUnmarshaller(Class<?> c) throws JAXBException{           
+    private static Unmarshaller getUnmarshaller(Class<?> c) throws JAXBException {
         String typePackage = c.getPackage().getName();
         JAXBContext jc = JAXBContext.newInstance(typePackage, c.getClassLoader());
         Unmarshaller u = jc.createUnmarshaller();
