@@ -17,6 +17,8 @@
 
 package com.xerox.amazonws.sqs;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -260,7 +262,19 @@ public class MessageQueue extends QueueService {
 			HttpURLConnection conn = makeRequest("GET", "DeleteMessage", params);
 			if (conn.getResponseCode() < 400) {
 				InputStream iStr = conn.getInputStream();
-				DeleteMessageResponse response = JAXBuddy.deserializeXMLStream(DeleteMessageResponse.class, iStr);
+				ByteArrayOutputStream oStr = new ByteArrayOutputStream();
+				copyStreams(iStr, oStr);
+				String respMsg = oStr.toString();
+				if (respMsg.indexOf(">Success<") > -1) {
+					return;	// no problems
+				}
+				else {
+					DeleteMessageResponse response =
+						JAXBuddy.deserializeXMLStream(DeleteMessageResponse.class,
+												new ByteArrayInputStream(respMsg.getBytes()));
+					throw new SQSException("Error deleting message : "+
+								response.getResponseStatus().getMessage());
+				}
 			}
 			else {
 				throw new SQSException("Error deleting message id="+msgId);
@@ -647,5 +661,16 @@ public class MessageQueue extends QueueService {
 			ret.add(new MessageQueue(queueUrls[i], awsAccessKeyId, awsSecretAccessKey, isSecure, server));
 		}
 		return ret;
+	}
+
+    private void copyStreams(InputStream iStr, OutputStream oStr) throws IOException {
+		byte [] buffer = new byte [16384];
+		int count = iStr.read(buffer);
+		while (count != -1) {
+			if (count > 0) {
+				oStr.write(buffer, 0, count);
+            }
+			count = iStr.read(buffer);
+		}
 	}
 }
