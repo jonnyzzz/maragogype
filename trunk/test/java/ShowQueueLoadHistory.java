@@ -10,8 +10,8 @@ public class ShowQueueLoadHistory {
 	private static final int SAMPLES_PER_MINUTE = 20;
 
 	public static void main(String [] args) throws Exception {
-        final String AWSAccessKeyId = "[AWS Access Id]";
-        final String SecretAccessKey = "[AWS Secret Key]";
+		final String AWSAccessKeyId = "[AWS Access Id]";
+		final String SecretAccessKey = "[AWS Secret Key]";
 
 		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey);
 		MessageQueue mq = qs.getOrCreateMessageQueue(args[0]);
@@ -42,7 +42,7 @@ public class ShowQueueLoadHistory {
 			avg2 = avg2 / count2;
 			count3 = count2 + (count3-(SAMPLES_PER_MINUTE*5));
 			avg3 = avg3 / count3;
-			System.out.printf("load average: %.1f, %.1f, %.1f\n", avg1, avg2, avg3);
+			System.out.printf("%d load average: %.1f, %.1f, %.1f\n", samples.get(0), avg1, avg2, avg3);
 			try { Thread.sleep(60000 / SAMPLES_PER_MINUTE); } catch (InterruptedException ex) {}
 		}
 	}

@@ -14,20 +14,24 @@ public class TestQueueService {
     private static Log logger = LogFactory.getLog(TestQueueService.class);
 
 	public static void main(String [] args) throws Exception {
-        final String AWSAccessKeyId = "[AWS Access Id]";
-        final String SecretAccessKey = "[AWS Secret Key]";
+//        final String AWSAccessKeyId = "[AWS Access Id]";
+//        final String SecretAccessKey = "[AWS Secret Key]";
+        final String AWSAccessKeyId = "1SEQ6QDW2YNW8T6K64R2";
+        final String SecretAccessKey = "7P1KY+a4FTtiVBuU935NHHOI19eYrbyWG7CDklmk";
+//        final String AWSAccessKeyId = "0ZZXAZ980M9J5PPCFTR2";
+//        final String SecretAccessKey = "4sWhM1t3obEYOr2ZkqbcwaWozM+ayVmKfRm/1rjC";
 
 		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey);
 		List<MessageQueue> queues = qs.listMessageQueues(null);
 		for (MessageQueue queue : queues) {
 			logger.info("Queue : "+queue.getUrl().toString());
 			// delete queues that contain a certain phrase
-			if (queue.getUrl().toString().indexOf("A2G998NBSHMEBD")>-1) {
-//				try {
-//					queue.deleteQueue();
-//				} catch (SQSException ex) {
-//					ex.printStackTrace();
-//				}
+			if (queue.getUrl().toString().indexOf("xrxdak")>-1) {
+				try {
+					queue.deleteQueue(true);
+				} catch (SQSException ex) {
+					ex.printStackTrace();
+				}
 			}
 		}
 		for (int i=0; i<args.length; i++) {

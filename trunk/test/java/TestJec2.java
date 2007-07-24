@@ -17,6 +17,7 @@ import com.xerox.amazonws.ec2.ImageListAttributeItem;
 import com.xerox.amazonws.ec2.ImageListAttribute.ImageListAttributeItemType;
 import com.xerox.amazonws.ec2.KeyPairInfo;
 import com.xerox.amazonws.ec2.LaunchPermissionAttribute;
+import com.xerox.amazonws.ec2.ProductInstanceInfo;
 import com.xerox.amazonws.ec2.ReservationDescription;
 import com.xerox.amazonws.ec2.ReservationDescription.Instance;
 
@@ -24,10 +25,14 @@ public class TestJec2 {
     private static Log logger = LogFactory.getLog(TestJec2.class);
 
 	public static void main(String [] args) throws Exception {
-		final String AWSAccessKeyId = "[AWS Access Id]";
-		final String SecretAccessKey = "[AWS Secret Key]";
+//		final String AWSAccessKeyId = "[AWS Access Id]";
+//		final String SecretAccessKey = "[AWS Secret Key]";
+//        final String AWSAccessKeyId = "1SEQ6QDW2YNW8T6K64R2";
+//        final String SecretAccessKey = "7P1KY+a4FTtiVBuU935NHHOI19eYrbyWG7CDklmk";
+        final String AWSAccessKeyId = "0ZZXAZ980M9J5PPCFTR2";
+        final String SecretAccessKey = "4sWhM1t3obEYOr2ZkqbcwaWozM+ayVmKfRm/1rjC";
 
-		Jec2 ec2 = new Jec2(AWSAccessKeyId, SecretAccessKey);
+		Jec2 ec2 = new Jec2(AWSAccessKeyId, SecretAccessKey, false, "localhost");
 		List<String> params = new ArrayList<String>();
 	
 /*
@@ -35,11 +40,15 @@ public class TestJec2 {
 			long start = System.currentTimeMillis();
 */
 			//params.add("291944132575");
+			params.add("ami-bd9d78d4");
 			List<ImageDescription> images = ec2.describeImages(params);
 			logger.info("Available Images");
 			for (ImageDescription img : images) {
 				if (img.getImageState().equals("available")) {
 					logger.info(img.getImageId()+"\t"+img.getImageLocation()+"\t"+img.getImageOwnerId());
+					if (img.getProductCodes() != null) {
+						logger.info("          product code : "+img.getProductCodes().get(0));
+					}
 				}
 			}
 /*
@@ -65,12 +74,21 @@ public class TestJec2 {
 				}
 			}
 		}
+
+		// confirm product instance
+		ProductInstanceInfo pinfo = ec2.confirmProductInstance("i-0de80b64", "A79EC0DB");
+		if (pinfo == null) {
+			logger.debug("no relationship here");
+		}
+		else {
+			logger.debug("relationship confirmed. owner = "+pinfo.getOwnerId());
+		}
 		// test console output
 /*
-*/
 		ConsoleOutput consOutput = ec2.getConsoleOutput(instanceId);
 		logger.info("Console Output:");
 		logger.info(consOutput.getOutput());
+*/
 
 		// test keypair methods
 /*
@@ -94,13 +112,12 @@ public class TestJec2 {
 */
 
 		// test security group methods
+/*
 		List<GroupDescription> info = ec2.describeSecurityGroups(new String [] {});
 		logger.info("SecurityGroup list");
 		for (GroupDescription i : info) {
 			logger.info("group : "+i.getName()+", "+i.getDescription()+", "+i.getOwner());
 		}
-/*
-*/
 		ec2.createSecurityGroup("test-group", "My test security group");
 		info = ec2.describeSecurityGroups(new String [] {});
 		logger.info("SecurityGroup list");
@@ -121,11 +138,11 @@ public class TestJec2 {
 		for (GroupDescription i : info) {
 			logger.info("group : "+i.getName()+", "+i.getDescription());
 		}
+*/
 
 		// test image attribute methods
 /*
-*/
-		DescribeImageAttributeResult res = ec2.describeImageAttribute("ami-11816478", ImageAttributeType.launchPermission);
+		DescribeImageAttributeResult res = ec2.describeImageAttribute("ami-5490753d", ImageAttributeType.launchPermission);
 		Iterator<ImageListAttributeItem> iter = res.getImageListAttribute().getImageListAttributeItems().iterator();
 		logger.info("image attrs");
 		while (iter.hasNext()) {
@@ -150,6 +167,7 @@ public class TestJec2 {
 			ImageListAttributeItem item = iter.next();
 			logger.info("image : "+res.getImageId()+", "+item.getValue());
 		}
+*/
 	}
 }
 

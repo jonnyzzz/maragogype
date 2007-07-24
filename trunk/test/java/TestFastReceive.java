@@ -14,8 +14,10 @@ import com.xerox.amazonws.sqs.SQSException;
 public class TestFastReceive {
     private static Log logger = LogFactory.getLog(TestFastReceive.class);
 
-	final String AWSAccessKeyId = "[AWS Access Id]";
-	final String SecretAccessKey = "[AWS Secret Key]";
+//	final String AWSAccessKeyId = "[AWS Access Id]";
+//	final String SecretAccessKey = "[AWS Secret Key]";
+	final String AWSAccessKeyId = "1SEQ6QDW2YNW8T6K64R2";
+	final String SecretAccessKey = "7P1KY+a4FTtiVBuU935NHHOI19eYrbyWG7CDklmk";
 
 	private final static int MSGS_TO_SEND = 400;
 
