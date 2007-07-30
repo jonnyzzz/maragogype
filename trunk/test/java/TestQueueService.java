@@ -14,33 +14,29 @@ public class TestQueueService {
     private static Log logger = LogFactory.getLog(TestQueueService.class);
 
 	public static void main(String [] args) throws Exception {
-//        final String AWSAccessKeyId = "[AWS Access Id]";
-//        final String SecretAccessKey = "[AWS Secret Key]";
-        final String AWSAccessKeyId = "1SEQ6QDW2YNW8T6K64R2";
-        final String SecretAccessKey = "7P1KY+a4FTtiVBuU935NHHOI19eYrbyWG7CDklmk";
-//        final String AWSAccessKeyId = "0ZZXAZ980M9J5PPCFTR2";
-//        final String SecretAccessKey = "4sWhM1t3obEYOr2ZkqbcwaWozM+ayVmKfRm/1rjC";
+        final String AWSAccessKeyId = "[AWS Access Id]";
+        final String SecretAccessKey = "[AWS Secret Key]";
 
-		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey);
+		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey, false, "localhost");
 		List<MessageQueue> queues = qs.listMessageQueues(null);
 		for (MessageQueue queue : queues) {
 			logger.info("Queue : "+queue.getUrl().toString());
 			// delete queues that contain a certain phrase
 			if (queue.getUrl().toString().indexOf("xrxdak")>-1) {
-				try {
-					queue.deleteQueue(true);
-				} catch (SQSException ex) {
-					ex.printStackTrace();
-				}
+//				try {
+//					queue.deleteQueue(true);
+//				} catch (SQSException ex) {
+//					ex.printStackTrace();
+//				}
 			}
 		}
 		for (int i=0; i<args.length; i++) {
 			MessageQueue mq = qs.getOrCreateMessageQueue(args[i]);
 /* test send/receive
-*/
 			for (int j=0; j<50; j++) {
 				mq.sendMessage("Testing 1, 2, 3");
 			}
+*/
 			for (int j=0; j<50; j++) {
 				Message msg = mq.receiveMessage();
 				logger.info("Message "+(j+1)+" = "+msg.getMessageBody());
@@ -48,19 +44,20 @@ public class TestQueueService {
 				mq.deleteMessage(msg.getMessageId());
 			}
 /* test grants
-*/
 			logger.info("Grants for "+mq.getUrl());
 			Grant [] grants = mq.listGrants(null, null);
 			for (Grant g : grants) {
 				logger.info("grant : "+g.getGrantee()+" perm : "+g.getPermission());
 			}
 			logger.info("Adding Grant");
-			mq.addGrantByEmailAddress("xrxs33@gmail.com", "ReceiveMessage");
+			mq.addGrantByEmailAddress("dak@dotech.com", "ReceiveMessage");
 			logger.info("Grants for "+mq.getUrl());
 			grants = mq.listGrants(null, null);
 			for (Grant g : grants) {
 				logger.info("grant : "+g.getGrantee()+" perm : "+g.getPermission());
 			}
+*/
+			/*
 			logger.info("Removing Grant");
 			mq.removeGrantByEmailAddress("xrxs33@gmail.com", "ReceiveMessage");
 			logger.info("Grants for "+mq.getUrl());
@@ -68,6 +65,7 @@ public class TestQueueService {
 			for (Grant g : grants) {
 				logger.info("grant : "+g.getGrantee()+" perm : "+g.getPermission());
 			}
+			*/
 		}
 		/* test forced deletion
 		MessageQueue mq = qs.getOrCreateMessageQueue("deleteTest-12345");

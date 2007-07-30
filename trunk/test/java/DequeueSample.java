@@ -18,12 +18,8 @@ public class DequeueSample {
     private static Log logger = LogFactory.getLog(DequeueSample.class);
 
 	public static void main( String[] args ) {
-//		final String AWSAccessKeyId = "[AWS Access Id]";
-//		final String SecretAccessKey = "[AWS Secret Key]";
-//        final String AWSAccessKeyId = "1SEQ6QDW2YNW8T6K64R2";
-//        final String SecretAccessKey = "7P1KY+a4FTtiVBuU935NHHOI19eYrbyWG7CDklmk";
-        final String AWSAccessKeyId = "0ZZXAZ980M9J5PPCFTR2";
-        final String SecretAccessKey = "4sWhM1t3obEYOr2ZkqbcwaWozM+ayVmKfRm/1rjC";
+		final String AWSAccessKeyId = "[AWS Access Id]";
+		final String SecretAccessKey = "[AWS Secret Key]";
 
 		int count = 0;
 		if (args.length < 1) {
