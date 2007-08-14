@@ -1150,6 +1150,9 @@ public class Jec2 extends AWSQueryConnection {
 		if (attribute.getType().equals(ImageAttribute.ImageAttributeType.launchPermission)) {
 			params.put("Attribute", "launchPermission");
 		}
+		else if (attribute.getType().equals(ImageAttribute.ImageAttributeType.productCodes)) {
+			params.put("Attribute", "productCodes");
+		}
 
 		switch (operationType) {
 			case add: params.put("OperationType", "add"); break;
@@ -1160,10 +1163,12 @@ public class Jec2 extends AWSQueryConnection {
 
 		int gNum = 1;
 		int iNum = 1;
+		int pNum = 1;
 		for(ImageListAttributeItem item : attribute.getImageListAttributeItems()) {
 			switch (item.getType()) {
 				case group: params.put("UserGroup."+gNum, item.getValue()); gNum++; break;
 				case userId: params.put("UserId."+iNum, item.getValue()); iNum++; break;
+				case productCode: params.put("ProductCode."+pNum, item.getValue()); pNum++; break;
 				default:
 					throw new IllegalArgumentException("Unknown item type.");
 			}
@@ -1247,6 +1252,9 @@ public class Jec2 extends AWSQueryConnection {
 		if (imageAttribute.equals(ImageAttribute.ImageAttributeType.launchPermission)) {
 			params.put("Attribute", "launchPermission");
 		}
+		else if (imageAttribute.equals(ImageAttribute.ImageAttributeType.productCodes)) {
+			params.put("Attribute", "productCodes");
+		}
 		try {
 			InputStream iStr =
 				makeRequest("GET", "DescribeImageAttribute", params).getInputStream();
@@ -1265,6 +1273,18 @@ public class Jec2 extends AWSQueryConnection {
 					} else if (item.getUserId() != null) {
 						attribute.addImageListAttributeItem(ImageListAttribute.ImageListAttributeItemType.userId,
 													item.getUserId());
+					}
+				}
+			}
+			else if (rsp.getProductCodes() != null) {
+				ProductCodeListType list = rsp.getProductCodes();
+				attribute = new ProductCodesAttribute();
+				java.util.ListIterator i = list.getItems().listIterator();
+				while (i.hasNext()) {
+					ProductCodeItemType item = (ProductCodeItemType) i.next();
+					if (item.getProductCode() != null) {
+						attribute.addImageListAttributeItem(ImageListAttribute.ImageListAttributeItemType.productCode,
+													item.getProductCode());
 					}
 				}
 			}

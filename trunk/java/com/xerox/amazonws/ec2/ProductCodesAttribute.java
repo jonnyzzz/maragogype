@@ -18,25 +18,15 @@
 package com.xerox.amazonws.ec2;
 
 /**
- * The base class for all AMI attributes.
+ * Attribute class for the productCodes attribute type.
  */
-public abstract class ImageAttribute {
-	private ImageAttributeType type;
-
-	/**
-	 * Enumerates image attribute types.
-	 */
-	public enum ImageAttributeType {
-		launchPermission,
-		productCodes
+public class ProductCodesAttribute extends ImageListAttribute {
+	public ProductCodesAttribute() {
+		super(ImageAttributeType.productCodes);
 	}
 
-	public ImageAttribute(ImageAttributeType _type) {
-		type = _type;
-	}		
-
-	public ImageAttributeType getType() {
-		return type;
+	public boolean itemTypeCompatible(ImageListAttributeItemType type) {
+		return 	type == ImageListAttributeItemType.productCode;
 	}
 }
 

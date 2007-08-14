@@ -31,7 +31,8 @@ public abstract class ImageListAttribute extends ImageAttribute {
 	 */
 	public enum ImageListAttributeItemType {
 		group,
-		userId
+		userId,
+		productCode
 	}
 
 	public ImageListAttribute(ImageAttribute.ImageAttributeType _type) {
