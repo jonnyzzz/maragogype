@@ -1149,16 +1149,15 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("ImageId", imageId);
 		if (attribute.getType().equals(ImageAttribute.ImageAttributeType.launchPermission)) {
 			params.put("Attribute", "launchPermission");
+			switch (operationType) {
+				case add: params.put("OperationType", "add"); break;
+				case remove: params.put("OperationType", "remove"); break;
+				default:
+					throw new IllegalArgumentException("Unknown attribute operation.");
+			}
 		}
 		else if (attribute.getType().equals(ImageAttribute.ImageAttributeType.productCodes)) {
 			params.put("Attribute", "productCodes");
-		}
-
-		switch (operationType) {
-			case add: params.put("OperationType", "add"); break;
-			case remove: params.put("OperationType", "remove"); break;
-			default:
-				throw new IllegalArgumentException("Unknown attribute operation.");
 		}
 
 		int gNum = 1;
@@ -1211,6 +1210,9 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("ImageId", imageId);
 		if (imageAttribute.equals(ImageAttribute.ImageAttributeType.launchPermission)) {
 			params.put("Attribute", "launchPermission");
+		}
+		else if (imageAttribute.equals(ImageAttribute.ImageAttributeType.productCodes)) {
+			throw new IllegalArgumentException("Cannot reset productCodes attribute");
 		}
 		try {
 			InputStream iStr =
