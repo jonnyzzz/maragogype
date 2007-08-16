@@ -104,28 +104,38 @@ public class QueueService extends AWSQueryConnection {
 
 	/**
 	 * Creates a new message queue. The queue name must be unique within the scope of the
-	 * queues you own.
+	 * queues you own. Optionaly, you can supply a queue that might be one that belongs to
+	 * another user that has granted you access to the queue. In that case, supply the fully
+	 * qualified queue name (i.e. "/A98KKI3K0RJ7Q/grantedQueue").
 	 *
 	 * @param queueName name of queue to be created
 	 * @return object representing the message queue
 	 */
     public MessageQueue getOrCreateMessageQueue(String queueName) throws SQSException {
-		Map<String, String> params = new HashMap<String, String>();
-		params.put("QueueName", queueName);
-		try {
-			InputStream iStr =
-					makeRequest("GET", "CreateQueue", params).getInputStream();
-			CreateQueueResponse response =
-					JAXBuddy.deserializeXMLStream(CreateQueueResponse.class, iStr);
-			return new MessageQueue(response.getQueueUrl(),
+		// test for case where the user supplied the fully qualified queue name
+		if (queueName.charAt(0) == '/' && queueName.lastIndexOf('/') > 0) {
+			return new MessageQueue(queueName,
 								getAwsAccessKeyId(), getSecretAccessKey(),
 								isSecure(), getServer());
-		} catch (JAXBException ex) {
-			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new SQSException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SQSException(ex.getMessage(), ex);
+		}
+		else {
+			Map<String, String> params = new HashMap<String, String>();
+			params.put("QueueName", queueName);
+			try {
+				InputStream iStr =
+						makeRequest("GET", "CreateQueue", params).getInputStream();
+				CreateQueueResponse response =
+						JAXBuddy.deserializeXMLStream(CreateQueueResponse.class, iStr);
+				return new MessageQueue(response.getQueueUrl(),
+									getAwsAccessKeyId(), getSecretAccessKey(),
+									isSecure(), getServer());
+			} catch (JAXBException ex) {
+				throw new SQSException("Problem parsing returned message.", ex);
+			} catch (MalformedURLException ex) {
+				throw new SQSException(ex.getMessage(), ex);
+			} catch (IOException ex) {
+				throw new SQSException(ex.getMessage(), ex);
+			}
 		}
     }
 

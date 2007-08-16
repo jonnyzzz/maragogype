@@ -68,7 +68,13 @@ public class MessageQueue extends QueueService {
 							String awsSecretAccessKey, boolean isSecure,
 							String server) throws SQSException {
         super(awsAccessKeyId, awsSecretAccessKey, isSecure, server);
-		queueId = queueUrl.substring(queueUrl.indexOf("//")+2);
+		if (queueUrl.startsWith("http")) {
+			queueId = queueUrl.substring(queueUrl.indexOf("//")+2);
+		}
+		else {
+			queueId = queueUrl;	// this is the case where the queue is created from a
+								// fully qualified queue name, not a full queue URL
+		}
 		queueId = queueId.substring(queueId.indexOf("/")+1);
     }
 
@@ -651,7 +657,7 @@ public class MessageQueue extends QueueService {
 	 * Overriding this because the queue name is baked into the URL and QUERY
 	 * assembles the URL within the baseclass.
 	 */
-    protected URL makeURL(String resource) throws MalformedURLException {
+	protected URL makeURL(String resource) throws MalformedURLException {
 		return super.makeURL(queueId+resource);
 	}
 
