@@ -17,6 +17,7 @@ import com.xerox.amazonws.ec2.ImageListAttributeItem;
 import com.xerox.amazonws.ec2.ImageListAttribute.ImageListAttributeItemType;
 import com.xerox.amazonws.ec2.KeyPairInfo;
 import com.xerox.amazonws.ec2.LaunchPermissionAttribute;
+import com.xerox.amazonws.ec2.ProductCodesAttribute;
 import com.xerox.amazonws.ec2.ProductInstanceInfo;
 import com.xerox.amazonws.ec2.ReservationDescription;
 import com.xerox.amazonws.ec2.ReservationDescription.Instance;
@@ -25,42 +26,41 @@ public class TestJec2 {
     private static Log logger = LogFactory.getLog(TestJec2.class);
 
 	public static void main(String [] args) throws Exception {
-//		final String AWSAccessKeyId = "[AWS Access Id]";
-//		final String SecretAccessKey = "[AWS Secret Key]";
-//        final String AWSAccessKeyId = "1SEQ6QDW2YNW8T6K64R2";
-//        final String SecretAccessKey = "7P1KY+a4FTtiVBuU935NHHOI19eYrbyWG7CDklmk";
-        final String AWSAccessKeyId = "0ZZXAZ980M9J5PPCFTR2";
-        final String SecretAccessKey = "4sWhM1t3obEYOr2ZkqbcwaWozM+ayVmKfRm/1rjC";
+		final String AWSAccessKeyId = "[AWS Access Id]";
+		final String SecretAccessKey = "[AWS Secret Key]";
 
 		Jec2 ec2 = new Jec2(AWSAccessKeyId, SecretAccessKey, false, "localhost");
 		List<String> params = new ArrayList<String>();
 	
 /*
-		for (int i=0; i<10; i++) {
-			long start = System.currentTimeMillis();
 */
-			//params.add("291944132575");
-			params.add("ami-bd9d78d4");
-			List<ImageDescription> images = ec2.describeImages(params);
-			logger.info("Available Images");
-			for (ImageDescription img : images) {
-				if (img.getImageState().equals("available")) {
-					logger.info(img.getImageId()+"\t"+img.getImageLocation()+"\t"+img.getImageOwnerId());
-					if (img.getProductCodes() != null) {
-						logger.info("          product code : "+img.getProductCodes().get(0));
-					}
+		//params.add("291944132575");
+		params.add("ami-bd9d78d4");
+		List<ImageDescription> images = ec2.describeImages(params);
+		logger.info("Available Images");
+		for (ImageDescription img : images) {
+			if (img.getImageState().equals("available")) {
+				logger.info(img.getImageId()+"\t"+img.getImageLocation()+"\t"+img.getImageOwnerId());
+				if (img.getProductCodes() != null) {
+					logger.info("          product code : "+img.getProductCodes().get(0));
 				}
 			}
-/*
-			long end = System.currentTimeMillis();
-			logger.info("duration to find "+images.size()+" images = "+((end-start)/1000.0));
 		}
-*/
 
 //		ec2.runInstances("ami-20b65349", 1, 1, new ArrayList<String>(), null, "xrxdak-keypair");
-
+		// confirm product instance
 /*
 */
+		ReservationDescription res = ec2.runInstances("ami-45997c2c", 1, 1, new ArrayList<String>(), null, "dak-keypair");
+		ProductInstanceInfo pinfo = ec2.confirmProductInstance(res.getInstances().get(0).getInstanceId(), "BA7154BF");
+		if (pinfo == null) {
+			logger.info("no relationship here");
+		}
+		else {
+			logger.info("relationship confirmed. owner = "+pinfo.getOwnerId());
+		}
+
+/*
 		params = new ArrayList<String>();
 		List<ReservationDescription> instances = ec2.describeInstances(params);
 		logger.info("Instances");
@@ -74,15 +74,8 @@ public class TestJec2 {
 				}
 			}
 		}
+*/
 
-		// confirm product instance
-		ProductInstanceInfo pinfo = ec2.confirmProductInstance("i-0de80b64", "A79EC0DB");
-		if (pinfo == null) {
-			logger.debug("no relationship here");
-		}
-		else {
-			logger.debug("relationship confirmed. owner = "+pinfo.getOwnerId());
-		}
 		// test console output
 /*
 		ConsoleOutput consOutput = ec2.getConsoleOutput(instanceId);
@@ -161,6 +154,25 @@ public class TestJec2 {
 		}
 		ec2.resetImageAttribute("ami-11816478", ImageAttributeType.launchPermission);
 		res = ec2.describeImageAttribute("ami-11816478", ImageAttributeType.launchPermission);
+		iter = res.getImageListAttribute().getImageListAttributeItems().iterator();
+		logger.info("image attrs");
+		while (iter.hasNext()) {
+			ImageListAttributeItem item = iter.next();
+			logger.info("image : "+res.getImageId()+", "+item.getValue());
+		}
+*/
+		// test image attribute methods for product codes
+/*
+		DescribeImageAttributeResult res = ec2.describeImageAttribute("ami-45997c2c", ImageAttributeType.productCodes);
+		Iterator<ImageListAttributeItem> iter = res.getImageListAttribute().getImageListAttributeItems().iterator();
+		logger.info("image attrs");
+		while (iter.hasNext()) {
+			ImageListAttributeItem item = iter.next();
+			logger.info("image : "+res.getImageId()+", "+item.getValue());
+		}
+		ProductCodesAttribute attr = new ProductCodesAttribute();
+		attr.getImageListAttributeItems().add(new ImageListAttributeItem(ImageListAttributeItemType.productCode, "BA7154BF"));
+		res = ec2.describeImageAttribute("ami-45997c2c", ImageAttributeType.productCodes);
 		iter = res.getImageListAttribute().getImageListAttributeItems().iterator();
 		logger.info("image attrs");
 		while (iter.hasNext()) {

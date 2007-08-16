@@ -3,7 +3,7 @@
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
 
   <appender name="FILE" class="org.apache.log4j.RollingFileAppender">
-    <param name="File"   value="/home/smartdoc/logs/sds.log" />
+    <param name="File"   value="typica.log" />
     <param name="Append"   value="false" />
     <param name="MaxBackupIndex"   value="5" />
     <param name="MaxFileSize"   value="10MB" />

@@ -14,15 +14,15 @@ public class TestQueueService {
     private static Log logger = LogFactory.getLog(TestQueueService.class);
 
 	public static void main(String [] args) throws Exception {
-        final String AWSAccessKeyId = "[AWS Access Id]";
-        final String SecretAccessKey = "[AWS Secret Key]";
+		final String AWSAccessKeyId = "[AWS Access Id]";
+		final String SecretAccessKey = "[AWS Secret Key]";
 
 		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey, false, "localhost");
 		List<MessageQueue> queues = qs.listMessageQueues(null);
 		for (MessageQueue queue : queues) {
 			logger.info("Queue : "+queue.getUrl().toString());
 			// delete queues that contain a certain phrase
-			if (queue.getUrl().toString().indexOf("xrxdak")>-1) {
+			if (queue.getUrl().toString().indexOf("input")>-1) {
 //				try {
 //					queue.deleteQueue(true);
 //				} catch (SQSException ex) {
@@ -33,12 +33,13 @@ public class TestQueueService {
 		for (int i=0; i<args.length; i++) {
 			MessageQueue mq = qs.getOrCreateMessageQueue(args[i]);
 /* test send/receive
-			for (int j=0; j<50; j++) {
+			for (int j=0; j<5; j++) {
 				mq.sendMessage("Testing 1, 2, 3");
 			}
 */
-			for (int j=0; j<50; j++) {
+			for (int j=0; j<5; j++) {
 				Message msg = mq.receiveMessage();
+				if (msg == null) { continue; }
 				logger.info("Message "+(j+1)+" = "+msg.getMessageBody());
 				msg = mq.peekMessage(msg.getMessageId());
 				mq.deleteMessage(msg.getMessageId());
@@ -50,7 +51,7 @@ public class TestQueueService {
 				logger.info("grant : "+g.getGrantee()+" perm : "+g.getPermission());
 			}
 			logger.info("Adding Grant");
-			mq.addGrantByEmailAddress("dak@dotech.com", "ReceiveMessage");
+			mq.addGrantByEmailAddress("dak@directthought.com", "ReceiveMessage");
 			logger.info("Grants for "+mq.getUrl());
 			grants = mq.listGrants(null, null);
 			for (Grant g : grants) {
