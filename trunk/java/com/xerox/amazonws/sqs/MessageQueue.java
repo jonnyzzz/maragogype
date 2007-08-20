@@ -120,6 +120,51 @@ public class MessageQueue extends QueueService {
 	}
 
 	/**
+	 * Sends a message to a specified queue. The message must be between 1 and 256K bytes long.
+	 * This is a special version of send that doesn't parse the response unless there is an
+	 * error. It won't return the message id either, so don't use this if you need the id.
+	 * It is faster to send this way because of the time involved in parsing the send response.
+	 *
+	 * @param msg the message to be sent
+	 */
+    public void sendMessageFast(String msg) throws SQSException {
+		Map<String, String> params = new HashMap<String, String>();
+		String encodedMsg = Base64Coder.encodeString(msg);
+		try {
+			HttpURLConnection conn = makeRequest("POST", "SendMessage", params);
+			conn.setRequestProperty("content-type", "text/plain");
+			conn.setDoOutput(true);
+			OutputStream oStr = conn.getOutputStream();
+			oStr.write(new String(encodedMsg).getBytes());
+			oStr.flush();
+			if (conn.getResponseCode() < 400) {
+				InputStream iStr = conn.getInputStream();
+				oStr = new ByteArrayOutputStream();
+				copyStreams(iStr, oStr);
+				String respMsg = oStr.toString();
+				if (respMsg.indexOf(">Success<") > -1) {
+					return;	// no problems
+				}
+				else {
+					SendMessageResponse response = JAXBuddy.deserializeXMLStream(SendMessageResponse.class,
+												new ByteArrayInputStream(respMsg.getBytes()));
+					throw new SQSException("Error sending message : "+
+								response.getResponseStatus().getMessage());
+				}
+			}
+			else {
+				throw new SQSException("Error sending message.");
+			}
+		} catch (JAXBException ex) {
+			throw new SQSException("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		}
+	}
+
+	/**
 	 * Attempts to receive a message from the queue. The queue default visibility timeout
 	 * is used.
 	 *
