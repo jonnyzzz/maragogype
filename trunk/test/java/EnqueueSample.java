@@ -2,8 +2,6 @@
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import ch.inventec.Base64Coder;
-
 import com.xerox.amazonws.sqs.MessageQueue;
 import com.xerox.amazonws.sqs.Message;
 import com.xerox.amazonws.sqs.SQSUtils;
@@ -16,10 +14,8 @@ public class EnqueueSample {
     private static Log logger = LogFactory.getLog(EnqueueSample.class);
 
 	public static void main( String[] args ) {
-//		final String AWSAccessKeyId = "[AWS Access Id]";
-//		final String SecretAccessKey = "[AWS Secret Key]";
-        final String AWSAccessKeyId = "1SEQ6QDW2YNW8T6K64R2";
-        final String SecretAccessKey = "7P1KY+a4FTtiVBuU935NHHOI19eYrbyWG7CDklmk";
+		final String AWSAccessKeyId = "[AWS Access Id]";
+		final String SecretAccessKey = "[AWS Secret Key]";
 
 		try {
 			if (args.length < 2) {
@@ -32,7 +28,7 @@ public class EnqueueSample {
 			MessageQueue msgQueue = SQSUtils.connectToQueue("localhost", queueName, AWSAccessKeyId, SecretAccessKey);
 			logger.info(" url returned = "+msgQueue.getUrl());
 
-			String msgId = msgQueue.sendMessage( Base64Coder.encodeString(message) );
+			String msgId = msgQueue.sendMessage(message);
 			logger.info( "Sent message with id " + msgId );
 		} catch ( Exception ex ) {
 			logger.error( "EXCEPTION", ex );

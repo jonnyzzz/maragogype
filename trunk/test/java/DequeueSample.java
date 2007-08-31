@@ -2,8 +2,6 @@
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import ch.inventec.Base64Coder;
-
 import com.xerox.amazonws.sqs.MessageQueue;
 import com.xerox.amazonws.sqs.Message;
 import com.xerox.amazonws.sqs.QueueService;
@@ -42,11 +40,6 @@ public class DequeueSample {
 					continue;
 				}
 				String text = msg.getMessageBody();
-				try {
-					text = Base64Coder.decodeString(text);
-				} catch (IllegalArgumentException ex) {
-					logger.warn("Message wasn't base64 encoded.");
-				}
 				logger.debug("msg : "+text);
 				msgQueue.deleteMessage(msg);
 				logger.info( "Deleted message id " + msg.getMessageId());

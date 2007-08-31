@@ -63,6 +63,7 @@ public class MessageQueue extends QueueService {
     public static final int MAX_MESSAGE_BODIES_SIZE = 4096;
 
 	protected String queueId;
+	private boolean enableEncoding = true;
 
     protected MessageQueue(String queueUrl, String awsAccessKeyId,
 							String awsSecretAccessKey, boolean isSecure,
@@ -92,6 +93,26 @@ public class MessageQueue extends QueueService {
 	}
 
 	/**
+	 * This method returns the state of the base64 encoding flag. By default, all messages
+	 * are encoded on send and decoded on receive.
+	 *
+	 * @return state of encoding flag
+	 */
+	public boolean isEncoding() {
+		return enableEncoding;
+	}
+
+	/**
+	 * This method sets the state of the encoding flag. Use this to override the default and
+	 * turn off automatic base64 encoding.
+	 *
+	 * @param enable the new state of the encoding flag
+	 */
+	public void setEncoding(boolean enable) {
+		enableEncoding = enable;
+	}
+
+	/**
 	 * Sends a message to a specified queue. The message must be between 1 and 256K bytes long.
 	 *
 	 * @param msg the message to be sent
@@ -99,7 +120,7 @@ public class MessageQueue extends QueueService {
 	 */
     public String sendMessage(String msg) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
-		String encodedMsg = Base64Coder.encodeString(msg);
+		String encodedMsg = enableEncoding?Base64Coder.encodeString(msg):msg;
 		try {
 			URLConnection conn = makeRequest("POST", "SendMessage", params);
 			conn.setRequestProperty("content-type", "text/plain");
@@ -129,7 +150,7 @@ public class MessageQueue extends QueueService {
 	 */
     public void sendMessageFast(String msg) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
-		String encodedMsg = Base64Coder.encodeString(msg);
+		String encodedMsg = enableEncoding?Base64Coder.encodeString(msg):msg;
 		try {
 			HttpURLConnection conn = makeRequest("POST", "SendMessage", params);
 			conn.setRequestProperty("content-type", "text/plain");
@@ -244,7 +265,9 @@ public class MessageQueue extends QueueService {
 				else {
 					ArrayList<Message> msgs = new ArrayList();
 					for (com.xerox.amazonws.typica.jaxb.Message msg : response.getMessages()) {
-						String decodedMsg = Base64Coder.decodeString(msg.getMessageBody());
+						String decodedMsg = enableEncoding?
+												Base64Coder.decodeString(msg.getMessageBody()):
+												msg.getMessageBody();
 						msgs.add(new Message(msg.getMessageId(), decodedMsg));
 					}
 					return msgs.toArray(new Message [msgs.size()]);
@@ -280,7 +303,9 @@ public class MessageQueue extends QueueService {
 				return null;
 			}
 			else {
-				String decodedMsg = Base64Coder.decodeString(msg.getMessageBody());
+				String decodedMsg = enableEncoding?
+										Base64Coder.decodeString(msg.getMessageBody()):
+										msg.getMessageBody();
 				return new Message(msg.getMessageId(), decodedMsg);
 			}
 		} catch (JAXBException ex) {
