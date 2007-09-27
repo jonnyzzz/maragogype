@@ -25,7 +25,7 @@ import com.xerox.amazonws.tools.LoggingConfigurator;
  * already exist), and then sends (enqueues) a message to the queue.
  */
 public class EnqueueSample {
-	private static Logger log = LoggingConfigurator.configureLogging(EnqueueSample.class);
+	private static Log logger = LogFactory.getLog(EnqueueSample.class);
 
 	public static void main( String[] args ) {
 		final String AWSAccessKeyId = "[AWS Access Id]";
@@ -69,7 +69,7 @@ import com.xerox.amazonws.tools.LoggingConfigurator;
  * On error, it retries a number of times.
  */
 public class DequeueSample {
-	private static Logger log = LoggingConfigurator.configureLogging(DequeueSample.class);
+	private static Log logger = LogFactory.getLog(DequeueSample.class);
 
 	public static void main( String[] args ) {
 		final String AWSAccessKeyId = "[AWS Access Id]";
@@ -130,7 +130,7 @@ import com.xerox.amazonws.ec2.ReservationDescription.Instance;
 import com.xerox.amazonws.tools.LoggingConfigurator;
 
 public class Ec2Sample {
-	private static Logger log = LoggingConfigurator.configureLogging(Ec2Sample.class);
+        private static Log logger = LogFactory.getLog(EC2Sample.class);
 
 	public static void main(String [] args) throws Exception {
 		final String AWSAccessKeyId = "[AWS Access Id]";
