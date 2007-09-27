@@ -11,9 +11,8 @@ Usage of SQS is simple. First, you create or get an existing queue. For that, yo
 === Enqueue Sample ===
 [http://typica.googlecode.com/svn/trunk/test/java/EnqueueSample.java]
 {{{
-import org.apache.log4j.Logger;
-
-import ch.inventec.Base64Coder;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.xerox.amazonws.sqs.MessageQueue;
 import com.xerox.amazonws.sqs.Message;
@@ -54,9 +53,8 @@ public class EnqueueSample {
 === Dequeue Sample ===
 [http://typica.googlecode.com/svn/trunk/test/java/DequeueSample.java]
 {{{
-import org.apache.log4j.Logger;
-
-import ch.inventec.Base64Coder;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.xerox.amazonws.sqs.MessageQueue;
 import com.xerox.amazonws.sqs.Message;
@@ -89,11 +87,7 @@ public class DequeueSample {
 			Message msg = null;
 			while ((msg = msgQueue.receiveMessage()) != null) {
 				String text = msg.getMessageBody();
-				try {
-					text = Base64Coder.decodeString(text);
-				} catch (IllegalArgumentException ex) {
-					log.warn("Message wasn't base64 encoded.");
-				}
+
 				log.debug("msg : "+text);
 				msgQueue.deleteMessage( msg.getMessageId() );
 				log.info( "Deleted message id " + msg.getMessageId());
@@ -116,7 +110,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.xerox.amazonws.ec2.ConsoleOutput;
 import com.xerox.amazonws.ec2.GroupDescription;
