@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.Hashtable;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -34,6 +35,9 @@ import javax.xml.bind.Unmarshaller;
  * @author developer@dotech.com
  */
 public class JAXBuddy {
+	public static Hashtable<Class, Marshaller> marshallerCache = new Hashtable<Class, Marshaller>();
+	public static Hashtable<Class, Unmarshaller> unmarshallerCache = new Hashtable<Class, Unmarshaller>();
+
     public static <T> InputStream serializeXMLFile(Class<T> c, Object object) 
             throws JAXBException, IOException {
         Marshaller m = getMarshaller(c);
@@ -58,16 +62,24 @@ public class JAXBuddy {
     }
     
     private static Marshaller getMarshaller(Class<?> c) throws JAXBException {
-        String typePackage = c.getPackage().getName();
-        JAXBContext jc = JAXBContext.newInstance(typePackage);
-        Marshaller m = jc.createMarshaller();
+		Marshaller m = marshallerCache.get(c);
+		if (m == null) {
+        	String typePackage = c.getPackage().getName();
+        	JAXBContext jc = JAXBContext.newInstance(typePackage);
+        	m = jc.createMarshaller();
+			marshallerCache.put(c, m);
+		}
         return m;
     }
 
     private static Unmarshaller getUnmarshaller(Class<?> c) throws JAXBException {
-        String typePackage = c.getPackage().getName();
-        JAXBContext jc = JAXBContext.newInstance(typePackage, c.getClassLoader());
-        Unmarshaller u = jc.createUnmarshaller();
+		Unmarshaller u = unmarshallerCache.get(c);
+		if (u == null) {
+			String typePackage = c.getPackage().getName();
+			JAXBContext jc = JAXBContext.newInstance(typePackage, c.getClassLoader());
+			u = jc.createUnmarshaller();
+			unmarshallerCache.put(c, u);
+		}
         return u;
     }
 }
