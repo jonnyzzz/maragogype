@@ -116,39 +116,8 @@ public class MessageQueue extends QueueService {
 	 * Sends a message to a specified queue. The message must be between 1 and 256K bytes long.
 	 *
 	 * @param msg the message to be sent
-	 * @return the message id for the message just sent
 	 */
     public String sendMessage(String msg) throws SQSException {
-		Map<String, String> params = new HashMap<String, String>();
-		String encodedMsg = enableEncoding?Base64Coder.encodeString(msg):msg;
-		try {
-			URLConnection conn = makeRequest("POST", "SendMessage", params);
-			conn.setRequestProperty("content-type", "text/plain");
-			conn.setDoOutput(true);
-			OutputStream oStr = conn.getOutputStream();
-			oStr.write(new String(encodedMsg).getBytes());
-			oStr.flush();
-			InputStream iStr = conn.getInputStream();
-			SendMessageResponse response = JAXBuddy.deserializeXMLStream(SendMessageResponse.class, iStr);
-			return response.getMessageId();
-		} catch (JAXBException ex) {
-			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new SQSException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SQSException(ex.getMessage(), ex);
-		}
-	}
-
-	/**
-	 * Sends a message to a specified queue. The message must be between 1 and 256K bytes long.
-	 * This is a special version of send that doesn't parse the response unless there is an
-	 * error. It won't return the message id either, so don't use this if you need the id.
-	 * It is faster to send this way because of the time involved in parsing the send response.
-	 *
-	 * @param msg the message to be sent
-	 */
-    public void sendMessageFast(String msg) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
 		String encodedMsg = enableEncoding?Base64Coder.encodeString(msg):msg;
 		try {
@@ -164,14 +133,16 @@ public class MessageQueue extends QueueService {
 				copyStreams(iStr, oStr);
 				String respMsg = oStr.toString();
 				if (respMsg.indexOf(">Success<") > -1) {
-					return;	// no problems
+					int idx = respMsg.indexOf("<MessageId>");
+					int idx2 = respMsg.indexOf("</MessageId>");
+					if (idx > -1 && idx2 > -1) {
+						return respMsg.substring(idx+11, idx2);
+					}
 				}
-				else {
-					SendMessageResponse response = JAXBuddy.deserializeXMLStream(SendMessageResponse.class,
-												new ByteArrayInputStream(respMsg.getBytes()));
-					throw new SQSException("Error sending message : "+
-								response.getResponseStatus().getMessage());
-				}
+				SendMessageResponse response = JAXBuddy.deserializeXMLStream(SendMessageResponse.class,
+											new ByteArrayInputStream(respMsg.getBytes()));
+				throw new SQSException("Error sending message : "+
+							response.getResponseStatus().getMessage());
 			}
 			else {
 				throw new SQSException("Error sending message.");
