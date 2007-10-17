@@ -18,6 +18,7 @@
 package com.xerox.amazonws.ec2;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import com.xerox.amazonws.typica.jaxb.InstanceStateType;
@@ -51,9 +52,10 @@ public class ReservationDescription {
 
 	public Instance addInstance(String imageId, String instanceId,
 			String privateDnsName, String dnsName, InstanceStateType state,
-			String reason, String keyName) {
+			String reason, String keyName, Calendar launchTime, InstanceType instanceType) {
 		Instance instance = new Instance(imageId, instanceId, privateDnsName,
-				dnsName, state.getName(), state.getCode(), reason, keyName);
+				dnsName, state.getName(), state.getCode(), reason, keyName,
+				instanceType, launchTime);
 		instances.add(instance);
 		return instance;
 	}
@@ -82,6 +84,9 @@ public class ReservationDescription {
 		private String dnsName;
 		private String reason;
 		private String keyName;
+		private InstanceType instanceType;
+		private Calendar launchTime;
+
 		/**
 		 * An EC2 instance may be in one of four states:
 		 * <ol>
@@ -99,7 +104,7 @@ public class ReservationDescription {
 
 		public Instance(String imageId, String instanceId, String privateDnsName,
 				String dnsName, String stateName, int stateCode, String reason,
-				String keyName) {
+				String keyName, InstanceType instanceType, Calendar launchTime) {
 			this.imageId = imageId;
 			this.instanceId = instanceId;
 			this.privateDnsName = privateDnsName;
@@ -108,6 +113,8 @@ public class ReservationDescription {
 			this.stateCode = stateCode;
 			this.reason = reason;
 			this.keyName = keyName;
+			this.instanceType = instanceType;
+			this.launchTime = launchTime;
 		}
 
 		public String getImageId() {
@@ -156,6 +163,14 @@ public class ReservationDescription {
 
 		public int getStateCode() {
 			return stateCode;
+		}
+
+		public InstanceType getInstanceType() {
+			return this.instanceType;
+		}
+
+		public Calendar getLaunchTime() {
+			return this.launchTime;
 		}
 
 		public String toString() {

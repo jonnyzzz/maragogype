@@ -150,7 +150,7 @@ public class Jec2 extends AWSQueryConnection {
     {
 		super(awsAccessKeyId, awsSecretAccessKey, isSecure, server, port);
 		ArrayList vals = new ArrayList();
-		vals.add("2007-03-01");
+		vals.add("2007-08-29");
 		super.headers.put("Version", vals);
     }
 
@@ -352,6 +352,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * will be reserved.
 	 * <p>
 	 * NOTE: this method defaults to the AWS desired "public" addressing type.
+	 * NOTE: this method defaults to the small(traditional) instance type.
 	 * 
 	 * @param imageId An AMI ID as returned by {@link #registerImage(String)}.
 	 * @param minCount The minimum number of instances to attempt to reserve.
@@ -365,7 +366,59 @@ public class Jec2 extends AWSQueryConnection {
 	public ReservationDescription runInstances(String imageId, int minCount,
 			int maxCount, List<String> groupSet, String userData, String keyName)
 				throws EC2Exception {
-		return runInstances(imageId, minCount, maxCount, groupSet, userData, keyName, true);
+		return runInstances(imageId, minCount, maxCount, groupSet, userData, keyName, true, InstanceType.DEFAULT);
+	}
+
+	/**
+	 * Requests reservation of a number of instances.
+	 * <p>
+	 * This will begin launching those instances for which a reservation was
+	 * successfully obtained.
+	 * <p>
+	 * If less than <code>minCount</code> instances are available no instances
+	 * will be reserved.
+	 * NOTE: this method defaults to the small(traditional) instance type.
+	 * 
+	 * @param imageId An AMI ID as returned by {@link #registerImage(String)}.
+	 * @param minCount The minimum number of instances to attempt to reserve.
+	 * @param maxCount The maximum number of instances to attempt to reserve.
+	 * @param groupSet A (possibly empty) set of security group definitions.
+	 * @param userData User supplied data that will be made available to the instance(s)
+	 * @param publicAddr sets addressing mode to public
+	 * @return A {@link ReservationDescription} describing the instances that
+	 *         have been reserved.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public ReservationDescription runInstances(String imageId, int minCount,
+			int maxCount, List<String> groupSet, String userData, String keyName, boolean publicAddr)
+				throws EC2Exception {
+		return runInstances(imageId, minCount, maxCount, groupSet, userData, keyName, publicAddr, InstanceType.DEFAULT);
+	}
+
+	/**
+	 * Requests reservation of a number of instances.
+	 * <p>
+	 * This will begin launching those instances for which a reservation was
+	 * successfully obtained.
+	 * <p>
+	 * If less than <code>minCount</code> instances are available no instances
+	 * will be reserved.
+	 * NOTE: this method defaults to the AWS desired "public" addressing type.
+	 * 
+	 * @param imageId An AMI ID as returned by {@link #registerImage(String)}.
+	 * @param minCount The minimum number of instances to attempt to reserve.
+	 * @param maxCount The maximum number of instances to attempt to reserve.
+	 * @param groupSet A (possibly empty) set of security group definitions.
+	 * @param userData User supplied data that will be made available to the instance(s)
+	 * @param type instance type
+	 * @return A {@link ReservationDescription} describing the instances that
+	 *         have been reserved.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public ReservationDescription runInstances(String imageId, int minCount,
+			int maxCount, List<String> groupSet, String userData, String keyName, InstanceType type)
+				throws EC2Exception {
+		return runInstances(imageId, minCount, maxCount, groupSet, userData, keyName, true, InstanceType.DEFAULT);
 	}
 
 	/**
@@ -383,12 +436,13 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param groupSet A (possibly empty) set of security group definitions.
 	 * @param userData User supplied data that will be made available to the instance(s)
 	 * @param publicAddr sets addressing mode to public
+	 * @param type instance type
 	 * @return A {@link ReservationDescription} describing the instances that
 	 *         have been reserved.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public ReservationDescription runInstances(String imageId, int minCount,
-			int maxCount, List<String> groupSet, String userData, String keyName, boolean publicAddr)
+			int maxCount, List<String> groupSet, String userData, String keyName, boolean publicAddr, InstanceType type)
 				throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ImageId", imageId);
@@ -411,6 +465,7 @@ public class Jec2 extends AWSQueryConnection {
 				params.put("SecurityGroup."+(i+1), groupSet.get(i));
 			}
 		}
+		params.put("InstanceType", type.getTypeId());
 
 		try {
 			InputStream iStr =
@@ -436,7 +491,9 @@ public class Jec2 extends AWSQueryConnection {
 								rsp_item.getDnsName(),
 								rsp_item.getInstanceState(),
 								rsp_item.getReason(),
-								rsp_item.getKeyName());
+								rsp_item.getKeyName(),
+								rsp_item.getLaunchTime().toGregorianCalendar(),
+								InstanceType.getTypeFromString(rsp_item.getInstanceType()));
 			}
 			return res;
 		} catch (ArrayStoreException ex) {
@@ -578,7 +635,9 @@ public class Jec2 extends AWSQueryConnection {
 									rsp_item.getDnsName(),
 									rsp_item.getInstanceState(),
 									rsp_item.getReason(),
-									rsp_item.getKeyName());
+									rsp_item.getKeyName(),
+									rsp_item.getLaunchTime().toGregorianCalendar(),
+									InstanceType.getTypeFromString(rsp_item.getInstanceType()));
 				}
 				result.add(res);
 			}
@@ -1128,7 +1187,7 @@ public class Jec2 extends AWSQueryConnection {
 	}
 
 	/**
-	 * Enumarates image list attribute operation types.
+	 * Enumerates image list attribute operation types.
 	 */
 	public enum ImageListAttributeOperationType {
 		add,

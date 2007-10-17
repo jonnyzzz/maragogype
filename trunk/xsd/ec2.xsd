@@ -1,22 +1,22 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xmlns:tns="http://ec2.amazonaws.com/doc/2007-03-01/"
-		xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-		xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-		targetNamespace="http://ec2.amazonaws.com/doc/2007-03-01/"
-		jaxb:extensionBindingPrefixes="xjc"
-		jaxb:version="2.0"
-		elementFormDefault="qualified">
-
-   <xs:annotation>
-        <xs:documentation xml:lang="en">
-        </xs:documentation>
-		<xs:appinfo>
-			<jaxb:globalBindings>
-				<xjc:simple/>
-			</jaxb:globalBindings>
-		</xs:appinfo>
-   </xs:annotation>
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:tns="http://ec2.amazonaws.com/doc/2007-08-29/"
+       xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+       xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+	   targetNamespace="http://ec2.amazonaws.com/doc/2007-08-29/"    
+       jaxb:extensionBindingPrefixes="xjc"
+       jaxb:version="2.0"
+	   elementFormDefault="qualified">
+  
+  <xs:annotation>
+	<xs:documentation xml:lang="en">
+	</xs:documentation>
+    <xs:appinfo>
+      <jaxb:globalBindings>
+        <xjc:simple/>
+      </jaxb:globalBindings>
+    </xs:appinfo>
+  </xs:annotation>
   
   <!-- RegisterImage request definitions -->
   
@@ -150,26 +150,15 @@
 
   <xs:complexType name="RunInstancesType">
 	<xs:sequence>
-	  <xs:element name="instancesSet" type="tns:RunInstancesInfoType"/>
-	  <xs:element name="groupSet" type="tns:GroupSetType"/>
-	  <xs:element name="additionalInfo" type="xs:string" minOccurs="0"/>
-	  <xs:element name="userData" type="tns:UserDataType" minOccurs="0" maxOccurs="1"/>
-	  <xs:element name="addressingType" type="xs:string" minOccurs="0" maxOccurs="1"/>
-	</xs:sequence>
-  </xs:complexType>
-  
-  <xs:complexType name="RunInstancesInfoType">
-	<xs:sequence>
-	  <xs:element name="item" type="tns:RunInstanceItemType" minOccurs="1" maxOccurs="unbounded"/>
-	</xs:sequence>
-  </xs:complexType>
-
-  <xs:complexType name="RunInstanceItemType">
-	<xs:sequence>
 	  <xs:element name="imageId" type="xs:string"/>
 	  <xs:element name="minCount" type="xs:int"/>
 	  <xs:element name="maxCount" type="xs:int"/>
 	  <xs:element name="keyName" type="xs:string" minOccurs="0" />
+	  <xs:element name="groupSet" type="tns:GroupSetType"/>
+	  <xs:element name="additionalInfo" type="xs:string" minOccurs="0"/>
+	  <xs:element name="userData" type="tns:UserDataType" minOccurs="0" maxOccurs="1"/>
+	  <xs:element name="addressingType" type="xs:string" minOccurs="0" maxOccurs="1"/>
+	  <xs:element name="instanceType" type="xs:string" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -223,6 +212,8 @@
 	  <xs:element name="keyName" type="xs:string" minOccurs="0"/>
 	  <xs:element name="amiLaunchIndex" type="xs:string" minOccurs="0" maxOccurs="1"/>
 	  <xs:element name="productCodes" type="tns:ProductCodesSetType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="instanceType" type="xs:string"/>
+	  <xs:element name="launchTime" type="xs:dateTime" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -765,7 +756,7 @@
 	  <xs:element name="productCodes" type="tns:EmptyElementType" />
 	</xs:choice>
   </xs:group>
-  
+
   <!-- DescribeImageAttributeResponse Definitions -->
   
   <xs:element name="DescribeImageAttributeResponse"
@@ -780,7 +771,7 @@
 	  </xs:choice>
 	</xs:sequence>
   </xs:complexType>
-  
+
   <!-- ConfirmProductInstance Definitions -->
   
   <xs:element name="ConfirmProductInstance" 
@@ -805,6 +796,8 @@
 	</xs:sequence>
   </xs:complexType>
   
+  <!-- ConfirmProductInstanceResponse Definitions -->
+
   <xs:element name="ConfirmProductInstanceResponse" 
 			  type="tns:ConfirmProductInstanceResponseType" />
   
