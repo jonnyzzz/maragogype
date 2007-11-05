@@ -37,6 +37,11 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
+
 import ch.inventec.Base64Coder;
 
 import com.xerox.amazonws.typica.jaxb.AuthorizeSecurityGroupIngressResponse;
@@ -91,7 +96,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.xerox.amazonws.common.AWSQueryConnection;
-import com.xerox.amazonws.common.JAXBuddy;
 
 /**
  * A Java wrapper for the EC2 web services API
@@ -164,26 +168,19 @@ public class Jec2 extends AWSQueryConnection {
 	public String registerImage(String imageLocation) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ImageLocation", imageLocation);
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "RegisterImage", params).getInputStream();
 			RegisterImageResponse response =
-					JAXBuddy.deserializeXMLStream(RegisterImageResponse.class, iStr);
+					makeRequest(method, "RegisterImage", params, RegisterImageResponse.class);
 			return response.getImageId();
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "RegisterImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -196,28 +193,21 @@ public class Jec2 extends AWSQueryConnection {
 	public void deregisterImage(String imageId) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ImageId", imageId);
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "DeregisterImage", params).getInputStream();
 			DeregisterImageResponse response =
-					JAXBuddy.deserializeXMLStream(DeregisterImageResponse.class, iStr);
+					makeRequest(method, "DeregisterImage", params, DeregisterImageResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not deregister image : "+imageId+". No reason given.");
 			}
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "DeregisterImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -302,11 +292,10 @@ public class Jec2 extends AWSQueryConnection {
 
 
 	protected List<ImageDescription> describeImages(Map<String, String> params) throws EC2Exception {
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "DescribeImages", params).getInputStream();
 			DescribeImagesResponse response =
-					JAXBuddy.deserializeXMLStream(DescribeImagesResponse.class, iStr);
+					makeRequest(method, "DescribeImages", params, DescribeImagesResponse.class);
 			List<ImageDescription> result = new ArrayList<ImageDescription>();
 			DescribeImagesResponseInfoType set = response.getImagesSet();
 			Iterator set_iter = set.getItems().iterator();
@@ -325,20 +314,14 @@ public class Jec2 extends AWSQueryConnection {
 						.getImageState(), item.isIsPublic(), codes));
 			}
 			return result;
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -467,11 +450,10 @@ public class Jec2 extends AWSQueryConnection {
 		}
 		params.put("InstanceType", type.getTypeId());
 
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "RunInstances", params).getInputStream();
 			RunInstancesResponse response =
-					JAXBuddy.deserializeXMLStream(RunInstancesResponse.class, iStr);
+					makeRequest(method, "RunInstances", params, RunInstancesResponse.class);
 			ReservationDescription res = new ReservationDescription(response.getOwnerId(),
 															response.getReservationId());
 			GroupSetType grp_set = response.getGroupSet();
@@ -496,20 +478,14 @@ public class Jec2 extends AWSQueryConnection {
 								InstanceType.getTypeFromString(rsp_item.getInstanceType()));
 			}
 			return res;
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "RunInstances", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -538,11 +514,10 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<instanceIds.size(); i++) {
 			params.put("InstanceId."+(i+1), instanceIds.get(i));
 		}
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "TerminateInstances", params).getInputStream();
 			TerminateInstancesResponse response =
-					JAXBuddy.deserializeXMLStream(TerminateInstancesResponse.class, iStr);
+					makeRequest(method, "TerminateInstances", params, TerminateInstancesResponse.class);
 			response.getInstancesSet();
 			List<TerminatingInstanceDescription> res =
 						new ArrayList<TerminatingInstanceDescription>();
@@ -558,20 +533,14 @@ public class Jec2 extends AWSQueryConnection {
 								.getShutdownState().getCode()));
 			}
 			return res;
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -606,11 +575,10 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<instanceIds.size(); i++) {
 			params.put("InstanceId."+(i+1), instanceIds.get(i));
 		}
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "DescribeInstances", params).getInputStream();
 			DescribeInstancesResponse response =
-					JAXBuddy.deserializeXMLStream(DescribeInstancesResponse.class, iStr);
+					makeRequest(method, "DescribeInstances", params, DescribeInstancesResponse.class);
 			List<ReservationDescription> result = new ArrayList<ReservationDescription>();
 			ReservationSetType res_set = response.getReservationSet();
 			Iterator reservations_iter = res_set.getItems().iterator();
@@ -642,20 +610,14 @@ public class Jec2 extends AWSQueryConnection {
 				result.add(res);
 			}
 			return result;
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -680,28 +642,21 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<instanceIds.size(); i++) {
 			params.put("InstanceId."+(i+1), instanceIds.get(i));
 		}
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "RebootInstances", params).getInputStream();
 			RebootInstancesResponse response =
-					JAXBuddy.deserializeXMLStream(RebootInstancesResponse.class, iStr);
+					makeRequest(method, "RebootInstances", params, RebootInstancesResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not reboot instances. No reason given.");
 			}
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -715,28 +670,21 @@ public class Jec2 extends AWSQueryConnection {
 	public ConsoleOutput getConsoleOutput(String instanceId) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("InstanceId", instanceId);
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "GetConsoleOutput", params).getInputStream();
 			GetConsoleOutputResponse response =
-					JAXBuddy.deserializeXMLStream(GetConsoleOutputResponse.class, iStr);
+					makeRequest(method, "GetConsoleOutput", params, GetConsoleOutputResponse.class);
 			return new ConsoleOutput(response.getInstanceId(),
 				response.getTimestamp().toGregorianCalendar(),
 				new String(Base64Coder.decodeString(response.getOutput().replaceAll("\n", ""))));
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -752,28 +700,21 @@ public class Jec2 extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("GroupName", name);
 		params.put("GroupDescription", desc);
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "CreateSecurityGroup", params).getInputStream();
 			CreateSecurityGroupResponse response =
-					JAXBuddy.deserializeXMLStream(CreateSecurityGroupResponse.class, iStr);
+					makeRequest(method, "CreateSecurityGroup", params, CreateSecurityGroupResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not create security group : "+name+". No reason given.");
 			}
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -787,28 +728,21 @@ public class Jec2 extends AWSQueryConnection {
 	public void deleteSecurityGroup(String name) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("GroupName", name);
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "DeleteSecurityGroup", params).getInputStream();
 			DeleteSecurityGroupResponse response =
-					JAXBuddy.deserializeXMLStream(DeleteSecurityGroupResponse.class, iStr);
+					makeRequest(method, "DeleteSecurityGroup", params, DeleteSecurityGroupResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not delete security group : "+name+". No reason given.");
 			}
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -837,11 +771,10 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<groupNames.size(); i++) {
 			params.put("GroupName."+(i+1), groupNames.get(i));
 		}
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "DescribeSecurityGroups", params).getInputStream();
 			DescribeSecurityGroupsResponse response =
-					JAXBuddy.deserializeXMLStream(DescribeSecurityGroupsResponse.class, iStr);
+					makeRequest(method, "DescribeSecurityGroups", params, DescribeSecurityGroupsResponse.class);
 			List<GroupDescription> result = new ArrayList<GroupDescription>();
 			SecurityGroupSetType rsp_set = response.getSecurityGroupInfo();
 			Iterator set_iter = rsp_set.getItems().iterator();
@@ -875,20 +808,14 @@ public class Jec2 extends AWSQueryConnection {
 				result.add(group);
 			}
 			return result;
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -907,28 +834,21 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("GroupName", groupName);
 		params.put("SourceSecurityGroupOwnerId", secGroupOwnerId);
 		params.put("SourceSecurityGroupName", secGroupName);
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "AuthorizeSecurityGroupIngress", params).getInputStream();
 			AuthorizeSecurityGroupIngressResponse response =
-				JAXBuddy.deserializeXMLStream(AuthorizeSecurityGroupIngressResponse.class, iStr);
+					makeRequest(method, "AuthorizeSecurityGroupIngress", params, AuthorizeSecurityGroupIngressResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not authorize security ingress : "+groupName+". No reason given.");
 			}
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "AuthorizeSecurityGroupIngress", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -952,28 +872,21 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("FromPort", ""+fromPort);
 		params.put("ToPort", ""+toPort);
 		params.put("CidrIp", cidrIp);
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "AuthorizeSecurityGroupIngress", params).getInputStream();
 			AuthorizeSecurityGroupIngressResponse response =
-				JAXBuddy.deserializeXMLStream(AuthorizeSecurityGroupIngressResponse.class, iStr);
+					makeRequest(method, "AuthorizeSecurityGroupIngress", params, AuthorizeSecurityGroupIngressResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not authorize security ingress : "+groupName+". No reason given.");
 			}
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "AuthorizeSecurityGroupIngress", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -992,28 +905,21 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("GroupName", groupName);
 		params.put("SourceSecurityGroupOwnerId", secGroupOwnerId);
 		params.put("SourceSecurityGroupName", secGroupName);
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "RevokeSecurityGroupIngress", params).getInputStream();
 			RevokeSecurityGroupIngressResponse response =
-				JAXBuddy.deserializeXMLStream(RevokeSecurityGroupIngressResponse.class, iStr);
+					makeRequest(method, "RevokeSecurityGroupIngress", params, RevokeSecurityGroupIngressResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not revoke security ingress : "+groupName+". No reason given.");
 			}
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "RevokeSecurityGroupIngress", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -1037,28 +943,21 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("FromPort", ""+fromPort);
 		params.put("ToPort", ""+toPort);
 		params.put("CidrIp", cidrIp);
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "RevokeSecurityGroupIngress", params).getInputStream();
 			RevokeSecurityGroupIngressResponse response =
-				JAXBuddy.deserializeXMLStream(RevokeSecurityGroupIngressResponse.class, iStr);
+					makeRequest(method, "RevokeSecurityGroupIngress", params, RevokeSecurityGroupIngressResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not revoke security ingress : "+groupName+". No reason given.");
 			}
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "RevokeSecurityGroupIngress", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -1073,28 +972,21 @@ public class Jec2 extends AWSQueryConnection {
 	public KeyPairInfo createKeyPair(String keyName) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("KeyName", keyName);
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "CreateKeyPair", params).getInputStream();
 			CreateKeyPairResponse response =
-					JAXBuddy.deserializeXMLStream(CreateKeyPairResponse.class, iStr);
+					makeRequest(method, "CreateKeyPair", params, CreateKeyPairResponse.class);
 			return new KeyPairInfo(response.getKeyName(),
 									response.getKeyFingerprint(),
 									response.getKeyMaterial());
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -1122,11 +1014,10 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<keyIds.size(); i++) {
 			params.put("KeyName."+(i+1), keyIds.get(i));
 		}
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "DescribeKeyPairs", params).getInputStream();
 			DescribeKeyPairsResponse response =
-					JAXBuddy.deserializeXMLStream(DescribeKeyPairsResponse.class, iStr);
+					makeRequest(method, "DescribeKeysPair", params, DescribeKeyPairsResponse.class);
 			List<KeyPairInfo> result = new ArrayList<KeyPairInfo>();
 			DescribeKeyPairsResponseInfoType set = response.getKeySet();
 			Iterator set_iter = set.getItems().iterator();
@@ -1135,20 +1026,14 @@ public class Jec2 extends AWSQueryConnection {
 				result.add(new KeyPairInfo(item.getKeyName(), item.getKeyFingerprint(), null));
 			}
 			return result;
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -1161,28 +1046,21 @@ public class Jec2 extends AWSQueryConnection {
 	public void deleteKeyPair(String keyName) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("KeyName", keyName);
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "DeleteKeyPair", params).getInputStream();
 			DeleteKeyPairResponse response =
-					JAXBuddy.deserializeXMLStream(DeleteKeyPairResponse.class, iStr);
+					makeRequest(method, "DeleteKeyPair", params, DeleteKeyPairResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not delete keypair : "+keyName+". No reason given.");
 			}
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -1231,29 +1109,21 @@ public class Jec2 extends AWSQueryConnection {
 					throw new IllegalArgumentException("Unknown item type.");
 			}
 		}
-
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "ModifyImageAttribute", params).getInputStream();
 			ModifyImageAttributeResponse response =
-					JAXBuddy.deserializeXMLStream(ModifyImageAttributeResponse.class, iStr);
+					makeRequest(method, "ModifyImageAttribute", params, ModifyImageAttributeResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not reset image attribute. No reason given.");
 			}
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 	
@@ -1273,28 +1143,21 @@ public class Jec2 extends AWSQueryConnection {
 		else if (imageAttribute.equals(ImageAttribute.ImageAttributeType.productCodes)) {
 			throw new IllegalArgumentException("Cannot reset productCodes attribute");
 		}
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "ResetImageAttribute", params).getInputStream();
 			ResetImageAttributeResponse response =
-					JAXBuddy.deserializeXMLStream(ResetImageAttributeResponse.class, iStr);
+					makeRequest(method, "ResetImageAttribute", params, ResetImageAttributeResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not reset image attribute. No reason given.");
 			}
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 	
@@ -1316,14 +1179,13 @@ public class Jec2 extends AWSQueryConnection {
 		else if (imageAttribute.equals(ImageAttribute.ImageAttributeType.productCodes)) {
 			params.put("Attribute", "productCodes");
 		}
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "DescribeImageAttribute", params).getInputStream();
-			DescribeImageAttributeResponse rsp =
-					JAXBuddy.deserializeXMLStream(DescribeImageAttributeResponse.class, iStr);
+			DescribeImageAttributeResponse response =
+					makeRequest(method, "DescribeImageAttribute", params, DescribeImageAttributeResponse.class);
 			ImageListAttribute attribute = null;
-			if (rsp.getLaunchPermission() != null) {
-				LaunchPermissionListType list = rsp.getLaunchPermission();
+			if (response.getLaunchPermission() != null) {
+				LaunchPermissionListType list = response.getLaunchPermission();
 				attribute = new LaunchPermissionAttribute();
 				java.util.ListIterator i = list.getItems().listIterator();
 				while (i.hasNext()) {
@@ -1337,8 +1199,8 @@ public class Jec2 extends AWSQueryConnection {
 					}
 				}
 			}
-			else if (rsp.getProductCodes() != null) {
-				ProductCodeListType list = rsp.getProductCodes();
+			else if (response.getProductCodes() != null) {
+				ProductCodeListType list = response.getProductCodes();
 				attribute = new ProductCodesAttribute();
 				java.util.ListIterator i = list.getItems().listIterator();
 				while (i.hasNext()) {
@@ -1350,27 +1212,21 @@ public class Jec2 extends AWSQueryConnection {
 				}
 			}
 			ArrayList<String> codes = new ArrayList<String>();
-			ProductCodeListType set = rsp.getProductCodes();
+			ProductCodeListType set = response.getProductCodes();
 			if (set != null) {
 				for (ProductCodeItemType code : set.getItems()) {
 					codes.add(code.getProductCode());
 				}
 			}
-			return new DescribeImageAttributeResult(rsp.getImageId(), attribute, codes);
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "DescribeImages", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
+			return new DescribeImageAttributeResult(response.getImageId(), attribute, codes);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -1385,29 +1241,22 @@ public class Jec2 extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("InstanceId", instanceId);
 		params.put("ProductCode", productCode);
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "ConfirmProductInstance", params).getInputStream();
 			ConfirmProductInstanceResponse response =
-					JAXBuddy.deserializeXMLStream(ConfirmProductInstanceResponse.class, iStr);
+					makeRequest(method, "ConfirmProductInstanceResponse", params, ConfirmProductInstanceResponse.class);
 			if (response.isReturn()) {
 				return new ProductInstanceInfo(instanceId, productCode, response.getOwnerId());
 			}
 			else return null;
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "ConfirmProductInstance", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new EC2Exception("ArrayStore problem, maybe EC2 responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 }

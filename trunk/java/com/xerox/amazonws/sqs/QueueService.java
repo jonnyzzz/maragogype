@@ -31,9 +31,10 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.methods.GetMethod;
 
 import com.xerox.amazonws.common.AWSQueryConnection;
-import com.xerox.amazonws.common.JAXBuddy;
 import com.xerox.amazonws.typica.jaxb.CreateQueueResponse;
 import com.xerox.amazonws.typica.jaxb.ListQueuesResponse;
 
@@ -121,20 +122,21 @@ public class QueueService extends AWSQueryConnection {
 		else {
 			Map<String, String> params = new HashMap<String, String>();
 			params.put("QueueName", queueName);
+			GetMethod method = new GetMethod();
 			try {
-				InputStream iStr =
-						makeRequest("GET", "CreateQueue", params).getInputStream();
 				CreateQueueResponse response =
-						JAXBuddy.deserializeXMLStream(CreateQueueResponse.class, iStr);
+						makeRequest(method, "CreateQueue", params, CreateQueueResponse.class);
 				return new MessageQueue(response.getQueueUrl(),
 									getAwsAccessKeyId(), getSecretAccessKey(),
 									isSecure(), getServer());
 			} catch (JAXBException ex) {
 				throw new SQSException("Problem parsing returned message.", ex);
-			} catch (MalformedURLException ex) {
+			} catch (HttpException ex) {
 				throw new SQSException(ex.getMessage(), ex);
 			} catch (IOException ex) {
 				throw new SQSException(ex.getMessage(), ex);
+			} finally {
+				method.releaseConnection();
 			}
 		}
     }
@@ -153,28 +155,21 @@ public class QueueService extends AWSQueryConnection {
 		if (queueNamePrefix != null && !queueNamePrefix.trim().equals("")) {
 			params.put("QueueNamePrefix", queueNamePrefix);
 		}
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "ListQueues", params).getInputStream();
 			ListQueuesResponse response =
-					JAXBuddy.deserializeXMLStream(ListQueuesResponse.class, iStr);
+				makeRequest(method, "ListQueues", params, ListQueuesResponse.class);
 			return MessageQueue.createList(response.getQueueUrls().toArray(new String[] {}),
 								getAwsAccessKeyId(), getSecretAccessKey(),
 								isSecure(), getServer());
-		} catch (ArrayStoreException ex) {
-			logger.error("ArrayStore problem, fetching response again to aid in debug.");
-			try {
-				logger.error(makeRequest("GET", "ListQueues", params).getResponseMessage());
-			} catch (Exception e) {
-				logger.error("Had trouble re-fetching the request response.", e);
-			}
-			throw new SQSException("ArrayStore problem, maybe SQS responded poorly?", ex);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
+		} catch (HttpException ex) {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SQSException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
     }
 }

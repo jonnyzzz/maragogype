@@ -37,7 +37,11 @@ import javax.xml.bind.JAXBException;
 
 import ch.inventec.Base64Coder;
 
-import com.xerox.amazonws.common.JAXBuddy;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
+
 import com.xerox.amazonws.typica.jaxb.AddGrantResponse;
 import com.xerox.amazonws.typica.jaxb.AttributedValue;
 import com.xerox.amazonws.typica.jaxb.ChangeMessageVisibilityResponse;
@@ -120,39 +124,20 @@ public class MessageQueue extends QueueService {
     public String sendMessage(String msg) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
 		String encodedMsg = enableEncoding?Base64Coder.encodeString(msg):msg;
+		PostMethod method = new PostMethod();
 		try {
-			HttpURLConnection conn = makeRequest("POST", "SendMessage", params);
-			conn.setRequestProperty("content-type", "text/plain");
-			conn.setDoOutput(true);
-			OutputStream oStr = conn.getOutputStream();
-			oStr.write(new String(encodedMsg).getBytes());
-			oStr.flush();
-			if (conn.getResponseCode() < 400) {
-				InputStream iStr = conn.getInputStream();
-				oStr = new ByteArrayOutputStream();
-				copyStreams(iStr, oStr);
-				String respMsg = oStr.toString();
-				if (respMsg.indexOf(">Success<") > -1) {
-					int idx = respMsg.indexOf("<MessageId>");
-					int idx2 = respMsg.indexOf("</MessageId>");
-					if (idx > -1 && idx2 > -1) {
-						return respMsg.substring(idx+11, idx2);
-					}
-				}
-				SendMessageResponse response = JAXBuddy.deserializeXMLStream(SendMessageResponse.class,
-											new ByteArrayInputStream(respMsg.getBytes()));
-				throw new SQSException("Error sending message : "+
-							response.getResponseStatus().getMessage());
-			}
-			else {
-				throw new SQSException("Error sending message.");
-			}
+			method.setRequestEntity(new StringRequestEntity(encodedMsg, "text/plain", null));
+			SendMessageResponse response =
+					makeRequest(method, "SendMessage", params, SendMessageResponse.class);
+			return response.getMessageId();
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
+		} catch (HttpException ex) {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SQSException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -225,34 +210,31 @@ public class MessageQueue extends QueueService {
 		if (visibilityTimeout != null) {
 			params.put("VisibilityTimeout", visibilityTimeout.toString());
 		}
+		GetMethod method = new GetMethod();
 		try {
-			HttpURLConnection conn = makeRequest("GET", "ReceiveMessage", params);
-			if (conn.getResponseCode() < 400) {
-				InputStream iStr = conn.getInputStream();
-				ReceiveMessageResponse response = JAXBuddy.deserializeXMLStream(ReceiveMessageResponse.class, iStr);
-				if (response.getMessages() == null) {
-					return new Message[0];
-				}
-				else {
-					ArrayList<Message> msgs = new ArrayList();
-					for (com.xerox.amazonws.typica.jaxb.Message msg : response.getMessages()) {
-						String decodedMsg = enableEncoding?
-												Base64Coder.decodeString(msg.getMessageBody()):
-												msg.getMessageBody();
-						msgs.add(new Message(msg.getMessageId(), decodedMsg));
-					}
-					return msgs.toArray(new Message [msgs.size()]);
-				}
+			ReceiveMessageResponse response =
+					makeRequest(method, "ReceiveMessage", params, ReceiveMessageResponse.class);
+			if (response.getMessages() == null) {
+				return new Message[0];
 			}
 			else {
-				return new Message[0];
+				ArrayList<Message> msgs = new ArrayList();
+				for (com.xerox.amazonws.typica.jaxb.Message msg : response.getMessages()) {
+					String decodedMsg = enableEncoding?
+											Base64Coder.decodeString(msg.getMessageBody()):
+											msg.getMessageBody();
+					msgs.add(new Message(msg.getMessageId(), decodedMsg));
+				}
+				return msgs.toArray(new Message [msgs.size()]);
 			}
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
+		} catch (HttpException ex) {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SQSException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -266,9 +248,10 @@ public class MessageQueue extends QueueService {
     public Message peekMessage(String msgId) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("MessageId", msgId);
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr = makeRequest("GET", "PeekMessage", params).getInputStream();
-			PeekMessageResponse response = JAXBuddy.deserializeXMLStream(PeekMessageResponse.class, iStr);
+			PeekMessageResponse response =
+					makeRequest(method, "PeekMessage", params, PeekMessageResponse.class);
 			com.xerox.amazonws.typica.jaxb.Message msg = response.getMessage();
 			if (msg == null) {
 				return null;
@@ -281,10 +264,12 @@ public class MessageQueue extends QueueService {
 			}
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
+		} catch (HttpException ex) {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SQSException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -305,33 +290,18 @@ public class MessageQueue extends QueueService {
     public void deleteMessage(String msgId) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("MessageId", msgId);
+		GetMethod method = new GetMethod();
 		try {
-			HttpURLConnection conn = makeRequest("GET", "DeleteMessage", params);
-			if (conn.getResponseCode() < 400) {
-				InputStream iStr = conn.getInputStream();
-				ByteArrayOutputStream oStr = new ByteArrayOutputStream();
-				copyStreams(iStr, oStr);
-				String respMsg = oStr.toString();
-				if (respMsg.indexOf(">Success<") > -1) {
-					return;	// no problems
-				}
-				else {
-					DeleteMessageResponse response =
-						JAXBuddy.deserializeXMLStream(DeleteMessageResponse.class,
-												new ByteArrayInputStream(respMsg.getBytes()));
-					throw new SQSException("Error deleting message : "+
-								response.getResponseStatus().getMessage());
-				}
-			}
-			else {
-				throw new SQSException("Error deleting message id="+msgId);
-			}
+			DeleteMessageResponse response =
+					makeRequest(method, "DeleteMessage", params, DeleteMessageResponse.class);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
+		} catch (HttpException ex) {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SQSException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -352,22 +322,18 @@ public class MessageQueue extends QueueService {
 		if (force) {
 			params.put("ForceDeletion", "true");
 		}
-        int respCode;
+		GetMethod method = new GetMethod();
 		try {
-			HttpURLConnection conn = makeRequest("GET", "DeleteQueue", params);
-			if ((respCode = conn.getResponseCode()) < 400) {
-				InputStream iStr = conn.getInputStream();
-				DeleteQueueResponse response = JAXBuddy.deserializeXMLStream(DeleteQueueResponse.class, iStr);
-			}
-			else {
-				throw new SQSException("Error deleting queue, response code = "+respCode);
-			}
+			DeleteQueueResponse response =
+					makeRequest(method, "DeleteQueue", params, DeleteQueueResponse.class);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
+		} catch (HttpException ex) {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SQSException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -393,27 +359,18 @@ public class MessageQueue extends QueueService {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("MessageId", ""+msgId);
 		params.put("VisibilityTimeout", ""+timeout);
+		GetMethod method = new GetMethod();
 		try {
-			HttpURLConnection conn = makeRequest("GET", "ChangeMessageVisibility", params);
-			if (conn.getResponseCode() < 400) {
-				InputStream iStr = conn.getInputStream();
-				ChangeMessageVisibilityResponse response = JAXBuddy.deserializeXMLStream(ChangeMessageVisibilityResponse.class, iStr);
-				if (response.getResponseStatus().getStatusCode().equals("Success")) {
-					return;
-				}
-				else {
-					throw new SQSException("Error setting timeout. Response msg = "+response.getResponseStatus().getMessage());
-				}
-			}
-			else {
-				throw new SQSException("Error setting timeout. Response code = "+conn.getResponseCode());
-			}
+			ChangeMessageVisibilityResponse response =
+					makeRequest(method, "ChangeMessageVisibility", params, ChangeMessageVisibilityResponse.class);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem setting the visibility timeout.", ex);
-		} catch (MalformedURLException ex) {
+		} catch (HttpException ex) {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SQSException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -455,32 +412,24 @@ public class MessageQueue extends QueueService {
 	public Map<String,String> getQueueAttributes(QueueAttribute qAttr) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("Attribute", qAttr.queryAttribute());
+		GetMethod method = new GetMethod();
 		try {
-			HttpURLConnection conn = makeRequest("GET", "GetQueueAttributes", params);
-			if (conn.getResponseCode() < 400) {
-				InputStream iStr = conn.getInputStream();
-				GetQueueAttributesResponse response = JAXBuddy.deserializeXMLStream(GetQueueAttributesResponse.class, iStr);
-				if (response.getResponseStatus().getStatusCode().equals("Success")) {
-					Map<String,String> ret = new HashMap<String,String>();
-					List<AttributedValue> attrs = response.getAttributedValues();
-					for (AttributedValue attr : attrs) {
-						ret.put(attr.getAttribute(), attr.getValue());
-					}
-					return ret;
-				}
-				else {
-					throw new SQSException("Error getting timeout. Response msg = "+response.getResponseStatus().getMessage());
-				}
+			GetQueueAttributesResponse response =
+					makeRequest(method, "GetQueueAttributes", params, GetQueueAttributesResponse.class);
+			Map<String,String> ret = new HashMap<String,String>();
+			List<AttributedValue> attrs = response.getAttributedValues();
+			for (AttributedValue attr : attrs) {
+				ret.put(attr.getAttribute(), attr.getValue());
 			}
-			else {
-				throw new SQSException("Error getting timeout. Response code = "+conn.getResponseCode());
-			}
+			return ret;
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem getting the visilibity timeout.", ex);
-		} catch (MalformedURLException ex) {
+		} catch (HttpException ex) {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SQSException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -505,27 +454,18 @@ public class MessageQueue extends QueueService {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("Attribute", attribute);
 		params.put("Value", value);
+		GetMethod method = new GetMethod();
 		try {
-			HttpURLConnection conn = makeRequest("GET", "SetQueueAttributes", params);
-			if (conn.getResponseCode() < 400) {
-				InputStream iStr = conn.getInputStream();
-				SetQueueAttributesResponse response = JAXBuddy.deserializeXMLStream(SetQueueAttributesResponse.class, iStr);
-				if (response.getResponseStatus().getStatusCode().equals("Success")) {
-					return;
-				}
-				else {
-					throw new SQSException("Error setting timeout. Response msg = "+response.getResponseStatus().getMessage());
-				}
-			}
-			else {
-				throw new SQSException("Error setting timeout. Response code = "+conn.getResponseCode());
-			}
+			SetQueueAttributesResponse response =
+					makeRequest(method, "SetQueueAttributes", params, SetQueueAttributesResponse.class);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem setting the visibility timeout.", ex);
-		} catch (MalformedURLException ex) {
+		} catch (HttpException ex) {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SQSException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -561,27 +501,18 @@ public class MessageQueue extends QueueService {
 	}
 
 	private void addGrant(Map<String, String> params) throws SQSException {
+		GetMethod method = new GetMethod();
 		try {
-			HttpURLConnection conn = makeRequest("GET", "AddGrant", params);
-			if (conn.getResponseCode() < 400) {
-				InputStream iStr = conn.getInputStream();
-				AddGrantResponse response = JAXBuddy.deserializeXMLStream(AddGrantResponse.class, iStr);
-				if (response.getResponseStatus().getStatusCode().equals("Success")) {
-					return;
-				}
-				else {
-					throw new SQSException("Error adding grant. Response msg = "+response.getResponseStatus().getMessage());
-				}
-			}
-			else {
-				throw new SQSException("Error adding grant. Response code = "+conn.getResponseCode());
-			}
+			AddGrantResponse response =
+					makeRequest(method, "AddGrant", params, AddGrantResponse.class);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
+		} catch (HttpException ex) {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SQSException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -617,27 +548,18 @@ public class MessageQueue extends QueueService {
 	}
 
 	private void removeGrant(Map<String, String> params) throws SQSException {
+		GetMethod method = new GetMethod();
 		try {
-			HttpURLConnection conn = makeRequest("GET", "RemoveGrant", params);
-			if (conn.getResponseCode() < 400) {
-				InputStream iStr = conn.getInputStream();
-				RemoveGrantResponse response = JAXBuddy.deserializeXMLStream(RemoveGrantResponse.class, iStr);
-				if (response.getResponseStatus().getStatusCode().equals("Success")) {
-					return;
-				}
-				else {
-					throw new SQSException("Error removing grant. Response msg = "+response.getResponseStatus().getMessage());
-				}
-			}
-			else {
-				throw new SQSException("Error adding grant. Response code = "+conn.getResponseCode());
-			}
+			RemoveGrantResponse response =
+					makeRequest(method, "RemoveGrant", params, RemoveGrantResponse.class);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
+		} catch (HttpException ex) {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SQSException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
@@ -657,40 +579,36 @@ public class MessageQueue extends QueueService {
 		if (grantee instanceof CanonicalUser) {
 			params.put("Grantee.ID", ((CanonicalUser)grantee).getID());
 		}
+		GetMethod method = new GetMethod();
 		try {
-			InputStream iStr =
-				makeRequest("GET", "ListGrants", params).getInputStream();
 			ListGrantsResponse response =
-					JAXBuddy.deserializeXMLStream(ListGrantsResponse.class, iStr);
-			if (response.getResponseStatus().getStatusCode().equals("Success")) {
-				Grant [] grants = new Grant[response.getGrantLists().size()];
-				int i=0;
-				for (com.xerox.amazonws.typica.jaxb.Grant g : response.getGrantLists()) {
-					Grantee g2 = null;
-					if (g.getGrantee() instanceof com.xerox.amazonws.typica.jaxb.Group) {
-						com.xerox.amazonws.typica.jaxb.Group grp =
-								(com.xerox.amazonws.typica.jaxb.Group)g.getGrantee();
-						g2 = new Group(new URI(grp.getURI()));
-					}
-					else if (g.getGrantee() instanceof com.xerox.amazonws.typica.jaxb.CanonicalUser) {
-						com.xerox.amazonws.typica.jaxb.CanonicalUser u =
-								(com.xerox.amazonws.typica.jaxb.CanonicalUser)g.getGrantee();
-						g2 = new CanonicalUser(u.getID(), u.getDisplayName());
-					}
-					grants[i] = new Grant(g2, g.getPermission());
-					i++;
+					makeRequest(method, "ListGrants", params, ListGrantsResponse.class);
+			Grant [] grants = new Grant[response.getGrantLists().size()];
+			int i=0;
+			for (com.xerox.amazonws.typica.jaxb.Grant g : response.getGrantLists()) {
+				Grantee g2 = null;
+				if (g.getGrantee() instanceof com.xerox.amazonws.typica.jaxb.Group) {
+					com.xerox.amazonws.typica.jaxb.Group grp =
+							(com.xerox.amazonws.typica.jaxb.Group)g.getGrantee();
+					g2 = new Group(new URI(grp.getURI()));
 				}
-				return grants;
+				else if (g.getGrantee() instanceof com.xerox.amazonws.typica.jaxb.CanonicalUser) {
+					com.xerox.amazonws.typica.jaxb.CanonicalUser u =
+							(com.xerox.amazonws.typica.jaxb.CanonicalUser)g.getGrantee();
+					g2 = new CanonicalUser(u.getID(), u.getDisplayName());
+				}
+				grants[i] = new Grant(g2, g.getPermission());
+				i++;
 			}
-			else {
-				throw new SQSException("Error getting grants. Response msg = "+response.getResponseStatus().getMessage());
-			}
+			return grants;
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
+		} catch (HttpException ex) {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SQSException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 

@@ -38,6 +38,15 @@ import java.util.SortedMap;
 import java.util.TimeZone;
 import java.util.TreeMap;
 
+import javax.xml.bind.JAXBException;
+
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpMethodBase;
+import org.apache.commons.httpclient.URI;
+
+import com.xerox.amazonws.typica.jaxb.Response;
+
 /**
  * This class provides an interface with the Amazon SQS service. It provides high level
  * methods for listing and creating message queues.
@@ -57,21 +66,21 @@ public class AWSQueryConnection extends AWSConnection {
      * @param port Which port to use.
      */
     public AWSQueryConnection(String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure,
-                             String server, int port)
-    {
+                             String server, int port) {
 		super(awsAccessKeyId, awsSecretAccessKey, isSecure, server, port);
     }
 
     /**
-     * Make a new HttpURLConnection.
-     * @param method The HTTP method to use (GET, PUT, DELETE)
-     * @param resource The resource name (bucketName + "/" + key).
-     * @param headers A Map of String to List of Strings representing the http
-     * headers to pass (can be null).
+     * Make a http request and process the response. This method also performs automatic retries.
+	 *
+     * @param method The HTTP method to use (GET, POST, DELETE, etc)
+     * @param action the name of the action for this query request
+     * @param params map of request params
+     * @param respTpye the class that represents the desired/expected return type
      */
-    protected HttpURLConnection makeRequest(String method, String action, Map<String, String> params)
-        throws MalformedURLException, IOException
-    {
+	protected <T> T makeRequest(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+		throws HttpException, IOException, JAXBException {
+
 		// add auth params, and protocol specific headers
 		Map<String, String> qParams = new HashMap<String, String>(params);
 		qParams.put("Action", action);
@@ -116,11 +125,44 @@ public class AWSQueryConnection extends AWSConnection {
 
 		// finally, build request object
         URL url = makeURL(resource.toString());
-        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-        connection.setRequestMethod(method);
-
-        return connection;
-    }
+		method.setURI(new URI(url.toString(), true));
+		HttpClient hc = new HttpClient();	// maybe, cache this?
+		Object response = null;
+		boolean done = false;
+		int retries = 0;
+		do {
+			int responseCode = hc.executeMethod(method);
+			// 100's are these are handled by httpclient
+			if (responseCode < 300) {
+				// 200's : parse normal response into requested object
+				InputStream iStr = method.getResponseBodyAsStream();
+				response = JAXBuddy.deserializeXMLStream(respType, iStr);
+				done = true;
+			}
+			else if (responseCode < 400) {
+				// 300's : what to do?
+				throw new HttpException("redirect error : "+responseCode);
+			}
+			else if (responseCode < 500) {
+				// 400's : parse client error message
+				InputStream iStr = method.getResponseBodyAsStream();
+				Response resp = JAXBuddy.deserializeXMLStream(Response.class, iStr);
+				throw new HttpException("Client error : "+resp.getErrors().getError().getMessage());
+			}
+			else if (responseCode < 600) {
+				// 500's : retry...
+				retries++;
+				if (retries > 5) {
+					InputStream iStr = method.getResponseBodyAsStream();
+					Response resp = JAXBuddy.deserializeXMLStream(Response.class, iStr);
+					throw new HttpException("Number of retries exceeded : "+action+
+											", "+resp.getErrors().getError().getMessage());
+				}
+				try { Thread.sleep(retries*1000); } catch (InterruptedException ex) {}
+			}
+		} while (!done);
+		return (T)response;
+	}
 
     /**
      * Generate an rfc822 date for use in the Date HTTP header.
