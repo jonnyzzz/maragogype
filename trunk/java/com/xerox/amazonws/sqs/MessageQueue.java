@@ -627,15 +627,4 @@ public class MessageQueue extends QueueService {
 		}
 		return ret;
 	}
-
-    private void copyStreams(InputStream iStr, OutputStream oStr) throws IOException {
-		byte [] buffer = new byte [16384];
-		int count = iStr.read(buffer);
-		while (count != -1) {
-			if (count > 0) {
-				oStr.write(buffer, 0, count);
-            }
-			count = iStr.read(buffer);
-		}
-	}
 }

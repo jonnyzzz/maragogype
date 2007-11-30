@@ -19,7 +19,6 @@ package com.xerox.amazonws.sqs;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -113,11 +112,9 @@ public class QueueService extends AWSQueryConnection {
 	 * @return object representing the message queue
 	 */
     public MessageQueue getOrCreateMessageQueue(String queueName) throws SQSException {
-		// test for case where the user supplied the fully qualified queue name
-		if (queueName.charAt(0) == '/' && queueName.lastIndexOf('/') > 0) {
-			return new MessageQueue(queueName,
-								getAwsAccessKeyId(), getSecretAccessKey(),
-								isSecure(), getServer());
+		if ((queueName.charAt(0) == '/' && queueName.lastIndexOf('/') > 0) ||
+				queueName.startsWith("http")) {
+			return getMessageQueue(queueName);
 		}
 		else {
 			Map<String, String> params = new HashMap<String, String>();
@@ -139,6 +136,23 @@ public class QueueService extends AWSQueryConnection {
 				method.releaseConnection();
 			}
 		}
+    }
+
+	/**
+	 * Returns a new message queue. The queue name must be of a queue already created and/or
+	 * accessible to your account. (i.e. "https://queue.amazonaws.com/A98KKI3K0RJ7Q/myQueue",
+	 * "/B38IZ53W0RU2X/grantedQueue").
+	 *
+	 * @param queueName qualified name of queue
+	 * @return object representing the message queue
+	 */
+    public MessageQueue getMessageQueue(String queueName) throws SQSException {
+		if (!(queueName.charAt(0) == '/' && queueName.lastIndexOf('/') > 0) &&
+				!queueName.startsWith("http")) {
+			throw new IllegalArgumentException("Queue name must be more fuly specified or use getOrCreateMessageQueue().");
+		}
+		return new MessageQueue(queueName, getAwsAccessKeyId(), getSecretAccessKey(),
+									isSecure(), getServer());
     }
 
 	/**

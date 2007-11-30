@@ -55,6 +55,8 @@ import com.xerox.amazonws.typica.jaxb.Response;
  * @author developer@dotech.com
  */
 public class AWSQueryConnection extends AWSConnection {
+	// this is the number of automatic retries
+	private int maxRetries = 5;
 
     /**
 	 * Initializes the queue service with your AWS login information.
@@ -69,6 +71,24 @@ public class AWSQueryConnection extends AWSConnection {
                              String server, int port) {
 		super(awsAccessKeyId, awsSecretAccessKey, isSecure, server, port);
     }
+
+	/**
+	 * This method returns the number of times to retry when a recoverable error occurs.
+	 *
+	 * @return the number of times to retry on recoverable error
+	 */
+	public int getMaxRetries() {
+		return maxRetries;
+	}
+
+	/**
+	 * This method sets the number of times to retry when a recoverable error occurs.
+	 *
+	 * @param retries the number of times to retry on recoverable error
+	 */
+	public void setMaxRetries(int retries) {
+		maxRetries = retries;
+	}
 
     /**
      * Make a http request and process the response. This method also performs automatic retries.
@@ -135,8 +155,10 @@ public class AWSQueryConnection extends AWSConnection {
 			// 100's are these are handled by httpclient
 			if (responseCode < 300) {
 				// 200's : parse normal response into requested object
-				InputStream iStr = method.getResponseBodyAsStream();
-				response = JAXBuddy.deserializeXMLStream(respType, iStr);
+				if (respType != null) {
+					InputStream iStr = method.getResponseBodyAsStream();
+					response = JAXBuddy.deserializeXMLStream(respType, iStr);
+				}
 				done = true;
 			}
 			else if (responseCode < 400) {
@@ -152,7 +174,7 @@ public class AWSQueryConnection extends AWSConnection {
 			else if (responseCode < 600) {
 				// 500's : retry...
 				retries++;
-				if (retries > 5) {
+				if (retries > maxRetries) {
 					InputStream iStr = method.getResponseBodyAsStream();
 					Response resp = JAXBuddy.deserializeXMLStream(Response.class, iStr);
 					throw new HttpException("Number of retries exceeded : "+action+
