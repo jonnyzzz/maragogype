@@ -16,8 +16,8 @@ public class DequeueSample {
     private static Log logger = LogFactory.getLog(DequeueSample.class);
 
 	public static void main( String[] args ) {
-		final String AWSAccessKeyId = "[AWS Access Id]";
-		final String SecretAccessKey = "[AWS Secret Key]";
+//		final String AWSAccessKeyId = "[AWS Access Id]";
+//		final String SecretAccessKey = "[AWS Secret Key]";
 
 		int count = 0;
 		if (args.length < 1) {
@@ -40,7 +40,7 @@ public class DequeueSample {
 					continue;
 				}
 				String text = msg.getMessageBody();
-				logger.debug("msg : "+text);
+				logger.info("msg : "+text);
 				msgQueue.deleteMessage(msg);
 				logger.info( "Deleted message id " + msg.getMessageId());
 				count++;
