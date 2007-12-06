@@ -11,7 +11,7 @@
               <xs:element name="Error">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="Message" type="xs:string" minOccurs="0"/>  
+                    <xs:element name="Message" type="xs:string" minOccurs="1"/>  
                     <xs:any namespace="##any" processContents="lax"/>
                   </xs:sequence>
                 </xs:complexType>
