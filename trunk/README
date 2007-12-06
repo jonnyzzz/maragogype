@@ -1,5 +1,5 @@
-typica 0.8
-17-August-2007
+typica 0.9
+06-December-2007
 
 http://code.google.com/p/typica
 
@@ -21,47 +21,43 @@ I've included the encoder/decoder written by Christian d'Heureuse. The full clas
 
 Change history for this version;
 ------------------------------------------------------------------------
-r75 | dkavanagh | 2007-08-16 17:31:09 -0400 (Thu, 16 Aug 2007) | 1 line
+r88 | dkavanagh | 2007-12-06 10:57:59 -0500 (Thu, 06 Dec 2007) | 2 lines
 
-fixed issue #11, can now access queue of another user when permission was granted
+require min of 1 message per error. Helps Java 6 build
 ------------------------------------------------------------------------
-r74 | dkavanagh | 2007-08-15 12:43:08 -0400 (Wed, 15 Aug 2007) | 1 line
+r87 | dkavanagh | 2007-12-02 08:45:15 -0500 (Sun, 02 Dec 2007) | 2 lines
 
-remain true to spec with modify/reset of product codes
+don't refer to localhost.
 ------------------------------------------------------------------------
-r73 | dkavanagh | 2007-08-14 16:26:10 -0400 (Tue, 14 Aug 2007) | 1 line
+r86 | dkavanagh | 2007-11-30 16:53:43 -0500 (Fri, 30 Nov 2007) | 2 lines
 
-added further support for product codes
+improved ability to create queues without WS call. Added ability to adjust max error retries.
 ------------------------------------------------------------------------
-r71 | dkavanagh | 2007-07-24 14:31:41 -0400 (Tue, 24 Jul 2007) | 1 line
+r85 | dkavanagh | 2007-11-05 15:30:41 -0500 (Mon, 05 Nov 2007) | 1 line
 
-now, shows current reading, along with load averages
+updaetd to httpclient; performance looks good
 ------------------------------------------------------------------------
-r70 | dkavanagh | 2007-07-23 10:16:04 -0400 (Mon, 23 Jul 2007) | 1 line
+r84 | dkavanagh | 2007-10-17 11:42:51 -0400 (Wed, 17 Oct 2007) | 1 line
 
-code to do some thread vs receive count testing
+support for 2007-08-29 API, instance types
 ------------------------------------------------------------------------
-r69 | dkavanagh | 2007-07-20 17:35:21 -0400 (Fri, 20 Jul 2007) | 1 line
+r83 | dkavanagh | 2007-10-02 14:11:13 -0400 (Tue, 02 Oct 2007) | 1 line
 
-deleteMessage() code now does optimistic parsing of sqs reply... much faster
+change from caching marshaller/unmarshallers to caching only the jaxb context objs. just as fast, less to cache, thread-safe
 ------------------------------------------------------------------------
-r68 | dkavanagh | 2007-07-18 14:25:37 -0400 (Wed, 18 Jul 2007) | 1 line
+r82 | dkavanagh | 2007-10-02 12:58:24 -0400 (Tue, 02 Oct 2007) | 1 line
 
-messages automatically base64 encoded/decoded on send/receive
+added caching of marshaller and unmarshaller objects. good speedup on all WS calls\!
 ------------------------------------------------------------------------
-r67 | dkavanagh | 2007-07-18 14:24:18 -0400 (Wed, 18 Jul 2007) | 1 line
+r81 | dkavanagh | 2007-10-02 10:27:19 -0400 (Tue, 02 Oct 2007) | 1 line
 
-changed message from info to debug
+remove separate method (sendMessageFast). integrated changes into regular sendMe ssage() method
 ------------------------------------------------------------------------
-r66 | dkavanagh | 2007-07-18 14:23:26 -0400 (Wed, 18 Jul 2007) | 1 line
+r78 | dkavanagh | 2007-08-31 15:18:38 -0400 (Fri, 31 Aug 2007) | 1 line
 
-added method to serizalize obj to string
+provided override of default base64 encoding of messages in SQS
 ------------------------------------------------------------------------
-r65 | dkavanagh | 2007-07-07 12:42:01 -0400 (Sat, 07 Jul 2007) | 2 lines
+r77 | dkavanagh | 2007-08-20 14:29:27 -0400 (Mon, 20 Aug 2007) | 1 line
 
-added ConfirmProductInstance()
-------------------------------------------------------------------------
-r64 | dkavanagh | 2007-07-07 09:27:44 -0400 (Sat, 07 Jul 2007) | 1 line
-
-added support for 2007-03-01 EC2 update. Paid AMIs
+added sendMessageFast() which is about 5 times faster than regular send
 ------------------------------------------------------------------------
