@@ -1,0 +1,63 @@
+typica 0.9
+06-December-2007
+
+http://code.google.com/p/typica
+
+This is a simple API to access Amazon's SQS and EC2 web services. It uses the QUERY interface and patterns the methods after those available from Amazon in their SOAP client for these services. This code is thread-safe and works very reliably to the best of my knowledge. I've been using it on a system where sending messages in SQS is critical and we manage pools of servers in EC2.
+
+Distribution files;
+README      - this file
+LICENSE.txt - full version of the Apache 2.0 license
+Log4J.xml   - a Log4J config file you can include in your classpath
+typica.jar  - the classes for this release
+apidocs     - JavaDoc for this release
+
+Test files
+In subversion, the test directory contains some java test files. Sample code is also documented on the wiki @ http://code.google.com/p/typica/wiki/TypicaSampleCode. These can be used as sample files and to test various features of the client code. There is a target "test.main". To invoke the sample code, you can use this target like this;
+ant test.main -Dclass=TestQueueService -Dargs=testQueue
+
+Base64 coder included. 
+I've included the encoder/decoder written by Christian d'Heureuse. The full class name is ch.inventec.Base64Coder. (that is the domain where I found the code).
+
+Change history for this version;
+------------------------------------------------------------------------
+r88 | dkavanagh | 2007-12-06 10:57:59 -0500 (Thu, 06 Dec 2007) | 2 lines
+
+require min of 1 message per error. Helps Java 6 build
+------------------------------------------------------------------------
+r87 | dkavanagh | 2007-12-02 08:45:15 -0500 (Sun, 02 Dec 2007) | 2 lines
+
+don't refer to localhost.
+------------------------------------------------------------------------
+r86 | dkavanagh | 2007-11-30 16:53:43 -0500 (Fri, 30 Nov 2007) | 2 lines
+
+improved ability to create queues without WS call. Added ability to adjust max error retries.
+------------------------------------------------------------------------
+r85 | dkavanagh | 2007-11-05 15:30:41 -0500 (Mon, 05 Nov 2007) | 1 line
+
+updaetd to httpclient; performance looks good
+------------------------------------------------------------------------
+r84 | dkavanagh | 2007-10-17 11:42:51 -0400 (Wed, 17 Oct 2007) | 1 line
+
+support for 2007-08-29 API, instance types
+------------------------------------------------------------------------
+r83 | dkavanagh | 2007-10-02 14:11:13 -0400 (Tue, 02 Oct 2007) | 1 line
+
+change from caching marshaller/unmarshallers to caching only the jaxb context objs. just as fast, less to cache, thread-safe
+------------------------------------------------------------------------
+r82 | dkavanagh | 2007-10-02 12:58:24 -0400 (Tue, 02 Oct 2007) | 1 line
+
+added caching of marshaller and unmarshaller objects. good speedup on all WS calls\!
+------------------------------------------------------------------------
+r81 | dkavanagh | 2007-10-02 10:27:19 -0400 (Tue, 02 Oct 2007) | 1 line
+
+remove separate method (sendMessageFast). integrated changes into regular sendMe ssage() method
+------------------------------------------------------------------------
+r78 | dkavanagh | 2007-08-31 15:18:38 -0400 (Fri, 31 Aug 2007) | 1 line
+
+provided override of default base64 encoding of messages in SQS
+------------------------------------------------------------------------
+r77 | dkavanagh | 2007-08-20 14:29:27 -0400 (Mon, 20 Aug 2007) | 1 line
+
+added sendMessageFast() which is about 5 times faster than regular send
+------------------------------------------------------------------------
