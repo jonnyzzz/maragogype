@@ -37,12 +37,11 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
-
-import ch.inventec.Base64Coder;
 
 import com.xerox.amazonws.typica.jaxb.AuthorizeSecurityGroupIngressResponse;
 import com.xerox.amazonws.typica.jaxb.CreateKeyPairResponse;
@@ -432,7 +431,7 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("MinCount", ""+minCount);
 		params.put("MaxCount", ""+maxCount);
 		if (userData != null && !userData.trim().equals("")) {
-			params.put("UserData", Base64Coder.encodeString(userData));
+			params.put("UserData", new String(Base64.encodeBase64(userData.getBytes())));
 		}
 		if (publicAddr) {
 			params.put("AddressingType", "public");
@@ -676,7 +675,7 @@ public class Jec2 extends AWSQueryConnection {
 					makeRequest(method, "GetConsoleOutput", params, GetConsoleOutputResponse.class);
 			return new ConsoleOutput(response.getInstanceId(),
 				response.getTimestamp().toGregorianCalendar(),
-				new String(Base64Coder.decodeString(response.getOutput().replaceAll("\n", ""))));
+				new String(Base64.decodeBase64(response.getOutput().getBytes())));
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {

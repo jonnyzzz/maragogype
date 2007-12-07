@@ -35,8 +35,7 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
-import ch.inventec.Base64Coder;
-
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -123,7 +122,7 @@ public class MessageQueue extends QueueService {
 	 */
     public String sendMessage(String msg) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
-		String encodedMsg = enableEncoding?Base64Coder.encodeString(msg):msg;
+		String encodedMsg = enableEncoding?new String(Base64.encodeBase64(msg.getBytes())):msg;
 		PostMethod method = new PostMethod();
 		try {
 			method.setRequestEntity(new StringRequestEntity(encodedMsg, "text/plain", null));
@@ -221,7 +220,7 @@ public class MessageQueue extends QueueService {
 				ArrayList<Message> msgs = new ArrayList();
 				for (com.xerox.amazonws.typica.jaxb.Message msg : response.getMessages()) {
 					String decodedMsg = enableEncoding?
-											Base64Coder.decodeString(msg.getMessageBody()):
+								new String(Base64.decodeBase64(msg.getMessageBody().getBytes())):
 											msg.getMessageBody();
 					msgs.add(new Message(msg.getMessageId(), decodedMsg));
 				}
@@ -258,7 +257,7 @@ public class MessageQueue extends QueueService {
 			}
 			else {
 				String decodedMsg = enableEncoding?
-										Base64Coder.decodeString(msg.getMessageBody()):
+								new String(Base64.decodeBase64(msg.getMessageBody().getBytes())):
 										msg.getMessageBody();
 				return new Message(msg.getMessageId(), decodedMsg);
 			}
