@@ -18,13 +18,13 @@
 package com.xerox.amazonws.sdb;
 
 public abstract class SDBResult {
-	private String moreToken;
+	private String nextToken;
 
-	SDBResult(String moreToken) {
-		this.moreToken = moreToken;
+	SDBResult(String nextToken) {
+		this.nextToken = nextToken;
 	}
 
-	public String getMoreToken() {
-		return moreToken;
+	public String getNextToken() {
+		return nextToken;
 	}
 }

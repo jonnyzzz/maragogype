@@ -70,7 +70,7 @@ public class Item extends Domain {
      * @return the map of attributes
 	 * @throws SDBException wraps checked exceptions
 	 */
-	public Map<String, String> getAttributes() throws SDBException {
+	public List<ItemAttribute> getAttributes() throws SDBException {
 		return getAttributes(null);
 	}
 
@@ -79,10 +79,10 @@ public class Item extends Domain {
 	 * the name given.
 	 *
 	 * @param attributeName a name that limits the results
-     * @return the map of attributes
+     * @return the list of attributes
 	 * @throws SDBException wraps checked exceptions
 	 */
-	public Map<String, String> getAttributes(String attributeName) throws SDBException {
+	public List<ItemAttribute> getAttributes(String attributeName) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", getName());
 		params.put("ItemName", identifier);
@@ -93,10 +93,10 @@ public class Item extends Domain {
 		try {
 			GetAttributesResponse response =
 						makeRequest(method, "GetAttributes", params, GetAttributesResponse.class);
-			Map<String, String> ret = new HashMap<String, String>();
-			List<Attribute> attrs = response.getAttributes();
+			List<ItemAttribute> ret = new ArrayList<ItemAttribute>();
+			List<Attribute> attrs = response.getGetAttributesResult().getAttributes();
 			for (Attribute attr : attrs) {
-				ret.put(attr.getName(), attr.getValue());
+				ret.add(new ItemAttribute(attr.getName(), attr.getValue(), false));
 			}
 			return ret;
 		} catch (JAXBException ex) {
@@ -111,38 +111,24 @@ public class Item extends Domain {
 	}
 
 	/**
-	 * Creates attributes for this item.
+	 * Creates attributes for this item. Each item can have "replace" specified which
+	 * indicates to replace the Attribute/Value or ad a new Attribute/Value.
 	 *
-	 * @param attributes map of attributes to add
+	 * @param attributes list of attributes to add
 	 * @throws SDBException wraps checked exceptions
 	 */
-	public void putAttributes(Map<String, String> attributes) throws SDBException {
-		putAttributes(attributes, false);
-	}
-
-	/**
-	 * Replaces existing values for attributes supplied
-	 *
-	 * @param attributes map of attributes to replace
-	 * @throws SDBException wraps checked exceptions
-	 */
-	public void replaceAttributes(Map<String, String> attributes) throws SDBException {
-		putAttributes(attributes, true);
-	}
-
-	private void putAttributes(Map<String, String> attributes, boolean replace) throws SDBException {
+	public void putAttributes(List<ItemAttribute> attributes) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", getName());
 		params.put("ItemName", identifier);
 		int i=1;
-		for (String key : attributes.keySet()) {
-			String value = attributes.get(key);
-			params.put("Attribute."+i+".Name", key);
-			params.put("Attribute."+i+".Value", value);
+		for (ItemAttribute attr : attributes) {
+			params.put("Attribute."+i+".Name", attr.getName());
+			params.put("Attribute."+i+".Value", attr.getValue());
+			if (attr.isReplace()) {
+				params.put("Attribute."+i+".Replace", "true");
+			}
 			i++;
-		}
-		if (replace) {
-			params.put("Replace", "true");
 		}
 		GetMethod method = new GetMethod();
 		try {
@@ -165,7 +151,7 @@ public class Item extends Domain {
 	 * @param identifier the name of the item to be deleted
 	 * @throws SDBException wraps checked exceptions
 	 */
-	public void deleteAttributes(Map<String, String> attributes) throws SDBException {
+	public void deleteAttributes(List<ItemAttribute> attributes) throws SDBException {
 		deleteAttributes(identifier, attributes);
 	}
 

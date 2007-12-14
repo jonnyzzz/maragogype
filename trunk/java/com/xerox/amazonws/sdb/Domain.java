@@ -100,11 +100,11 @@ public class Domain extends SimpleDB {
 	 * Gets a list of items in this domain filtered by the query string.
 	 *
 	 * @param queryString the filter statement
-	 * @param moreToken the token used to return more items in the query result set
+	 * @param nextToken the token used to return more items in the query result set
      * @return the object containing the items, a more token, etc.
 	 * @throws SDBException wraps checked exceptions
 	 */
-	public QueryResult listItems(String queryString, String moreToken) throws SDBException {
+	public QueryResult listItems(String queryString, String nextToken) throws SDBException {
 		return listItems(queryString, null, 0);
 	}
 
@@ -112,17 +112,17 @@ public class Domain extends SimpleDB {
 	 * Gets a list of items in this domain filtered by the query string.
 	 *
 	 * @param queryString the filter statement
-	 * @param moreToken the token used to return more items in the query result set
+	 * @param nextToken the token used to return more items in the query result set
 	 * @param maxResults a limit to the number of results to return now
      * @return the object containing the items, a more token, etc.
 	 * @throws SDBException wraps checked exceptions
 	 */
-	public QueryResult listItems(String queryString, String moreToken, int maxResults) throws SDBException {
+	public QueryResult listItems(String queryString, String nextToken, int maxResults) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", domainName);
 		params.put("QueryExpression", (queryString==null)?"":queryString);
-		if (moreToken != null) {
-			params.put("MoreToken", moreToken);
+		if (nextToken != null) {
+			params.put("NextToken", nextToken);
 		}
 		if (maxResults > 0) {
 			params.put("MaxResults", ""+maxResults);
@@ -131,8 +131,8 @@ public class Domain extends SimpleDB {
 		try {
 			QueryResponse response =
 						makeRequest(method, "Query", params, QueryResponse.class);
-			return new QueryResult(response.getMoreToken(),
-					Item.createList(response.getItemNames().toArray(new String[] {}), domainName,
+			return new QueryResult(response.getQueryResult().getNextToken(),
+					Item.createList(response.getQueryResult().getItemNames().toArray(new String[] {}), domainName,
 								getAwsAccessKeyId(), getSecretAccessKey(),
 								isSecure(), getServer()));
 		} catch (JAXBException ex) {
@@ -156,15 +156,15 @@ public class Domain extends SimpleDB {
 		deleteAttributes(identifier, null);
 	}
 
-	protected void deleteAttributes(String identifier, Map<String, String> attrs) throws SDBException {
+	protected void deleteAttributes(String identifier, List<ItemAttribute> attrs) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", domainName);
 		params.put("ItemName", identifier);
 		if (attrs != null) {
 			int i=1;
-			for (String key : attrs.keySet()) {
-				params.put("Attribute."+i+".Name", key);
-				String value = attrs.get(key);
+			for (ItemAttribute attr : attrs) {
+				params.put("Attribute."+i+".Name", attr.getName());
+				String value = attr.getValue();
 				if (value != null) {
 					params.put("Attribute."+i+".Value", value);
 				}

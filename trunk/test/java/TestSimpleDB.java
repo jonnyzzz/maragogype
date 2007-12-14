@@ -20,14 +20,14 @@ public class TestSimpleDB {
 		SimpleDB sdb = new SimpleDB(AWSAccessKeyId, SecretAccessKey, true);
 
 		logger.info("domains:");
-		String moreToken = "";
-		while (moreToken != null) {
-			ListDomainsResult result = sdb.listDomains(moreToken, 10);
+		String nextToken = "";
+		while (nextToken != null) {
+			ListDomainsResult result = sdb.listDomains(nextToken, 10);
 			List<Domain> domains = result.getDomainList();
 			for (Domain dom : domains) {
 				logger.info(dom.getName());
 			}
-			moreToken = result.getMoreToken();
+			nextToken = result.getNextToken();
 		}
 	}
 }

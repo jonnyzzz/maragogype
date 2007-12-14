@@ -3,6 +3,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import java.util.StringTokenizer;
 
 import com.xerox.amazonws.sdb.Domain;
 import com.xerox.amazonws.sdb.Item;
+import com.xerox.amazonws.sdb.ItemAttribute;
 import com.xerox.amazonws.sdb.ListDomainsResult;
 import com.xerox.amazonws.sdb.QueryResult;
 import com.xerox.amazonws.sdb.SDBException;
@@ -30,22 +32,22 @@ public class sdbShell {
 	 */
 	private static void executeQuery(Domain domain, String queryString, int maxResults) {
 
-        String moreToken = "";
+        String nextToken = "";
         do {
             try {
-                QueryResult result = domain.listItems(queryString, moreToken, maxResults);
+                QueryResult result = domain.listItems(queryString, nextToken, maxResults);
 				List<Item> items = result.getItemList();
                 for (Item i : items) {
                     System.out.println(i.getIdentifier());
                 }
                 System.out.println("--- end of page ---");
-                moreToken = result.getMoreToken();
+                nextToken = result.getNextToken();
             }
             catch (SDBException ex) {
                 System.out.println("Query '" + queryString + "' Failure: ");
                 ex.printStackTrace();
             }
-        } while (moreToken != null && moreToken.trim().length() > 0);
+        } while (nextToken != null && nextToken.trim().length() > 0);
         System.out.println("Done.");
 	}
 
@@ -142,9 +144,9 @@ public class sdbShell {
 							continue;
 						}
 						Item item = dom.getItem(st.nextToken());
-						HashMap<String, String> set = new HashMap<String, String>();
-						set.put(st.nextToken(), st.nextToken());
-						item.replaceAttributes(set);
+						List<ItemAttribute> list = new ArrayList<ItemAttribute>();
+						list.add(new ItemAttribute(st.nextToken(), st.nextToken(), true));
+						item.putAttributes(list);
 					}
 				}
 				else if (cmd.equals("da") || cmd.equals("deleteattr")) {
@@ -154,9 +156,9 @@ public class sdbShell {
 							continue;
 						}
 						Item item = dom.getItem(st.nextToken());
-						HashMap<String, String> set = new HashMap<String, String>();
-						set.put(st.nextToken(), null);
-						item.deleteAttributes(set);
+						List<ItemAttribute> list = new ArrayList<ItemAttribute>();
+						list.add(new ItemAttribute(st.nextToken(), null, true));
+						item.deleteAttributes(list);
 					}
 				}
 				else if (cmd.equals("di") || cmd.equals("deleteitem")) {
@@ -175,11 +177,10 @@ public class sdbShell {
 							continue;
 						}
 						Item item = dom.getItem(st.nextToken());
-						Map<String, String> attrs = item.getAttributes(null);
+						List<ItemAttribute> attrs = item.getAttributes(null);
 						System.out.println("Item : "+item.getIdentifier());
-						for (String key : attrs.keySet()) {
-							String value = attrs.get(key);
-							System.out.println(" "+key+" = "+value);
+						for (ItemAttribute attr : attrs) {
+							System.out.println(" "+attr.getName()+" = "+attr.getValue());
 						}
 					}
 				}

@@ -22,8 +22,8 @@ import java.util.List;
 public class QueryResult extends SDBResult {
 	private List<Item> items;
 
-	QueryResult(String moreToken, List<Item> items) {
-		super(moreToken);
+	QueryResult(String nextToken, List<Item> items) {
+		super(nextToken);
 		this.items = items;
 	}
 

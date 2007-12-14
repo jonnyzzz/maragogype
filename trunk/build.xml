@@ -119,7 +119,6 @@
 			<param name="test.src.path" value="test/java/sdbShell.java"/>
 		</antcall>
 		<mkdir dir="${typica.jar.classes}"/>
-		<!--
 		<unzip dest="${typica.jar.classes}">
 			<fileset dir="${typica.lib}">
 				<include name="activation.jar"/>
@@ -127,18 +126,22 @@
 				<include name="jaxb-impl.jar"/>
 				<include name="jsr173_1.0_api.jar"/>
 				<include name="commons-logging-1.1.jar"/>
+				<include name="commons-codec-1.3.jar"/>
+				<include name="commons-httpclient-3.1.jar"/>
 			</fileset>
 		</unzip>
+		<!--
 			<fileset dir="${typica.jar.classes}" includes="**/*" />
 		-->
 		<jar destfile="${typica.sdbshell.jar.file}">
 			<fileset dir="${typica.classes}" includes="**/*" excludes="**/ec2/*, **/sqs/*" />
+			<fileset dir="${typica.jar.classes}" includes="**/*" />
 			<manifest>
 				<attribute name="Main-Class" value="sdbShell"/>
 				<!--
 				<attribute name="Class-Path" value="activation.jar jaxb-api.jar jaxb-impl.jar jsr173_1.0_api.jar commons-logging-1.1.jar commons-codec-1.3.jar commons-httpclient-3.1.jar"/>
-				-->
 				<attribute name="Class-Path" value="commons-logging-1.1.jar commons-codec-1.3.jar commons-httpclient-3.1.jar"/>
+				-->
 			</manifest>
 		</jar>
 	</target>

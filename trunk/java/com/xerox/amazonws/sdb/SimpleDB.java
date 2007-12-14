@@ -97,7 +97,7 @@ public class SimpleDB extends AWSQueryConnection {
     {
 		super(awsAccessKeyId, awsSecretAccessKey, isSecure, server, port);
 		ArrayList vals = new ArrayList();
-		vals.add("2007-02-09");
+		vals.add("2007-11-07");
 		super.headers.put("Version", vals);
     }
 
@@ -118,8 +118,8 @@ public class SimpleDB extends AWSQueryConnection {
 	 * @return A list of {@link Domain} instances.
 	 * @throws SDBException wraps checked exceptions
 	 */
-	public ListDomainsResult listDomains(String moreToken) throws SDBException {
-		return this.listDomains(moreToken, 0);
+	public ListDomainsResult listDomains(String nextToken) throws SDBException {
+		return this.listDomains(nextToken, 0);
 	}
 
 	/**
@@ -196,14 +196,14 @@ public class SimpleDB extends AWSQueryConnection {
 	/**
 	 * Gets a list of domains
 	 * 
-	 * @param moreToken token to use when retrieving more results
+	 * @param nextToken token to use when retrieving next results
 	 * @param maxResults the max number of results to return (0 means no max defined)
 	 * @throws SDBException wraps checked exceptions
 	 */
-	public ListDomainsResult listDomains(String moreToken, int maxResults) throws SDBException {
+	public ListDomainsResult listDomains(String nextToken, int maxResults) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
-		if (moreToken != null) {
-			params.put("MoreToken", moreToken);
+		if (nextToken != null) {
+			params.put("NextToken", nextToken);
 		}
 		if (maxResults > 0) {
 			params.put("MaxResults", ""+maxResults);
@@ -212,8 +212,8 @@ public class SimpleDB extends AWSQueryConnection {
 		try {
 			ListDomainsResponse response =
 						makeRequest(method, "ListDomains", params, ListDomainsResponse.class);
-			return new ListDomainsResult(response.getMoreToken(),
-							Domain.createList(response.getDomainNames().toArray(new String[] {}),
+			return new ListDomainsResult(response.getListDomainsResult().getNextToken(),
+							Domain.createList(response.getListDomainsResult().getDomainNames().toArray(new String[] {}),
 								getAwsAccessKeyId(), getSecretAccessKey(),
 								isSecure(), getServer()));
 		} catch (JAXBException ex) {
