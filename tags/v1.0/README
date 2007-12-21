@@ -1,0 +1,35 @@
+typica 1.0
+20-December-2007
+
+http://code.google.com/p/typica
+
+This is a simple API to access Amazon's SQS, EC2 and SimpleDB web services. It uses the QUERY interface and patterns the methods after those available from Amazon in their SOAP client for these services. This code is thread-safe and works very reliably to the best of my knowledge. I've been using it on a system where sending messages in SQS is critical and we manage pools of servers in EC2.
+
+Distribution files;
+README      - this file
+LICENSE.txt - full version of the Apache 2.0 license
+Log4J.xml   - a Log4J config file you can include in your classpath
+typica.jar  - the classes for this release
+apidocs     - JavaDoc for this release
+
+Test files
+In subversion, the test directory contains some java test files. Sample code is also documented on the wiki @ http://code.google.com/p/typica/wiki/TypicaSampleCode. These can be used as sample files and to test various features of the client code. There is a target "test.main". To invoke the sample code, you can use this target like this;
+ant test.main -Dclass=TestQueueService -Dargs=testQueue
+
+Base64 coder included. 
+I've included the encoder/decoder written by Christian d'Heureuse. The full class name is ch.inventec.Base64Coder. (that is the domain where I found the code).
+
+Change history for this version;
+------------------------------------------------------------------------
+r93 | dkavanagh | 2007-12-14 11:51:10 -0500 (Fri, 14 Dec 2007) | 2 lines
+
+updates for the SDB 2007-11-07 API.
+------------------------------------------------------------------------
+r92 | dkavanagh | 2007-12-13 23:33:21 -0500 (Thu, 13 Dec 2007) | 2 lines
+
+Suport for SimpleDB!
+------------------------------------------------------------------------
+r91 | dkavanagh | 2007-12-07 09:26:43 -0500 (Fri, 07 Dec 2007) | 2 lines
+
+Switched to commons-codec for base64 encoding/decoding
+------------------------------------------------------------------------
