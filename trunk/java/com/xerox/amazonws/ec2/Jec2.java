@@ -400,7 +400,7 @@ public class Jec2 extends AWSQueryConnection {
 	public ReservationDescription runInstances(String imageId, int minCount,
 			int maxCount, List<String> groupSet, String userData, String keyName, InstanceType type)
 				throws EC2Exception {
-		return runInstances(imageId, minCount, maxCount, groupSet, userData, keyName, true, InstanceType.DEFAULT);
+		return runInstances(imageId, minCount, maxCount, groupSet, userData, keyName, true, type);
 	}
 
 	/**
@@ -1016,7 +1016,7 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DescribeKeyPairsResponse response =
-					makeRequest(method, "DescribeKeysPair", params, DescribeKeyPairsResponse.class);
+					makeRequest(method, "DescribeKeyPairs", params, DescribeKeyPairsResponse.class);
 			List<KeyPairInfo> result = new ArrayList<KeyPairInfo>();
 			DescribeKeyPairsResponseInfoType set = response.getKeySet();
 			Iterator set_iter = set.getItems().iterator();
