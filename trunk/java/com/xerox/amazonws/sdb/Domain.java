@@ -125,7 +125,7 @@ public class Domain extends SimpleDB {
 			params.put("NextToken", nextToken);
 		}
 		if (maxResults > 0) {
-			params.put("MaxResults", ""+maxResults);
+			params.put("MaxNumberOfItems", ""+maxResults);
 		}
 		GetMethod method = new GetMethod();
 		try {
