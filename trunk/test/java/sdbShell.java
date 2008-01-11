@@ -40,7 +40,6 @@ public class sdbShell {
                 for (Item i : items) {
                     System.out.println(i.getIdentifier());
                 }
-                System.out.println("--- end of page ---");
                 nextToken = result.getNextToken();
             }
             catch (SDBException ex) {
@@ -98,6 +97,9 @@ public class sdbShell {
 			while (!done) {
 				System.out.print("sdbShell> ");
 				String line = rdr.readLine();
+				if (line == null) { // exit, if end of input
+					System.exit(0);
+				}
 				StringTokenizer st = new StringTokenizer(line);
 				if (st.countTokens() == 0) {
 					continue;
@@ -138,6 +140,18 @@ public class sdbShell {
 					dom = sds.getDomain(st.nextToken());
 				}
 				else if (cmd.equals("aa") || cmd.equals("addattr")) {
+					if (checkDomain(dom)) {
+						if (st.countTokens() != 3) {
+							System.out.println("Error: need item id, attribute name and value.");
+							continue;
+						}
+						Item item = dom.getItem(st.nextToken());
+						List<ItemAttribute> list = new ArrayList<ItemAttribute>();
+						list.add(new ItemAttribute(st.nextToken(), st.nextToken(), false));
+						item.putAttributes(list);
+					}
+				}
+				else if (cmd.equals("ra") || cmd.equals("replaceattr")) {
 					if (checkDomain(dom)) {
 						if (st.countTokens() != 3) {
 							System.out.println("Error: need item id, attribute name and value.");
@@ -209,12 +223,13 @@ public class sdbShell {
 	}
 
 	private static void showHelp() {
-		System.out.println("SDS Shell Commands:");
+		System.out.println("SimpleDB Shell Commands:");
 		System.out.println("adddomain(ad) <domain name> : add new domain");
 		System.out.println("deletedomain(dd) <domain name> : delete domain (not functional in SDS yet)");
 		System.out.println("domains(d) : list domains");
 		System.out.println("setdomain(sd) <domain name> : set current domain");
 		System.out.println("addattr(aa) <item id> <attr name> <attr value> : add attribute to item in current domain");
+		System.out.println("replaceattr(aa) <item id> <attr name> <attr value> : replace attribute to item in current domain");
 		System.out.println("deleteattr(da) <item id> <attr name> : delete attribute of item in current domain");
 		System.out.println("deleteitem(di) <item id> : delete item in current domain");
 		System.out.println("list(l) or <filter string> : lists items matching filter in current domain");
