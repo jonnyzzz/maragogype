@@ -206,7 +206,7 @@ public class SimpleDB extends AWSQueryConnection {
 			params.put("NextToken", nextToken);
 		}
 		if (maxResults > 0) {
-			params.put("MaxResults", ""+maxResults);
+			params.put("MaxNumberOfDomains", ""+maxResults);
 		}
 		GetMethod method = new GetMethod();
 		try {
