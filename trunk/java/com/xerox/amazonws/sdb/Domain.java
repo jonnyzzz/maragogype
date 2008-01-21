@@ -21,8 +21,13 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.xml.bind.JAXBException;
 
@@ -143,6 +148,103 @@ public class Domain extends SimpleDB {
 			throw new SDBException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Gets attributes of given items. This method threads off the get requests and
+	 * aggregates the responses.
+	 *
+	 * @param items the list of items to get attributes for
+     * @return the map of items with lists of attributes
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public Map<String, List<ItemAttribute>> getItemsAttributes(List<String> items) throws SDBException {
+		Map<String, List<ItemAttribute>> results = new Hashtable<String, List<ItemAttribute>>();
+		ThreadPoolExecutor pool =
+				new ThreadPoolExecutor(20, 30, 5, TimeUnit.SECONDS, new ArrayBlockingQueue(30));
+
+		for (String item : items) {
+			while (pool.getActiveCount() == pool.getMaximumPoolSize()) {
+				try { Thread.sleep(100); } catch (InterruptedException ex) { }
+			}
+			pool.execute(new AttrWorker(getItem(item), results, null));
+			Thread.yield();
+		}
+		pool.shutdown();
+		while (true) {
+			try {
+				pool.awaitTermination(999999, TimeUnit.SECONDS);
+				break;
+			} catch (InterruptedException ex) {}
+		}
+		return results;
+	}
+
+	/**
+	 * Gets attributes of given items. This method threads off the get requests and
+	 * aggregates the responses.
+	 *
+	 * @param items the list of items to get attributes for
+	 * @param listener class that will be notified when items are ready
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public void getItemsAttributes(List<String> items, ItemListener listener) throws SDBException {
+		ThreadPoolExecutor pool =
+				new ThreadPoolExecutor(20, 30, 5, TimeUnit.SECONDS, new ArrayBlockingQueue(30));
+
+		for (String item : items) {
+			while (pool.getActiveCount() == pool.getMaximumPoolSize()) {
+				try { Thread.sleep(100); } catch (InterruptedException ex) { }
+			}
+			pool.execute(new AttrWorker(getItem(item), null, listener));
+			Thread.yield();
+		}
+		pool.shutdown();
+		while (true) {
+			try {
+				pool.awaitTermination(999999, TimeUnit.SECONDS);
+				break;
+			} catch (InterruptedException ex) {}
+		}
+	}
+
+	/**
+	 * Gets attributes of items specified in the query string. This method threads off the
+	 * get requests and aggregates the responses.
+	 *
+	 * @param queryString the filter statement
+	 * @param listener class that will be notified when items are ready
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public void listItemsAttributes(String queryString, ItemListener listener) throws SDBException {
+		ThreadPoolExecutor pool =
+				new ThreadPoolExecutor(20, 30, 5, TimeUnit.SECONDS, new ArrayBlockingQueue(30));
+        String nextToken = "";
+        do {
+            try {
+                QueryResult result = listItems(queryString, nextToken, 250);
+				List<Item> items = result.getItemList();
+                for (Item i : items) {
+					while (pool.getActiveCount() == pool.getMaximumPoolSize()) {
+						try { Thread.sleep(100); } catch (InterruptedException ex) { }
+					}
+					pool.execute(new AttrWorker(i, null, listener));
+					Thread.yield();
+                }
+                nextToken = result.getNextToken();
+            }
+            catch (SDBException ex) {
+                System.out.println("Query '" + queryString + "' Failure: ");
+                ex.printStackTrace();
+            }
+        } while (nextToken != null && nextToken.trim().length() > 0);
+		pool.shutdown();
+		while (true) {
+			try {
+				pool.awaitTermination(999999, TimeUnit.SECONDS);
+				break;
+			} catch (InterruptedException ex) {}
 		}
 	}
 
