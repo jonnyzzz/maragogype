@@ -12,6 +12,7 @@ import java.util.StringTokenizer;
 import com.xerox.amazonws.sdb.Domain;
 import com.xerox.amazonws.sdb.Item;
 import com.xerox.amazonws.sdb.ItemAttribute;
+import com.xerox.amazonws.sdb.ItemListener;
 import com.xerox.amazonws.sdb.ListDomainsResult;
 import com.xerox.amazonws.sdb.QueryResult;
 import com.xerox.amazonws.sdb.SDBException;
@@ -48,6 +49,24 @@ public class sdbShell {
             }
         } while (nextToken != null && nextToken.trim().length() > 0);
         System.out.println("Done.");
+	}
+
+	private static void getItems(Domain domain, String queryString, int maxResults, ItemIdListener listener) {
+        String nextToken = "";
+        do {
+            try {
+                QueryResult result = domain.listItems(queryString, nextToken, maxResults);
+				List<Item> items = result.getItemList();
+                for (Item i : items) {
+                    listener.itemAvailable(i.getIdentifier());
+                }
+                nextToken = result.getNextToken();
+            }
+            catch (SDBException ex) {
+                System.out.println("Query '" + queryString + "' Failure: ");
+                ex.printStackTrace();
+            }
+        } while (nextToken != null && nextToken.trim().length() > 0);
 	}
 
 	/**
@@ -198,6 +217,18 @@ public class sdbShell {
 						}
 					}
 				}
+				else if (cmd.equals("gi") || cmd.equals("getitems")) {
+					if (checkDomain(dom)) {
+						dom.listItemsAttributes("", new ItemListener() {
+								public synchronized void itemAvailable(String id, List<ItemAttribute> attrs) {
+									System.out.println("Item : "+id);
+									for (ItemAttribute attr : attrs) {
+										System.out.println("  "+attr.getName()+" = "+attr.getValue());
+									}
+								}
+							});
+					}
+				}
 				else if (cmd.equals("l") || cmd.equals("list")) {
 					if (checkDomain(dom)) executeQuery(dom, null);
 				}
@@ -234,7 +265,12 @@ public class sdbShell {
 		System.out.println("deleteitem(di) <item id> : delete item in current domain");
 		System.out.println("list(l) or <filter string> : lists items matching filter in current domain");
 		System.out.println("item(i) <item id> : shows item attributes");
+		System.out.println("getitems(gi) : shows attributes for multiple items");
 		System.out.println("help(h,?) : show help");
 		System.out.println("quit(q) : exit the shell");
+	}
+
+	interface ItemIdListener {
+		public void itemAvailable(String item);
 	}
 }
