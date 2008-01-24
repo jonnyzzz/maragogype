@@ -163,6 +163,7 @@ public class Domain extends SimpleDB {
 		Map<String, List<ItemAttribute>> results = new Hashtable<String, List<ItemAttribute>>();
 		ThreadPoolExecutor pool =
 				new ThreadPoolExecutor(20, 30, 5, TimeUnit.SECONDS, new ArrayBlockingQueue(30));
+		pool.setRejectedExecutionHandler(new RejectionHandler());
 
 		for (String item : items) {
 			while (pool.getActiveCount() == pool.getMaximumPoolSize()) {
@@ -192,6 +193,7 @@ public class Domain extends SimpleDB {
 	public void getItemsAttributes(List<String> items, ItemListener listener) throws SDBException {
 		ThreadPoolExecutor pool =
 				new ThreadPoolExecutor(20, 30, 5, TimeUnit.SECONDS, new ArrayBlockingQueue(30));
+		pool.setRejectedExecutionHandler(new RejectionHandler());
 
 		for (String item : items) {
 			while (pool.getActiveCount() == pool.getMaximumPoolSize()) {
@@ -220,6 +222,7 @@ public class Domain extends SimpleDB {
 	public void listItemsAttributes(String queryString, ItemListener listener) throws SDBException {
 		ThreadPoolExecutor pool =
 				new ThreadPoolExecutor(20, 30, 5, TimeUnit.SECONDS, new ArrayBlockingQueue(30));
+		pool.setRejectedExecutionHandler(new RejectionHandler());
         String nextToken = "";
         do {
             try {
@@ -294,5 +297,13 @@ public class Domain extends SimpleDB {
 			ret.add(new Domain(domainNames[i], awsAccessKeyId, awsSecretAccessKey, isSecure, server));
 		}
 		return ret;
+	}
+
+
+	protected class RejectionHandler implements RejectedExecutionHandler {
+		public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+			// ok, on the rare occasion, just run it here!
+			r.run();
+		}
 	}
 }
