@@ -51,6 +51,7 @@ public class Domain extends SimpleDB {
     private static Log logger = LogFactory.getLog(Domain.class);
 
 	private String domainName;
+	private int maxThreads = 30;
 
     protected Domain(String domainName, String awsAccessKeyId,
 							String awsSecretAccessKey, boolean isSecure,
@@ -66,6 +67,24 @@ public class Domain extends SimpleDB {
 	 */
 	public String getName() {
 		return domainName;
+	}
+
+	/**
+	 * Gets the max number of threads to use for the threaded operations.
+	 *
+     * @return max number of threads being used
+	 */
+	public int getMaxThreads() {
+		return maxThreads;
+	}
+
+	/**
+	 * Sets the max number of threads to use for the threaded operations.
+	 *
+	 * @param threads the new max to set
+	 */
+	public void setMaxThreads(int threads) {
+		maxThreads = threads;
 	}
 
 	/**
@@ -162,7 +181,7 @@ public class Domain extends SimpleDB {
 	public Map<String, List<ItemAttribute>> getItemsAttributes(List<String> items) throws SDBException {
 		Map<String, List<ItemAttribute>> results = new Hashtable<String, List<ItemAttribute>>();
 		ThreadPoolExecutor pool =
-				new ThreadPoolExecutor(20, 30, 5, TimeUnit.SECONDS, new ArrayBlockingQueue(30));
+				new ThreadPoolExecutor(maxThreads, maxThreads, 5, TimeUnit.SECONDS, new ArrayBlockingQueue(maxThreads));
 		pool.setRejectedExecutionHandler(new RejectionHandler());
 
 		for (String item : items) {
@@ -192,7 +211,7 @@ public class Domain extends SimpleDB {
 	 */
 	public void getItemsAttributes(List<String> items, ItemListener listener) throws SDBException {
 		ThreadPoolExecutor pool =
-				new ThreadPoolExecutor(20, 30, 5, TimeUnit.SECONDS, new ArrayBlockingQueue(30));
+				new ThreadPoolExecutor(maxThreads, maxThreads, 5, TimeUnit.SECONDS, new ArrayBlockingQueue(maxThreads));
 		pool.setRejectedExecutionHandler(new RejectionHandler());
 
 		for (String item : items) {
@@ -221,7 +240,7 @@ public class Domain extends SimpleDB {
 	 */
 	public void listItemsAttributes(String queryString, ItemListener listener) throws SDBException {
 		ThreadPoolExecutor pool =
-				new ThreadPoolExecutor(20, 30, 5, TimeUnit.SECONDS, new ArrayBlockingQueue(30));
+				new ThreadPoolExecutor(maxThreads, maxThreads, 5, TimeUnit.SECONDS, new ArrayBlockingQueue(maxThreads));
 		pool.setRejectedExecutionHandler(new RejectionHandler());
         String nextToken = "";
         do {
