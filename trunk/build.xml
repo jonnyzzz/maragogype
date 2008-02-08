@@ -42,13 +42,18 @@
         <mkdir dir="${typica.generated}/com/xerox/amazonws/typica/jaxb"/>
 		<echo>compiling the schema files in xsd to java files in ${typica.generated}/com/xerox/amazonws/typica/jaxb</echo>
 		<xjc destdir="${typica.generated}" extension="true" removeOldOutput="yes" package="com.xerox.amazonws.typica.jaxb">
-			<schema dir="xsd" includes="**/*.xsd" excludes="**/sdb.xsd"/>
+			<schema dir="xsd" includes="**/*.xsd" excludes="**/sdb.xsd, **/QueueService2.xsd"/>
 			<produces dir="${typica.generated}/com/xerox/amazonws/typica/jaxb" includes="**/"/>
 		</xjc>
         <mkdir dir="${typica.generated}/com/xerox/amazonws/typica/sdb/jaxb"/>
 		<xjc destdir="${typica.generated}" extension="true" removeOldOutput="yes" package="com.xerox.amazonws.typica.sdb.jaxb">
 			<schema dir="xsd" includes="**/sdb.xsd"/>
 			<produces dir="${typica.generated}/com/xerox/amazonws/typica/sdb/jaxb" includes="**/"/>
+		</xjc>
+        <mkdir dir="${typica.generated}/com/xerox/amazonws/typica/sqs2/jaxb"/>
+		<xjc destdir="${typica.generated}" extension="true" removeOldOutput="yes" package="com.xerox.amazonws.typica.sqs2.jaxb">
+			<schema dir="xsd" includes="**/QueueService2.xsd"/>
+			<produces dir="${typica.generated}/com/xerox/amazonws/typica/sqs2/jaxb" includes="**/"/>
 		</xjc>
 	</target>
 
@@ -83,14 +88,14 @@
 	</target>
 
 	<target name="javadoc" depends="init">
-		<javadoc packagenames="com.xerox.*"
+		<javadoc packagenames="com.xerox.*, com.amazonaws.*"
 				sourcepath="${typica.src}"
 				defaultexcludes="yes"
 				destdir="${typica.javadoc}"
 				author="true"
 				version="true"
 				use="true"
-				windowtitle="Typica - Amazon EC2/SQS Client">
+				windowtitle="Typica - Amazon EC2/SQS/SimpleDB Client">
 			<classpath refid="typica.compile.classpath"/>
 			<link href="http://java.sun.com/j2se/1.5.0/docs/api"/>
 		</javadoc>
