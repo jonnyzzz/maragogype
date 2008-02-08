@@ -73,6 +73,24 @@ public class DataUtils {
     }
 
     /**
+     * Encodes positive long value into a string by zero-padding number up to the specified number of digits.
+     * 
+     * @param	number positive long to be encoded
+     * @param	maxNumDigits maximum number of digits in the largest value in the data set
+     * @return string representation of the zero-padded long
+     */
+    public static String encodeZeroPadding(long number, int maxNumDigits) {
+        String longString = Long.toString(number);
+        int numZeroes = maxNumDigits - longString.length();
+        StringBuffer strBuffer = new StringBuffer(numZeroes + longString.length());
+        for (int i = 0; i < numZeroes; i++) {
+            strBuffer.insert(i, '0');
+        }
+        strBuffer.append(longString);
+        return strBuffer.toString();
+    }
+
+    /**
      * Encodes positive float value into a string by zero-padding number up to the specified number of digits
      * 
      * @param	number positive float value to be encoded
@@ -93,6 +111,26 @@ public class DataUtils {
     }
 
     /**
+     * Encodes positive double value into a string by zero-padding number up to the specified number of digits
+     * 
+     * @param	number positive double value to be encoded
+     * @param	maxNumDigits	maximum number of digits preceding the decimal point in the largest value in the data set
+     * @return string representation of the zero-padded double value
+     */
+    public static String encodeZeroPadding(double number, int maxNumDigits) {
+        String doubleString = Double.toString(number);
+        int numBeforeDecimal = doubleString.indexOf('.');
+        numBeforeDecimal = (numBeforeDecimal >= 0 ? numBeforeDecimal : doubleString.length());
+        int numZeroes = maxNumDigits - numBeforeDecimal;
+        StringBuffer strBuffer = new StringBuffer(numZeroes + doubleString.length());
+        for (int i = 0; i < numZeroes; i++) {
+            strBuffer.insert(i, '0');
+        }
+        strBuffer.append(doubleString);
+        return strBuffer.toString();
+    }
+
+    /**
      * Decodes zero-padded positive integer value from the string representation
      * 
      * @param value zero-padded string representation of the integer
@@ -100,6 +138,16 @@ public class DataUtils {
      */
     public static int decodeZeroPaddingInt(String value) {
         return Integer.parseInt(value, 10);
+    }
+
+    /**
+     * Decodes zero-padded positive long value from the string representation
+     * 
+     * @param value zero-padded string representation of the long
+     * @return original long value
+     */
+    public static long decodeZeroPaddingLong(String value) {
+        return Long.parseLong(value, 10);
     }
 
     /**
@@ -113,6 +161,16 @@ public class DataUtils {
     }
 
     /**
+     * Decodes zero-padded positive double value from the string representation
+     * 
+     * @param value zero-padded string representation of the double value
+     * @return original double value
+     */
+    public static double decodeZeroPaddingDouble(String value) {
+        return Double.valueOf(value).doubleValue();
+    }
+
+    /**
      * Encodes real integer value into a string by offsetting and zero-padding 
      * number up to the specified number of digits.  Use this encoding method if the data
      * range set includes both positive and negative values.
@@ -123,6 +181,28 @@ public class DataUtils {
      * @return string representation of the integer
      */
     public static String encodeRealNumberRange(int number, int maxNumDigits, int offsetValue) {
+        long offsetNumber = number + offsetValue;
+        String longString = Long.toString(offsetNumber);
+        int numZeroes = maxNumDigits - longString.length();
+        StringBuffer strBuffer = new StringBuffer(numZeroes + longString.length());
+        for (int i = 0; i < numZeroes; i++) {
+            strBuffer.insert(i, '0');
+        }
+        strBuffer.append(longString);
+        return strBuffer.toString();
+    }
+
+    /**
+     * Encodes real long value into a string by offsetting and zero-padding 
+     * number up to the specified number of digits.  Use this encoding method if the data
+     * range set includes both positive and negative values.
+     * 
+     * @param number long to be encoded
+     * @param maxNumDigits maximum number of digits in the largest absolute value in the data set
+     * @param offsetValue offset value, has to be greater than absolute value of any negative number in the data set.
+     * @return string representation of the long
+     */
+    public static String encodeRealNumberRange(long number, int maxNumDigits, int offsetValue) {
         long offsetNumber = number + offsetValue;
         String longString = Long.toString(offsetNumber);
         int numZeroes = maxNumDigits - longString.length();
@@ -162,6 +242,33 @@ public class DataUtils {
     }
 
     /**
+     * Encodes real double value into a string by offsetting and zero-padding 
+     * number up to the specified number of digits.  Use this encoding method if the data
+     * range set includes both positive and negative values.
+     * 
+     * @param number double to be encoded
+     * @param maxDigitsLeft maximum number of digits left of the decimal point in the largest absolute value in the data set
+     * @param maxDigitsRight maximum number of digits right of the decimal point in the largest absolute value in the data set, i.e. precision
+     * @param offsetValue offset value, has to be greater than absolute value of any negative number in the data set.
+     * @return string representation of the integer
+     */
+    public static String encodeRealNumberRange(double number, int maxDigitsLeft, int maxDigitsRight, long offsetValue) {
+        int shiftMultiplier = (int) Math.pow(10, maxDigitsRight);
+        long shiftedNumber = (long) Math.round(number * shiftMultiplier);
+        long shiftedOffset = offsetValue * shiftMultiplier;
+        long offsetNumber = shiftedNumber + shiftedOffset;
+        String longString = Long.toString(offsetNumber);
+        int numBeforeDecimal = longString.length();
+        int numZeroes = maxDigitsLeft + maxDigitsRight - numBeforeDecimal;
+        StringBuffer strBuffer = new StringBuffer(numZeroes + longString.length());
+        for (int i = 0; i < numZeroes; i++) {
+            strBuffer.insert(i, '0');
+        }
+        strBuffer.append(longString);
+        return strBuffer.toString();
+    }
+
+    /**
      * Decodes integer value from the string representation that was created by 
      * using encodeRealNumberRange(..) function.
      * 
@@ -172,6 +279,19 @@ public class DataUtils {
     public static int decodeRealNumberRangeInt(String value, int offsetValue) {
         long offsetNumber = Long.parseLong(value, 10);
         return (int) (offsetNumber - offsetValue);
+    }
+
+    /**
+     * Decodes long value from the string representation that was created by 
+     * using encodeRealNumberRange(..) function.
+     * 
+     * @param value string representation of the long value
+     * @param offsetValue offset value that was used in the original encoding
+     * @return original long value
+     */
+    public static long decodeRealNumberRangeLong(String value, long offsetValue) {
+        long offsetNumber = Long.parseLong(value, 10);
+        return (long) (offsetNumber - offsetValue);
     }
 
     /**
@@ -188,6 +308,22 @@ public class DataUtils {
         int shiftMultiplier = (int) Math.pow(10, maxDigitsRight);
         double tempVal = (double) (offsetNumber - offsetValue * shiftMultiplier);
         return (float) (tempVal / (double) (shiftMultiplier));
+    }
+
+    /**
+     * Decodes double value from the string representation that was created by using encodeRealNumberRange(..) function.
+     * 
+     * @param value string representation of the integer value
+     * @param maxDigitsRight maximum number of digits left of the decimal point in 
+     * the largest absolute value in the data set (must be the same as the one used for encoding).
+     * @param offsetValue offset value that was used in the original encoding
+     * @return original double value
+     */
+    public static double decodeRealNumberRangeDouble(String value, int maxDigitsRight, long offsetValue) {
+        long offsetNumber = Long.parseLong(value, 10);
+        int shiftMultiplier = (int) Math.pow(10, maxDigitsRight);
+        double tempVal = (double) (offsetNumber - offsetValue * shiftMultiplier);
+        return (double) (tempVal / (double) (shiftMultiplier));
     }
 
     /**
