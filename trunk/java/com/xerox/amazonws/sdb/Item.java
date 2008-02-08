@@ -113,6 +113,7 @@ public class Item extends Domain {
 	/**
 	 * Creates attributes for this item. Each item can have "replace" specified which
 	 * indicates to replace the Attribute/Value or ad a new Attribute/Value.
+	 * NOTE: if an attribute value is null, that attribute will be ignored.
 	 *
 	 * @param attributes list of attributes to add
 	 * @throws SDBException wraps checked exceptions
@@ -123,12 +124,15 @@ public class Item extends Domain {
 		params.put("ItemName", identifier);
 		int i=1;
 		for (ItemAttribute attr : attributes) {
-			params.put("Attribute."+i+".Name", attr.getName());
-			params.put("Attribute."+i+".Value", attr.getValue());
-			if (attr.isReplace()) {
-				params.put("Attribute."+i+".Replace", "true");
+			String val = attr.getValue();
+			if (val != null) {
+				params.put("Attribute."+i+".Name", attr.getName());
+				params.put("Attribute."+i+".Value", val);
+				if (attr.isReplace()) {
+					params.put("Attribute."+i+".Replace", "true");
+				}
+				i++;
 			}
-			i++;
 		}
 		GetMethod method = new GetMethod();
 		try {
