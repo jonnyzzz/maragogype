@@ -40,6 +40,7 @@ import java.util.TreeMap;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethodBase;
@@ -57,6 +58,7 @@ import com.xerox.amazonws.typica.jaxb.Response;
 public class AWSQueryConnection extends AWSConnection {
 	// this is the number of automatic retries
 	private int maxRetries = 5;
+	private String userAgent = "typica";
 
     /**
 	 * Initializes the queue service with your AWS login information.
@@ -146,6 +148,7 @@ public class AWSQueryConnection extends AWSConnection {
 		// finally, build request object
         URL url = makeURL(resource.toString());
 		method.setURI(new URI(url.toString(), true));
+		method.setRequestHeader(new Header("User-Agent", userAgent));
 		HttpClient hc = new HttpClient();	// maybe, cache this?
 		Object response = null;
 		boolean done = false;
