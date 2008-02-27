@@ -92,15 +92,16 @@
         <jar destfile="${typica.jar.file}" basedir="${typica.classes}" excludes="**/*.xml"/>
 	</target>
 
-	<target name="javadoc" depends="init">
+	<target name="javadoc" depends="schema">
 		<javadoc packagenames="com.xerox.*"
-				sourcepath="${typica.src}"
 				defaultexcludes="yes"
 				destdir="${typica.javadoc}"
 				author="true"
 				version="true"
 				use="true"
 				windowtitle="Typica - Amazon EC2/SQS/SimpleDB Client">
+			<fileset dir="${typica.src}"/>
+			<fileset dir="${typica.generated}"/>
 			<classpath refid="typica.compile.classpath"/>
 			<link href="http://java.sun.com/j2se/1.5.0/docs/api"/>
 		</javadoc>

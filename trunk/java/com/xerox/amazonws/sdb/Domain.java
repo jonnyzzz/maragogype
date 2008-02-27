@@ -95,8 +95,10 @@ public class Domain extends SimpleDB {
 	 * @throws SDBException wraps checked exceptions
 	 */
 	public Item getItem(String identifier) throws SDBException {
-		return new Item(identifier, domainName, getAwsAccessKeyId(), getSecretAccessKey(),
+		Item ret = new Item(identifier, domainName, getAwsAccessKeyId(), getSecretAccessKey(),
 										isSecure(), getServer());
+		ret.setSignatureVersion(getSignatureVersion());
+		return ret;
 	}
 
 	/**
@@ -310,10 +312,12 @@ public class Domain extends SimpleDB {
 		}
 	}
 
-	static List<Domain> createList(String [] domainNames, String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure, String server) throws SDBException {
+	static List<Domain> createList(String [] domainNames, String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure, String server, int signatureVersion) throws SDBException {
 		ArrayList<Domain> ret = new ArrayList<Domain>();
 		for (int i=0; i<domainNames.length; i++) {
-			ret.add(new Domain(domainNames[i], awsAccessKeyId, awsSecretAccessKey, isSecure, server));
+			Domain dom =new Domain(domainNames[i], awsAccessKeyId, awsSecretAccessKey, isSecure, server);
+			dom.setSignatureVersion(signatureVersion);
+			ret.add(dom);
 		}
 		return ret;
 	}

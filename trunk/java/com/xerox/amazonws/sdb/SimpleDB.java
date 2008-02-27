@@ -102,6 +102,25 @@ public class SimpleDB extends AWSQueryConnection {
     }
 
 	/**
+	 * This method returns the signature version
+	 *
+	 * @return the version
+	 */
+	public int getSignatureVersion() {
+		return super.getSignatureVersion();
+	}
+
+	/**
+	 * This method sets the signature version used to sign requests (0 or 1).
+	 *
+	 * @param version signature version
+	 */
+	public void setSignatureVersion(int version) {
+		super.setSignatureVersion(version);
+	}
+
+
+	/**
 	 * Terminates a selection of running instances.
 	 * 
 	 * @return A list of {@link Domain} instances.
@@ -135,8 +154,10 @@ public class SimpleDB extends AWSQueryConnection {
 		try {
 			CreateDomainResponse response =
 						makeRequest(method, "CreateDomain", params, CreateDomainResponse.class);
-			return new Domain(name, getAwsAccessKeyId(), getSecretAccessKey(),
+			Domain ret = new Domain(name, getAwsAccessKeyId(), getSecretAccessKey(),
 									isSecure(), getServer());
+			ret.setSignatureVersion(getSignatureVersion());
+			return ret;
 		} catch (JAXBException ex) {
 			throw new SDBException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
@@ -189,8 +210,10 @@ public class SimpleDB extends AWSQueryConnection {
 	 * @throws SDBException wraps checked exceptions
 	 */
 	public Domain getDomain(String domainName) throws SDBException {
-		return new Domain(domainName, getAwsAccessKeyId(), getSecretAccessKey(),
+		Domain ret = new Domain(domainName, getAwsAccessKeyId(), getSecretAccessKey(),
 								isSecure(), getServer());
+		ret.setSignatureVersion(getSignatureVersion());
+		return ret;
 	}
 
 	/**
@@ -215,7 +238,7 @@ public class SimpleDB extends AWSQueryConnection {
 			return new ListDomainsResult(response.getListDomainsResult().getNextToken(),
 							Domain.createList(response.getListDomainsResult().getDomainNames().toArray(new String[] {}),
 								getAwsAccessKeyId(), getSecretAccessKey(),
-								isSecure(), getServer()));
+								isSecure(), getServer(), getSignatureVersion()));
 		} catch (JAXBException ex) {
 			throw new SDBException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {

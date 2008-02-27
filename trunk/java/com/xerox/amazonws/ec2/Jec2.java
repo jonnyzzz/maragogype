@@ -109,8 +109,8 @@ public class Jec2 extends AWSQueryConnection {
      * @param awsAccessId The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
 	 */
-    public Jec2(String awsAccessId, String awsSecretAccessKey) {
-        this(awsAccessId, awsSecretAccessKey, true);
+    public Jec2(String awsAccessId, String awsSecretKey) {
+        this(awsAccessId, awsSecretKey, true);
     }
 
 	/**
@@ -120,8 +120,8 @@ public class Jec2 extends AWSQueryConnection {
      * @param awsSecretKey The secret string used to generate signatures for authentication.
      * @param isSecure True if the data should be encrypted on the wire on the way to or from EC2.
 	 */
-    public Jec2(String awsAccessId, String awsSecretAccessKey, boolean isSecure) {
-        this(awsAccessId, awsSecretAccessKey, isSecure, "ec2.amazonaws.com");
+    public Jec2(String awsAccessId, String awsSecretKey, boolean isSecure) {
+        this(awsAccessId, awsSecretKey, isSecure, "ec2.amazonaws.com");
     }
 
 	/**
@@ -132,10 +132,10 @@ public class Jec2 extends AWSQueryConnection {
      * @param isSecure True if the data should be encrypted on the wire on the way to or from EC2.
      * @param server Which host to connect to.  Usually, this will be s3.amazonaws.com
 	 */
-    public Jec2(String awsAccessId, String awsSecretAccessKey, boolean isSecure,
+    public Jec2(String awsAccessId, String awsSecretKey, boolean isSecure,
                              String server)
     {
-        this(awsAccessId, awsSecretAccessKey, isSecure, server,
+        this(awsAccessId, awsSecretKey, isSecure, server,
              isSecure ? 443 : 80);
     }
 
@@ -148,10 +148,10 @@ public class Jec2 extends AWSQueryConnection {
      * @param server Which host to connect to.  Usually, this will be s3.amazonaws.com
      * @param port Which port to use.
      */
-    public Jec2(String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure,
+    public Jec2(String awsAccessId, String awsSecretKey, boolean isSecure,
                              String server, int port)
     {
-		super(awsAccessKeyId, awsSecretAccessKey, isSecure, server, port);
+		super(awsAccessId, awsSecretKey, isSecure, server, port);
 		ArrayList vals = new ArrayList();
 		vals.add("2007-08-29");
 		super.headers.put("Version", vals);
@@ -692,7 +692,6 @@ public class Jec2 extends AWSQueryConnection {
 	 * 
 	 * @param name The name of the security group. 
 	 * @param desc The description of the security group.
-	 * @return <code>true</code> if the group was created, otherwise <code>false</code>
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public void createSecurityGroup(String name, String desc) throws EC2Exception {
@@ -721,7 +720,6 @@ public class Jec2 extends AWSQueryConnection {
 	 * Deletes a security group. 
 	 *
 	 * @param name The name of the security group. 
-	 * @return <code>true</code> if the group was deleted, otherwise <code>false</code>
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public void deleteSecurityGroup(String name) throws EC2Exception {
@@ -859,7 +857,6 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param fromPort bottom of port range to authorize
 	 * @param toPort top of port range to authorize
 	 * @param cidrIp CIDR IP range to authorize (i.e. 0.0.0.0/0)
-	 * @return A group description ({@link GroupDescription} containing the modified rules.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public void authorizeSecurityGroupIngress(String groupName, String ipProtocol,
@@ -895,7 +892,6 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param groupName name of group to modify
 	 * @param secGroupName name of security group to revoke access from
 	 * @param secGroupOwnerId owner of security group to revoke access from
-	 * @return A group description ({@link GroupDescription} containing the modified rules.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public void revokeSecurityGroupIngress(String groupName, String secGroupName,
@@ -930,7 +926,6 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param fromPort bottom of port range to revoke
 	 * @param toPort top of port range to revoke
 	 * @param cidrIp CIDR IP range to revoke (i.e. 0.0.0.0/0)
-	 * @return A group description ({@link GroupDescription} containing the modified rules.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public void revokeSecurityGroupIngress(String groupName, String ipProtocol,
