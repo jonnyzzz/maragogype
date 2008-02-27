@@ -54,8 +54,8 @@ public class QueueService extends AWSQueryConnection {
      * @param awsAccessId The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
 	 */
-    public QueueService(String awsAccessId, String awsSecretAccessKey) {
-        this(awsAccessId, awsSecretAccessKey, true);
+    public QueueService(String awsAccessId, String awsSecretKey) {
+        this(awsAccessId, awsSecretKey, true);
     }
 
 	/**
@@ -65,8 +65,8 @@ public class QueueService extends AWSQueryConnection {
      * @param awsSecretKey The secret string used to generate signatures for authentication.
      * @param isSecure True if the data should be encrypted on the wire on the way to or from SQS.
 	 */
-    public QueueService(String awsAccessId, String awsSecretAccessKey, boolean isSecure) {
-        this(awsAccessId, awsSecretAccessKey, isSecure, "queue.amazonaws.com");
+    public QueueService(String awsAccessId, String awsSecretKey, boolean isSecure) {
+        this(awsAccessId, awsSecretKey, isSecure, "queue.amazonaws.com");
     }
 
 	/**
@@ -77,10 +77,10 @@ public class QueueService extends AWSQueryConnection {
      * @param isSecure True if the data should be encrypted on the wire on the way to or from SQS.
      * @param server Which host to connect to.  Usually, this will be s3.amazonaws.com
 	 */
-    public QueueService(String awsAccessId, String awsSecretAccessKey, boolean isSecure,
+    public QueueService(String awsAccessId, String awsSecretKey, boolean isSecure,
                              String server)
     {
-        this(awsAccessId, awsSecretAccessKey, isSecure, server,
+        this(awsAccessId, awsSecretKey, isSecure, server,
              isSecure ? 443 : 80);
     }
 
@@ -93,10 +93,10 @@ public class QueueService extends AWSQueryConnection {
      * @param server Which host to connect to.  Usually, this will be s3.amazonaws.com
      * @param port Which port to use.
      */
-    public QueueService(String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure,
+    public QueueService(String awsAccessId, String awsSecretKey, boolean isSecure,
                              String server, int port)
     {
-		super(awsAccessKeyId, awsSecretAccessKey, isSecure, server, port);
+		super(awsAccessId, awsSecretKey, isSecure, server, port);
 		ArrayList vals = new ArrayList();
 		vals.add("2008-01-01");
 		super.headers.put("Version", vals);

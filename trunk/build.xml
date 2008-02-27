@@ -84,11 +84,16 @@
     </target>
 
 	<target name="jar" depends="compile">
+        <copy file="${typica.conf}/version.properties" toDir="${typica.classes}" overwrite="true">
+			<filterset>
+				<filter token="VERSION" value="${rel.version}"/>
+			</filterset>
+        </copy>
         <jar destfile="${typica.jar.file}" basedir="${typica.classes}" excludes="**/*.xml"/>
 	</target>
 
 	<target name="javadoc" depends="init">
-		<javadoc packagenames="com.xerox.*, com.amazonaws.*"
+		<javadoc packagenames="com.xerox.*"
 				sourcepath="${typica.src}"
 				defaultexcludes="yes"
 				destdir="${typica.javadoc}"
@@ -105,8 +110,11 @@
 		<delete dir="${typica.build}" />
 	</target>
 
-	<target name="dist" depends="clean, jar, javadoc">
+	<target name="dist" depends="clean, javadoc">
 		<input message="Enter the version # : " addproperty="rel.version"/>
+		<antcall target="jar">
+			<param name="rel.version" value="${rel.version}"/>
+		</antcall>
 		<mkdir dir="${typica.dist}"/>
 		<zip destfile="${typica.dist}/typica-${rel.version}.zip">
 			<fileset file="${typica.jar.file}"/>

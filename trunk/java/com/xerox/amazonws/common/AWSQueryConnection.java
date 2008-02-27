@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TimeZone;
 import java.util.TreeMap;
@@ -58,7 +59,7 @@ import com.xerox.amazonws.typica.jaxb.Response;
 public class AWSQueryConnection extends AWSConnection {
 	// this is the number of automatic retries
 	private int maxRetries = 5;
-	private String userAgent = "typica";
+	private String userAgent = "typica/";
 
     /**
 	 * Initializes the queue service with your AWS login information.
@@ -72,6 +73,14 @@ public class AWSQueryConnection extends AWSConnection {
     public AWSQueryConnection(String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure,
                              String server, int port) {
 		super(awsAccessKeyId, awsSecretAccessKey, isSecure, server, port);
+		String version = "?";
+		try {
+			Properties props = new Properties();
+			props.load(this.getClass().getClassLoader().getResourceAsStream("version.properties"));
+			version = props.getProperty("version");
+		} catch (Exception ex) { }
+		userAgent = userAgent + version + " ("+ System.getProperty("os.arch") + "; " + System.getProperty("os.name") + ")";
+		System.err.println("user agent : "+userAgent);
     }
 
 	/**
