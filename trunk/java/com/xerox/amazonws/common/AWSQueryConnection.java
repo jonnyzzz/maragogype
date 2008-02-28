@@ -17,6 +17,7 @@
 
 package com.xerox.amazonws.common;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -48,6 +49,8 @@ import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.URI;
 
 import com.xerox.amazonws.typica.jaxb.Response;
+import com.xerox.amazonws.typica.sqs2.jaxb.Error;
+import com.xerox.amazonws.typica.sqs2.jaxb.ErrorResponse;
 
 /**
  * This class provides an interface with the Amazon SQS service. It provides high level
@@ -209,23 +212,34 @@ public class AWSQueryConnection extends AWSConnection {
 			}
 			else if (responseCode < 500) {
 				// 400's : parse client error message
-				InputStream iStr = method.getResponseBodyAsStream();
-				Response resp = JAXBuddy.deserializeXMLStream(Response.class, iStr);
-				throw new HttpException("Client error : "+resp.getErrors().getError().getMessage());
+				String body = method.getResponseBodyAsString();
+				throw new HttpException("Client error : "+getErrorDetails(body));
 			}
 			else if (responseCode < 600) {
 				// 500's : retry...
 				retries++;
 				if (retries > maxRetries) {
-					InputStream iStr = method.getResponseBodyAsStream();
-					Response resp = JAXBuddy.deserializeXMLStream(Response.class, iStr);
+					String body = method.getResponseBodyAsString();
 					throw new HttpException("Number of retries exceeded : "+action+
-											", "+resp.getErrors().getError().getMessage());
+											", "+getErrorDetails(body));
 				}
 				try { Thread.sleep(retries*1000); } catch (InterruptedException ex) {}
 			}
 		} while (!done);
 		return (T)response;
+	}
+
+	private String getErrorDetails(String errorResponse) throws JAXBException {
+		ByteArrayInputStream bais = new ByteArrayInputStream(errorResponse.getBytes());
+		if (errorResponse.indexOf("<ErrorResponse") > -1) {
+			ErrorResponse resp = JAXBuddy.deserializeXMLStream(ErrorResponse.class, bais);
+			Error err = resp.getError().get(0);
+			return "("+err.getCode()+") "+err.getMessage();
+		}
+		else {
+			Response resp = JAXBuddy.deserializeXMLStream(Response.class, bais);
+			return resp.getErrors().getError().getMessage();
+		}
 	}
 
     /**

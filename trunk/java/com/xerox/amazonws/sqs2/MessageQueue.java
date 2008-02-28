@@ -310,7 +310,7 @@ public class MessageQueue extends QueueService {
 	 */
 	public Map<String,String> getQueueAttributes(QueueAttribute qAttr) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("Attribute", qAttr.queryAttribute());
+		params.put("AttributeName", qAttr.queryAttribute());
 		GetMethod method = new GetMethod();
 		try {
 			GetQueueAttributesResponse response =
