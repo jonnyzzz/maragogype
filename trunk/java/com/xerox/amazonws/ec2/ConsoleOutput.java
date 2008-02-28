@@ -22,7 +22,7 @@ import java.util.Calendar;
 /**
  * An instance of this class represents an instance's console output.
  * <p>
- * {@link Jec2#getConsoleOutput(String instanceId)}
+ * {@link com.xerox.amazonws.ec2.Jec2#getConsoleOutput(String instanceId)}
  */
 public class ConsoleOutput {
 	private String instanceId;

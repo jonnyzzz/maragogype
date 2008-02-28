@@ -27,9 +27,9 @@ import com.xerox.amazonws.typica.jaxb.InstanceStateType;
  * An instance of this class represents an EC2 instance slot reservation.
  * <p>
  * Instances are returned by calls to
- * {@link Jec2#runInstances(String, int, int, List, String)},
- * {@link Jec2#DescribeInstances(List)} and
- * {@link Jec2#DescribeInstances(String[])}.
+ * {@link com.xerox.amazonws.ec2.Jec2#runInstances(String, int, int, List, String, String)},
+ * {@link com.xerox.amazonws.ec2.Jec2#describeInstances(List)} and
+ * {@link com.xerox.amazonws.ec2.Jec2#describeInstances(String[])}.
  */
 public class ReservationDescription {
 	private String owner;
@@ -75,7 +75,7 @@ public class ReservationDescription {
 
 	/**
 	 * Encapsulates information about an EC2 instance within a
-	 * {@link Jec2.ReservationDescription}.
+	 * {@link ReservationDescription}.
 	 */
 	public class Instance {
 		private String imageId;

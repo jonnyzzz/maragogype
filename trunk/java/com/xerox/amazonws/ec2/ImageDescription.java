@@ -22,8 +22,8 @@ import java.util.List;
 /**
  * An instance of this class represents an AMI description.
  * <p>
- * Instances are returned by calls to {@link Jec2#describeImages(List)} or
- * {@link Jec2#describeImages(String[])}.
+ * Instances are returned by calls to {@link com.xerox.amazonws.ec2.Jec2#describeImages(List)} or
+ * {@link com.xerox.amazonws.ec2.Jec2#describeImages(String[])}.
  */
 public class ImageDescription {
 	private String imageId;

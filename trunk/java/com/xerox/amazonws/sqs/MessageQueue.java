@@ -198,8 +198,10 @@ public class MessageQueue extends QueueService {
 	/**
 	 * Internal implementation of receiveMessages.
 	 *
-	 * @param
-	 * @return
+	 * @param numMessages the maximum number of messages to return
+	 * @param visibilityTimeout the duration (in seconds) the retrieved message is hidden from
+	 *                          subsequent calls to retrieve.
+	 * @return an array of message objects
 	 */
     protected Message[] receiveMessages(BigInteger numMessages, BigInteger visibilityTimeout) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
@@ -241,8 +243,8 @@ public class MessageQueue extends QueueService {
 	 * Returns a specified message. This does not affect and is not affected by the visibility
 	 * timeout of either the queue or the message.
 	 *
-	 * @param
-	 * @return
+	 * @param msgId the id of the message to be read
+	 * @return the message object
 	 */
     public Message peekMessage(String msgId) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
@@ -387,7 +389,7 @@ public class MessageQueue extends QueueService {
 	}
 
 	/**
-	 * Gets the visibility timeout for the queue. Uses {@link getQueueAttribute()}.
+	 * Gets the visibility timeout for the queue. Uses {@link #getQueueAttributes(QueueAttribute)}.
 	 */
     public int getVisibilityTimeout() throws SQSException {
 		return Integer.parseInt(getQueueAttributes(QueueAttribute.VISIBILITY_TIMEOUT)
@@ -395,7 +397,7 @@ public class MessageQueue extends QueueService {
 	}
 
 	/**
-	 * Gets the visibility timeout for the queue. Uses {@link getQueueAttribute()}.
+	 * Gets the visibility timeout for the queue. Uses {@link #getQueueAttributes(QueueAttribute)}.
 	 */
     public int getApproximateNumberOfMessages() throws SQSException {
 		return Integer.parseInt(getQueueAttributes(QueueAttribute.APPROXIMATE_NUMBER_OF_MESSAGES)
@@ -433,7 +435,7 @@ public class MessageQueue extends QueueService {
 	}
 
 	/**
-	 * Sets the visibility timeout of the queue. Uses {@link setQueueAttribute(String, String)}.
+	 * Sets the visibility timeout of the queue. Uses {@link #setQueueAttribute(String, String)}.
 	 *
 	 * @param timeout the duration (in seconds) the retrieved message is hidden from
 	 *                          subsequent calls to retrieve.
@@ -534,7 +536,6 @@ public class MessageQueue extends QueueService {
 	 * Removes a grant for a specific user.
 	 *
 	 * @param id the amazon user id of the user
-	 * @param displayName not sure if this can even be used
 	 * @param permission the permission to add (ReceiveMessage | SendMessage | FullControl)
 	 */
     public void removeGrantByCustomerId(String id, String permission) throws Exception {

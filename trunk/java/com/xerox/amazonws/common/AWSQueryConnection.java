@@ -71,9 +71,9 @@ public class AWSQueryConnection extends AWSConnection {
      * @param server Which host to connect to.  Usually, this will be s3.amazonaws.com
      * @param port Which port to use.
      */
-    public AWSQueryConnection(String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure,
+    public AWSQueryConnection(String awsAccessId, String awsSecretKey, boolean isSecure,
                              String server, int port) {
-		super(awsAccessKeyId, awsSecretAccessKey, isSecure, server, port);
+		super(awsAccessId, awsSecretKey, isSecure, server, port);
 		String version = "?";
 		try {
 			Properties props = new Properties();
@@ -128,7 +128,7 @@ public class AWSQueryConnection extends AWSConnection {
      * @param method The HTTP method to use (GET, POST, DELETE, etc)
      * @param action the name of the action for this query request
      * @param params map of request params
-     * @param respTpye the class that represents the desired/expected return type
+     * @param respType the class that represents the desired/expected return type
      */
 	protected <T> T makeRequest(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
 		throws HttpException, IOException, JAXBException {

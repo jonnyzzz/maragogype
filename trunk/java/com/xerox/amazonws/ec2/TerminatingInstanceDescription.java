@@ -21,8 +21,8 @@ package com.xerox.amazonws.ec2;
  * An instance of this class represents an EC2 instance after a request has
  * been issued to terminate that instance.
  * <p>
- * Instances are returned by calls to {@link Jec2#terminateInstances(List)},
- * and {@link Jec2#terminateInstances(String[])}.
+ * Instances are returned by calls to {@link com.xerox.amazonws.ec2.Jec2#terminateInstances(List)},
+ * and {@link com.xerox.amazonws.ec2.Jec2#terminateInstances(String[])}.
  */
 public class TerminatingInstanceDescription {
 	private String instanceId;

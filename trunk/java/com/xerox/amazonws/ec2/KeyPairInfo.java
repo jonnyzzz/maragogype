@@ -19,11 +19,11 @@ package com.xerox.amazonws.ec2;
 
 /**
  * An instance of this class represents an EC2 keypair.
- * <p>
+ * <p/>
  * Instances are returned by calls to
- * {@link Jec2#createKeyPair(String),
- * {@link Jec2#describeKeyPairs(List)}, and
- * {@link Jec2#describeKeyPairs(String[])}.
+ * {@link com.xerox.amazonws.ec2.Jec2#createKeyPair(String)},
+ * {@link com.xerox.amazonws.ec2.Jec2#describeKeyPairs(List)}, and
+ * {@link com.xerox.amazonws.ec2.Jec2#describeKeyPairs(String[])}.
  */
 public class KeyPairInfo {
 	private String keyName;

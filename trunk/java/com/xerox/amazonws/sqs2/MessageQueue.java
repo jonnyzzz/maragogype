@@ -193,8 +193,10 @@ public class MessageQueue extends QueueService {
 	/**
 	 * Internal implementation of receiveMessages.
 	 *
-	 * @param
-	 * @return
+	 * @param numMessages the maximum number of messages to return
+	 * @param visibilityTimeout the duration (in seconds) the retrieved message is hidden from
+	 *                          subsequent calls to retrieve.
+	 * @return an array of message objects
 	 */
     protected Message[] receiveMessages(BigInteger numMessages, BigInteger visibilityTimeout) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
@@ -285,7 +287,7 @@ public class MessageQueue extends QueueService {
 	}
 
 	/**
-	 * Gets the visibility timeout for the queue. Uses {@link getQueueAttribute()}.
+	 * Gets the visibility timeout for the queue. Uses {@link #getQueueAttributes(QueueAttribute)}.
 	 */
     public int getVisibilityTimeout() throws SQSException {
 		return Integer.parseInt(getQueueAttributes(QueueAttribute.VISIBILITY_TIMEOUT)
@@ -293,7 +295,7 @@ public class MessageQueue extends QueueService {
 	}
 
 	/**
-	 * Gets the visibility timeout for the queue. Uses {@link getQueueAttribute()}.
+	 * Gets the visibility timeout for the queue. Uses {@link #getQueueAttributes(QueueAttribute)}.
 	 */
     public int getApproximateNumberOfMessages() throws SQSException {
 		return Integer.parseInt(getQueueAttributes(QueueAttribute.APPROXIMATE_NUMBER_OF_MESSAGES)
@@ -331,7 +333,7 @@ public class MessageQueue extends QueueService {
 	}
 
 	/**
-	 * Sets the visibility timeout of the queue. Uses {@link setQueueAttribute(String, String)}.
+	 * Sets the visibility timeout of the queue. Uses {@link #setQueueAttribute(String, String)}.
 	 *
 	 * @param timeout the duration (in seconds) the retrieved message is hidden from
 	 *                          subsequent calls to retrieve.

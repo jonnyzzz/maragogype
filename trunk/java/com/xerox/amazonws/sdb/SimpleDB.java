@@ -53,8 +53,8 @@ public class SimpleDB extends AWSQueryConnection {
      * @param awsAccessId The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
 	 */
-    public SimpleDB(String awsAccessId, String awsSecretAccessKey) {
-        this(awsAccessId, awsSecretAccessKey, true);
+    public SimpleDB(String awsAccessId, String awsSecretKey) {
+        this(awsAccessId, awsSecretKey, true);
     }
 
 	/**
@@ -64,8 +64,8 @@ public class SimpleDB extends AWSQueryConnection {
      * @param awsSecretKey The secret string used to generate signatures for authentication.
      * @param isSecure True if the data should be encrypted on the wire on the way to or from SDB.
 	 */
-    public SimpleDB(String awsAccessId, String awsSecretAccessKey, boolean isSecure) {
-        this(awsAccessId, awsSecretAccessKey, isSecure, "sds.amazonaws.com");
+    public SimpleDB(String awsAccessId, String awsSecretKey, boolean isSecure) {
+        this(awsAccessId, awsSecretKey, isSecure, "sds.amazonaws.com");
     }
 
 	/**
@@ -76,10 +76,10 @@ public class SimpleDB extends AWSQueryConnection {
      * @param isSecure True if the data should be encrypted on the wire on the way to or from SDB.
      * @param server Which host to connect to.  Usually, this will be s3.amazonaws.com
 	 */
-    public SimpleDB(String awsAccessId, String awsSecretAccessKey, boolean isSecure,
+    public SimpleDB(String awsAccessId, String awsSecretKey, boolean isSecure,
                              String server)
     {
-        this(awsAccessId, awsSecretAccessKey, isSecure, server,
+        this(awsAccessId, awsSecretKey, isSecure, server,
              isSecure ? 443 : 80);
     }
 
@@ -92,10 +92,10 @@ public class SimpleDB extends AWSQueryConnection {
      * @param server Which host to connect to.  Usually, this will be s3.amazonaws.com
      * @param port Which port to use.
      */
-    public SimpleDB(String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure,
+    public SimpleDB(String awsAccessId, String awsSecretKey, boolean isSecure,
                              String server, int port)
     {
-		super(awsAccessKeyId, awsSecretAccessKey, isSecure, server, port);
+		super(awsAccessId, awsSecretKey, isSecure, server, port);
 		ArrayList vals = new ArrayList();
 		vals.add("2007-11-07");
 		super.headers.put("Version", vals);
@@ -133,7 +133,7 @@ public class SimpleDB extends AWSQueryConnection {
 	/**
 	 * Terminates a selection of running instances.
 	 * 
-	 * @param instanceIds A list of instances ({@link ReservationDescription.Instance#instanceId}.
+	 * @param nextToken token to use when retrieving next results
 	 * @return A list of {@link Domain} instances.
 	 * @throws SDBException wraps checked exceptions
 	 */

@@ -152,7 +152,7 @@ public class Item extends Domain {
 	/**
 	 * Deletes one or more attributes.
 	 *
-	 * @param identifier the name of the item to be deleted
+	 * @param attributes the names of the attributes to be deleted
 	 * @throws SDBException wraps checked exceptions
 	 */
 	public void deleteAttributes(List<ItemAttribute> attributes) throws SDBException {

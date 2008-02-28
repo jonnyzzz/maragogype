@@ -21,7 +21,7 @@ package com.xerox.amazonws.ec2;
  * An instance of this class represents an Product Instance relationship
  * <p>
  * Instances are returned by calls to
- * {@link Jec2#confirmProductInstance(String, String)}.
+ * {@link com.xerox.amazonws.ec2.Jec2#confirmProductInstance(String, String)}.
  */
 public class ProductInstanceInfo {
 	private String instanceId;

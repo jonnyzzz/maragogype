@@ -49,8 +49,8 @@ import ch.inventec.Base64Coder;
  * @author developer@dotech.com
  */
 public abstract class AWSConnection {
-    private String awsAccessKeyId;
-    private String awsSecretAccessKey;
+    private String awsAccessId;
+    private String awsSecretKey;
     private boolean isSecure;
     private String server;
     private int port;
@@ -65,11 +65,11 @@ public abstract class AWSConnection {
      * @param server Which host to connect to.  Usually, this will be s3.amazonaws.com
      * @param port Which port to use.
      */
-    public AWSConnection(String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure,
+    public AWSConnection(String awsAccessId, String awsSecretKey, boolean isSecure,
                              String server, int port)
     {
-        this.awsAccessKeyId = awsAccessKeyId;
-        this.awsSecretAccessKey = awsSecretAccessKey;
+        this.awsAccessId = awsAccessId;
+        this.awsSecretKey = awsSecretKey;
         this.isSecure = isSecure;
         this.server = server;
         this.port = port;
@@ -90,11 +90,11 @@ public abstract class AWSConnection {
 	}
 
 	protected String getAwsAccessKeyId() {
-		return this.awsAccessKeyId;
+		return this.awsAccessId;
 	}
 
 	protected String getSecretAccessKey() {
-		return this.awsSecretAccessKey;
+		return this.awsSecretKey;
 	}
 
 	protected boolean isSecure() {
@@ -120,13 +120,13 @@ public abstract class AWSConnection {
 
     /**
      * Calculate the HMAC/SHA1 on a string.
-     * @param data Data to sign
-     * @param passcode Passcode to sign it with
-     * @return Signature
+     * @param awsSecretKey passcode to sign it with
+     * @param canonicalString data to sign
+     * @return signature
      * @throws NoSuchAlgorithmException If the algorithm does not exist.  Unlikely
      * @throws InvalidKeyException If the key is invalid.
      */
-    protected String encode(String awsSecretAccessKey, String canonicalString,
+    protected String encode(String awsSecretKey, String canonicalString,
                                 boolean urlencode)
     {
         // The following HMAC/SHA1 code for the signature is taken from the
@@ -134,7 +134,7 @@ public abstract class AWSConnection {
         //
         // Acquire an HMAC/SHA1 from the raw key bytes.
         SecretKeySpec signingKey =
-            new SecretKeySpec(awsSecretAccessKey.getBytes(), "HmacSHA1");
+            new SecretKeySpec(awsSecretKey.getBytes(), "HmacSHA1");
 
         // Acquire the MAC instance and initialize with the signing key.
         Mac mac = null;

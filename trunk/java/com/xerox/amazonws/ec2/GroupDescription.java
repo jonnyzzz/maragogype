@@ -24,8 +24,8 @@ import java.util.List;
  * An instance of this class represents an EC2 security group.
  * <p>
  * Instances are returned by calls to
- * {@link Jec2#describeSecurityGroups(List)}, and
- * {@link Jec2#describeSecurityGroups(String[])}.
+ * {@link com.xerox.amazonws.ec2.Jec2#describeSecurityGroups(List)}, and
+ * {@link com.xerox.amazonws.ec2.Jec2#describeSecurityGroups(String[])}.
  */
 public class GroupDescription {
 	private String name;

@@ -56,10 +56,10 @@ public class AWSAuthConnection extends AWSConnection {
      * @param server Which host to connect to.  Usually, this will be s3.amazonaws.com
      * @param port Which port to use.
      */
-    public AWSAuthConnection(String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure,
+    public AWSAuthConnection(String awsAccessId, String awsSecretKey, boolean isSecure,
                              String server, int port)
     {
-		super(awsAccessKeyId, awsSecretAccessKey, isSecure, server, port);
+		super(awsAccessId, awsSecretKey, isSecure, server, port);
     }
 
     /**

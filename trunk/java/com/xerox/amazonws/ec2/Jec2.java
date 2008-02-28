@@ -254,8 +254,6 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Describe the AMIs executable by supplied users.
 	 * 
-	 * @param imageIds A list of AMI IDs as returned by {@link #registerImage(String)}.
-	 * @param owners A list of owners.
 	 * @param users A list of users.
 	 * @return A list of {@link ImageDescription} instances describing each AMI ID.
 	 * @throws EC2Exception wraps checked exceptions
@@ -271,6 +269,8 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Describe the AMIs that match the intersection of the criteria supplied
 	 * 
+	 * @param imageIds A list of AMI IDs as returned by {@link #registerImage(String)}.
+	 * @param owners A list of owners.
 	 * @param users A list of users.
 	 * @return A list of {@link ImageDescription} instances describing each AMI ID.
 	 * @throws EC2Exception wraps checked exceptions
@@ -341,7 +341,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param maxCount The maximum number of instances to attempt to reserve.
 	 * @param groupSet A (possibly empty) set of security group definitions.
 	 * @param userData User supplied data that will be made available to the instance(s)
-	 * @return A {@link ReservationDescription} describing the instances that
+	 * @return A {@link com.xerox.amazonws.ec2.ReservationDescription} describing the instances that
 	 *         have been reserved.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
@@ -367,7 +367,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param groupSet A (possibly empty) set of security group definitions.
 	 * @param userData User supplied data that will be made available to the instance(s)
 	 * @param publicAddr sets addressing mode to public
-	 * @return A {@link ReservationDescription} describing the instances that
+	 * @return A {@link com.xerox.amazonws.ec2.ReservationDescription} describing the instances that
 	 *         have been reserved.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
@@ -393,7 +393,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param groupSet A (possibly empty) set of security group definitions.
 	 * @param userData User supplied data that will be made available to the instance(s)
 	 * @param type instance type
-	 * @return A {@link ReservationDescription} describing the instances that
+	 * @return A {@link com.xerox.amazonws.ec2.ReservationDescription} describing the instances that
 	 *         have been reserved.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
@@ -419,7 +419,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param userData User supplied data that will be made available to the instance(s)
 	 * @param publicAddr sets addressing mode to public
 	 * @param type instance type
-	 * @return A {@link ReservationDescription} describing the instances that
+	 * @return A {@link com.xerox.amazonws.ec2.ReservationDescription} describing the instances that
 	 *         have been reserved.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
@@ -491,7 +491,7 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Terminates a selection of running instances.
 	 * 
-	 * @param instanceIds An array of instances ({@link ReservationDescription.Instance#instanceId}.
+	 * @param instanceIds An array of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
 	 * @return A list of {@link TerminatingInstanceDescription} instances.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
@@ -503,7 +503,7 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Terminates a selection of running instances.
 	 * 
-	 * @param instanceIds A list of instances ({@link ReservationDescription.Instance#instanceId}.
+	 * @param instanceIds A list of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
 	 * @return A list of {@link TerminatingInstanceDescription} instances.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
@@ -550,8 +550,8 @@ public class Jec2 extends AWSQueryConnection {
 	 * by the caller will be returned. Otherwise the list will contain
 	 * information for the requested instances only.
 	 * 
-	 * @param instanceIds An array of instances ({@link ReservationDescription.Instance#instanceId}.
-	 * @return A list of {@link ReservationDescription} instances.
+	 * @param instanceIds An array of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
+	 * @return A list of {@link com.xerox.amazonws.ec2.ReservationDescription} instances.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<ReservationDescription> describeInstances(String[] instanceIds) throws EC2Exception {
@@ -565,8 +565,8 @@ public class Jec2 extends AWSQueryConnection {
 	 * by the caller will be returned. Otherwise the list will contain
 	 * information for the requested instances only.
 	 * 
-	 * @param instanceIds A list of instances ({@link ReservationDescription.Instance#instanceId}.
-	 * @return A list of {@link ReservationDescription} instances.
+	 * @param instanceIds A list of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
+	 * @return A list of {@link com.xerox.amazonws.ec2.ReservationDescription} instances.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<ReservationDescription> describeInstances(List<String> instanceIds) throws EC2Exception {
@@ -623,7 +623,7 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Reboot a selection of running instances.
 	 * 
-	 * @param instanceIds A list of instances ({@link ReservationDescription.Instance#instanceId}.
+	 * @param instanceIds A list of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public void rebootInstances(String [] instanceIds) throws EC2Exception {
@@ -633,7 +633,7 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Reboot a selection of running instances.
 	 * 
-	 * @param instanceIds A list of instances ({@link ReservationDescription.Instance#instanceId}.
+	 * @param instanceIds A list of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public void rebootInstances(List<String> instanceIds) throws EC2Exception {
@@ -662,7 +662,7 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Get an instance's console output.
 	 *
-	 * @param instanceId An instance's id ({@link ReservationDescription.Instance#instanceId}.
+	 * @param instanceId An instance's id ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
 	 * @return ({@link ConsoleOutput})
 	 * @throws EC2Exception wraps checked exceptions
 	 */
@@ -822,7 +822,6 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param groupName name of group to modify
 	 * @param secGroupName name of security group to authorize access to
 	 * @param secGroupOwnerId owner of security group to authorize access to
-	 * @return A group description ({@link GroupDescription} containing the modified rules.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public void authorizeSecurityGroupIngress(String groupName, String secGroupName,
@@ -1069,7 +1068,7 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Modifies an attribute by the given items with the given operation. 
 	 *
-	 * @param imageID The ID of the AMI to modify the attributes for.
+	 * @param imageId The ID of the AMI to modify the attributes for.
 	 * @param attribute The name of the attribute to change.
 	 * @param operationType The name of the operation to change. May be add or remove.
 	 * @throws EC2Exception wraps checked exceptions
@@ -1227,8 +1226,9 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Returns true if the productCode is associated with the instance.
 	 *
-	 * @param instanceId An instance's id ({@link ReservationDescription.Instance#instanceId}.
-	 * @returns null if no relationship exists, otherwise information about the owner
+	 * @param instanceId An instance's id ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
+	 * @param productCode the code for the project you registered with AWS
+	 * @return null if no relationship exists, otherwise information about the owner
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public ProductInstanceInfo confirmProductInstance(String instanceId, String productCode) throws EC2Exception {
