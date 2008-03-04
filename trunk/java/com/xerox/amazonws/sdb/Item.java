@@ -31,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.GetMethod;
 
+import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.typica.sdb.jaxb.Attribute;
 import com.xerox.amazonws.typica.sdb.jaxb.DeleteAttributesResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.GetAttributesResponse;
@@ -43,16 +44,19 @@ import com.xerox.amazonws.typica.sdb.jaxb.PutAttributesResponse;
  * @author D. Kavanagh
  * @author developer@dotech.com
  */
-public class Item extends Domain {
+public class Item extends AWSQueryConnection {
     private static Log logger = LogFactory.getLog(Item.class);
 
+	private String domainName;
 	private String identifier;
 
-    protected Item(String identifier, String domainName, String awsAccessKeyId,
-							String awsSecretAccessKey, boolean isSecure,
+    protected Item(String identifier, String domainName, String awsAccessId,
+							String awsSecretKey, boolean isSecure,
 							String server) throws SDBException {
-        super(domainName, awsAccessKeyId, awsSecretAccessKey, isSecure, server);
+        super(awsAccessId, awsSecretKey, isSecure, server, isSecure ? 443 : 80);
+		this.domainName = domainName;
 		this.identifier = identifier;
+		SimpleDB.setVersionHeader(this);
 	}
 
 	/**
@@ -84,7 +88,7 @@ public class Item extends Domain {
 	 */
 	public List<ItemAttribute> getAttributes(String attributeName) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("DomainName", getName());
+		params.put("DomainName", domainName);
 		params.put("ItemName", identifier);
 		if (attributeName != null) {
 			params.put("AttributeName", attributeName);
@@ -120,7 +124,7 @@ public class Item extends Domain {
 	 */
 	public void putAttributes(List<ItemAttribute> attributes) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("DomainName", getName());
+		params.put("DomainName", domainName);
 		params.put("ItemName", identifier);
 		int i=1;
 		for (ItemAttribute attr : attributes) {
@@ -156,13 +160,39 @@ public class Item extends Domain {
 	 * @throws SDBException wraps checked exceptions
 	 */
 	public void deleteAttributes(List<ItemAttribute> attributes) throws SDBException {
-		deleteAttributes(identifier, attributes);
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("DomainName", domainName);
+		params.put("ItemName", identifier);
+		if (attributes != null) {
+			int i=1;
+			for (ItemAttribute attr : attributes) {
+				params.put("Attribute."+i+".Name", attr.getName());
+				String value = attr.getValue();
+				if (value != null) {
+					params.put("Attribute."+i+".Value", value);
+				}
+				i++;
+			}
+		}
+		GetMethod method = new GetMethod();
+		try {
+			DeleteAttributesResponse response =
+						makeRequest(method, "DeleteAttributes", params, DeleteAttributesResponse.class);
+		} catch (JAXBException ex) {
+			throw new SDBException("Problem parsing returned message.", ex);
+		} catch (HttpException ex) {
+			throw new SDBException(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new SDBException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
 	}
 
-	static List<Item> createList(String [] itemNames, String domainName, String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure, String server) throws SDBException {
+	static List<Item> createList(String [] itemNames, String domainName, String awsAccessId, String awsSecretKey, boolean isSecure, String server) throws SDBException {
 		ArrayList<Item> ret = new ArrayList<Item>();
 		for (int i=0; i<itemNames.length; i++) {
-			ret.add(new Item(itemNames[i], domainName, awsAccessKeyId, awsSecretAccessKey, isSecure, server));
+			ret.add(new Item(itemNames[i], domainName, awsAccessId, awsSecretKey, isSecure, server));
 		}
 		return ret;
 	}

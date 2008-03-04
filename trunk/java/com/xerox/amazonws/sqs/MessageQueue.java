@@ -41,6 +41,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 
+import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.typica.jaxb.AddGrantResponse;
 import com.xerox.amazonws.typica.jaxb.AttributedValue;
 import com.xerox.amazonws.typica.jaxb.ChangeMessageVisibilityResponse;
@@ -61,17 +62,17 @@ import com.xerox.amazonws.typica.jaxb.SetQueueAttributesResponse;
  * @author D. Kavanagh
  * @author developer@dotech.com
  */
-public class MessageQueue extends QueueService {
+public class MessageQueue extends AWSQueryConnection {
     public static final int MAX_MESSAGES = 600;
     public static final int MAX_MESSAGE_BODIES_SIZE = 4096;
 
 	protected String queueId;
 	private boolean enableEncoding = true;
 
-    protected MessageQueue(String queueUrl, String awsAccessKeyId,
-							String awsSecretAccessKey, boolean isSecure,
+    protected MessageQueue(String queueUrl, String awsAccessId,
+							String awsSecretKey, boolean isSecure,
 							String server) throws SQSException {
-        super(awsAccessKeyId, awsSecretAccessKey, isSecure, server);
+        super(awsAccessId, awsSecretKey, isSecure, server, isSecure ? 443 : 80);
 		if (queueUrl.startsWith("http")) {
 			queueId = queueUrl.substring(queueUrl.indexOf("//")+2);
 		}
@@ -80,6 +81,7 @@ public class MessageQueue extends QueueService {
 								// fully qualified queue name, not a full queue URL
 		}
 		queueId = queueId.substring(queueId.indexOf("/")+1);
+		QueueService.setVersionHeader(this);
     }
 
 	/**
@@ -620,10 +622,10 @@ public class MessageQueue extends QueueService {
 		return super.makeURL(queueId+resource);
 	}
 
-	public static List<MessageQueue> createList(String [] queueUrls, String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure, String server) throws SQSException {
+	public static List<MessageQueue> createList(String [] queueUrls, String awsAccesseyId, String awsSecretKey, boolean isSecure, String server) throws SQSException {
 		ArrayList<MessageQueue> ret = new ArrayList<MessageQueue>();
 		for (int i=0; i<queueUrls.length; i++) {
-			ret.add(new MessageQueue(queueUrls[i], awsAccessKeyId, awsSecretAccessKey, isSecure, server));
+			ret.add(new MessageQueue(queueUrls[i], awsAccesseyId, awsSecretKey, isSecure, server));
 		}
 		return ret;
 	}

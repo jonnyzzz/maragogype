@@ -36,8 +36,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.GetMethod;
 
+import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.typica.sdb.jaxb.QueryResponse;
-import com.xerox.amazonws.typica.sdb.jaxb.DeleteAttributesResponse;
 
 /**
  * This class provides an interface with the Amazon SDB service. It provides methods for
@@ -46,18 +46,19 @@ import com.xerox.amazonws.typica.sdb.jaxb.DeleteAttributesResponse;
  * @author D. Kavanagh
  * @author developer@dotech.com
  */
-public class Domain extends SimpleDB {
+public class Domain extends AWSQueryConnection {
 
     private static Log logger = LogFactory.getLog(Domain.class);
 
 	private String domainName;
 	private int maxThreads = 30;
 
-    protected Domain(String domainName, String awsAccessKeyId,
-							String awsSecretAccessKey, boolean isSecure,
+    protected Domain(String domainName, String awsAccessId,
+							String awsSecretKey, boolean isSecure,
 							String server) throws SDBException {
-        super(awsAccessKeyId, awsSecretAccessKey, isSecure, server);
+        super(awsAccessId, awsSecretKey, isSecure, server, isSecure ? 443 : 80);
 		this.domainName = domainName;
+		SimpleDB.setVersionHeader(this);
     }
 
 	/**
@@ -279,37 +280,7 @@ public class Domain extends SimpleDB {
 	 * @throws SDBException wraps checked exceptions
 	 */
 	public void deleteItem(String identifier) throws SDBException {
-		deleteAttributes(identifier, null);
-	}
-
-	protected void deleteAttributes(String identifier, List<ItemAttribute> attrs) throws SDBException {
-		Map<String, String> params = new HashMap<String, String>();
-		params.put("DomainName", domainName);
-		params.put("ItemName", identifier);
-		if (attrs != null) {
-			int i=1;
-			for (ItemAttribute attr : attrs) {
-				params.put("Attribute."+i+".Name", attr.getName());
-				String value = attr.getValue();
-				if (value != null) {
-					params.put("Attribute."+i+".Value", value);
-				}
-				i++;
-			}
-		}
-		GetMethod method = new GetMethod();
-		try {
-			DeleteAttributesResponse response =
-						makeRequest(method, "DeleteAttributes", params, DeleteAttributesResponse.class);
-		} catch (JAXBException ex) {
-			throw new SDBException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SDBException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SDBException(ex.getMessage(), ex);
-		} finally {
-			method.releaseConnection();
-		}
+		getItem(identifier).deleteAttributes(null);
 	}
 
 	static List<Domain> createList(String [] domainNames, String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure, String server, int signatureVersion) throws SDBException {

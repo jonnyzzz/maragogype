@@ -114,6 +114,15 @@ public class AWSQueryConnection extends AWSConnection {
 	}
 
 	/**
+	 * This method returns the map of headers for this connection
+	 *
+	 * @return map of headers (modifiable) 
+	 */
+	public Map<String, List<String>> getHeaders() {
+		return headers;
+	}
+
+	/**
 	 * This method sets the signature version used to sign requests (0 or 1).
 	 *
 	 * @param version signature version

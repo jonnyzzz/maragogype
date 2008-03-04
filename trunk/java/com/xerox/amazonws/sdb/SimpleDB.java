@@ -96,9 +96,7 @@ public class SimpleDB extends AWSQueryConnection {
                              String server, int port)
     {
 		super(awsAccessId, awsSecretKey, isSecure, server, port);
-		ArrayList vals = new ArrayList();
-		vals.add("2007-11-07");
-		super.headers.put("Version", vals);
+		setVersionHeader(this);
     }
 
 	/**
@@ -248,5 +246,11 @@ public class SimpleDB extends AWSQueryConnection {
 		} finally {
 			method.releaseConnection();
 		}
+	}
+
+	static void setVersionHeader(AWSQueryConnection connection) {
+		ArrayList vals = new ArrayList();
+		vals.add("2007-11-07");
+		connection.getHeaders().put("Version", vals);
 	}
 }

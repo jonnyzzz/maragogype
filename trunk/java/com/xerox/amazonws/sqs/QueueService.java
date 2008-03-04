@@ -97,9 +97,7 @@ public class QueueService extends AWSQueryConnection {
                              String server, int port)
     {
 		super(awsAccessId, awsSecretKey, isSecure, server, port);
-		ArrayList vals = new ArrayList();
-		vals.add("2007-05-01");
-		super.headers.put("Version", vals);
+		setVersionHeader(this);
     }
 
 	/**
@@ -186,4 +184,10 @@ public class QueueService extends AWSQueryConnection {
 			method.releaseConnection();
 		}
     }
+
+	static void setVersionHeader(AWSQueryConnection connection) {
+		ArrayList vals = new ArrayList();
+		vals.add("2007-05-01");
+		connection.getHeaders().put("Version", vals);
+	}
 }
