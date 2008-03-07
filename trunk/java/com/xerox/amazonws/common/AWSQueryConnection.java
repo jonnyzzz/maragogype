@@ -108,6 +108,7 @@ public class AWSQueryConnection extends AWSConnection {
 	 */
 	public void setMaxConnections(int connections) {
 		maxConnections = connections;
+		hc = null;
 	}
 
 	/**
