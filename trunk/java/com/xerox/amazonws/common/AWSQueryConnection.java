@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.Collator;
@@ -43,10 +44,13 @@ import java.util.TreeMap;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethodBase;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.URI;
+import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 
 import com.xerox.amazonws.typica.jaxb.Response;
 import com.xerox.amazonws.typica.sqs2.jaxb.Error;
@@ -64,6 +68,8 @@ public class AWSQueryConnection extends AWSConnection {
 	private int maxRetries = 5;
 	private String userAgent = "typica/";
 	private int sigVersion = 1;
+	private HttpClient hc = null;
+	private int maxConnections = 100;
 
     /**
 	 * Initializes the queue service with your AWS login information.
@@ -85,6 +91,24 @@ public class AWSQueryConnection extends AWSConnection {
 		} catch (Exception ex) { }
 		userAgent = userAgent + version + " ("+ System.getProperty("os.arch") + "; " + System.getProperty("os.name") + ")";
     }
+
+	/**
+	 * This method returns the number of connections that can be open at once.
+	 *
+	 * @return the number of connections
+	 */
+	public int getMaxConnections() {
+		return maxConnections;
+	}
+
+	/**
+	 * This method sets the number of connections that can be open at once.
+	 *
+	 * @param connections the number of connections
+	 */
+	public void setMaxConnections(int connections) {
+		maxConnections = connections;
+	}
 
 	/**
 	 * This method returns the number of times to retry when a recoverable error occurs.
@@ -124,6 +148,7 @@ public class AWSQueryConnection extends AWSConnection {
 
 	/**
 	 * This method sets the signature version used to sign requests (0 or 1).
+	 * NOTE: This value defaults to 1, so passing 0 is the most likely use case.
 	 *
 	 * @param version signature version
 	 */
@@ -200,12 +225,29 @@ public class AWSQueryConnection extends AWSConnection {
 		if (sigVersion == 0) {
 			method.setRequestHeader(new Header("Content-Type", "application/x-www-form-urlencoded; charset=utf-8"));
 		}
-		HttpClient hc = new HttpClient();	// maybe, cache this?
+		if (hc == null) {
+			MultiThreadedHttpConnectionManager connMgr = new MultiThreadedHttpConnectionManager();
+			HttpConnectionManagerParams connParams = connMgr.getParams();
+			connParams.setMaxTotalConnections(maxConnections);
+			connParams.setMaxConnectionsPerHost(HostConfiguration.ANY_HOST_CONFIGURATION, maxConnections);
+			connMgr.setParams(connParams);
+			hc = new HttpClient(connMgr);	// maybe, cache this?
+		}
 		Object response = null;
 		boolean done = false;
 		int retries = 0;
+		boolean doRetry = false;
+		String errorMsg = "";
 		do {
-			int responseCode = hc.executeMethod(method);
+			int responseCode = 600;	// default to high value, so we don't think it is valid
+			try {
+				responseCode = hc.executeMethod(method);
+			} catch (SocketException ex) {
+				// these can generally be retried. Treat it like a 500 error
+				doRetry = true;
+				errorMsg = ex.getMessage();
+				System.err.println("socket exception... retrying");
+			}
 			// 100's are these are handled by httpclient
 			if (responseCode < 300) {
 				// 200's : parse normal response into requested object
@@ -226,12 +268,17 @@ public class AWSQueryConnection extends AWSConnection {
 			}
 			else if (responseCode < 600) {
 				// 500's : retry...
+				doRetry = true;
+				String body = method.getResponseBodyAsString();
+				errorMsg = getErrorDetails(body);
+			}
+			if (doRetry) {
 				retries++;
 				if (retries > maxRetries) {
 					String body = method.getResponseBodyAsString();
-					throw new HttpException("Number of retries exceeded : "+action+
-											", "+getErrorDetails(body));
+					throw new HttpException("Number of retries exceeded : "+action+", "+errorMsg);
 				}
+				doRetry = false;
 				try { Thread.sleep(retries*1000); } catch (InterruptedException ex) {}
 			}
 		} while (!done);
