@@ -189,10 +189,12 @@ public class Item extends AWSQueryConnection {
 		}
 	}
 
-	static List<Item> createList(String [] itemNames, String domainName, String awsAccessId, String awsSecretKey, boolean isSecure, String server) throws SDBException {
+	static List<Item> createList(String [] itemNames, String domainName, String awsAccessId, String awsSecretKey, boolean isSecure, String server, int signatureVersion) throws SDBException {
 		ArrayList<Item> ret = new ArrayList<Item>();
 		for (int i=0; i<itemNames.length; i++) {
-			ret.add(new Item(itemNames[i], domainName, awsAccessId, awsSecretKey, isSecure, server));
+			Item item = new Item(itemNames[i], domainName, awsAccessId, awsSecretKey, isSecure, server);
+			item.setSignatureVersion(signatureVersion);
+			ret.add(item);
 		}
 		return ret;
 	}

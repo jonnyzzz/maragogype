@@ -161,7 +161,7 @@ public class Domain extends AWSQueryConnection {
 			return new QueryResult(response.getQueryResult().getNextToken(),
 					Item.createList(response.getQueryResult().getItemNames().toArray(new String[] {}), domainName,
 								getAwsAccessKeyId(), getSecretAccessKey(),
-								isSecure(), getServer()));
+								isSecure(), getServer(), getSignatureVersion()));
 		} catch (JAXBException ex) {
 			throw new SDBException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
