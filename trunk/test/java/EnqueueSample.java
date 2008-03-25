@@ -15,7 +15,7 @@ import com.xerox.amazonws.sqs.SQSUtils;
 public class EnqueueSample {
     private static Log logger = LogFactory.getLog(EnqueueSample.class);
 
-	public static void main( String[] args ) {
+	public static void main( String[] args ) throws Exception {
 		Properties props = new Properties();
 		props.load(EnqueueSample.class.getClassLoader().getResourceAsStream("aws.properties"));
 

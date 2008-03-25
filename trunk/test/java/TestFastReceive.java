@@ -1,4 +1,5 @@
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -33,10 +34,12 @@ public class TestFastReceive {
 //			logger.info("test 10, 100 : "+test3);
 		} catch (SQSException ex) {
 			logger.error("There was a problem creating/getting the message queue", ex);
+		} catch (IOException ex) {
+			logger.error("There was a problem loading the aws.properties file", ex);
 		}
 	}
 
-	public double test(int threads, final int msgsPerReq) throws SQSException {
+	public double test(int threads, final int msgsPerReq) throws SQSException, IOException {
 		Properties props = new Properties();
 		props.load(TestFastReceive.class.getClassLoader().getResourceAsStream("aws.properties"));
 		QueueService qs = new QueueService(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));

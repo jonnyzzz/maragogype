@@ -17,9 +17,9 @@ public class TestQueueService {
 
 	public static void main(String [] args) throws Exception {
 		Properties props = new Properties();
-		props.load(TestQueueSample.class.getClassLoader().getResourceAsStream("aws.properties"));
+		props.load(TestQueueService.class.getClassLoader().getResourceAsStream("aws.properties"));
 
-		QueueService qs = new QueueService(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"), false, "localhost");
+		QueueService qs = new QueueService(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
 /*
 	*/
 		List<MessageQueue> queues = qs.listMessageQueues(null);
