@@ -1,25 +1,21 @@
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.xerox.amazonws.sqs.Grant;
-import com.xerox.amazonws.sqs.Message;
-import com.xerox.amazonws.sqs.MessageQueue;
-import com.xerox.amazonws.sqs.QueueService;
-import com.xerox.amazonws.sqs.SQSException;
+import com.xerox.amazonws.sqs2.Message;
+import com.xerox.amazonws.sqs2.MessageQueue;
+import com.xerox.amazonws.sqs2.QueueService;
+import com.xerox.amazonws.sqs2.SQSException;
 
 public class TestFastReceive {
     private static Log logger = LogFactory.getLog(TestFastReceive.class);
 
-//	final String AWSAccessKeyId = "[AWS Access Id]";
-//	final String SecretAccessKey = "[AWS Secret Key]";
-	final String AWSAccessKeyId = "1SEQ6QDW2YNW8T6K64R2";
-	final String SecretAccessKey = "7P1KY+a4FTtiVBuU935NHHOI19eYrbyWG7CDklmk";
 
-	private final static int MSGS_TO_SEND = 400;
+	private final static int MSGS_TO_SEND = 1000;
 
 	private String queueName;
 
@@ -29,19 +25,21 @@ public class TestFastReceive {
 
 	public void run() {
 		try {
-			double test1 = test(1, 100);
-			double test2 = test(10, 20);
-			double test3 = test(10, 10);
-			logger.info("test 1, 100 : "+test1);
-			logger.info("test 10, 20 : "+test2);
-			logger.info("test 10, 10 : "+test3);
+//			double test1 = test(1, 100);
+			double test2 = test(10, 10);
+//			double test3 = test(10, 100);
+//			logger.info("test 1, 100 : "+test1);
+			logger.info("test 10, 10 : "+test2);
+//			logger.info("test 10, 100 : "+test3);
 		} catch (SQSException ex) {
 			logger.error("There was a problem creating/getting the message queue", ex);
 		}
 	}
 
 	public double test(int threads, final int msgsPerReq) throws SQSException {
-		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey);
+		Properties props = new Properties();
+		props.load(TestFastReceive.class.getClassLoader().getResourceAsStream("aws.properties"));
+		QueueService qs = new QueueService(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
 		final MessageQueue mq = qs.getOrCreateMessageQueue(queueName);
 		for (int j=0; j<MSGS_TO_SEND; j++) {
 			mq.sendMessage("Testing 1, 2, 3");

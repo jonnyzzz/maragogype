@@ -23,6 +23,7 @@ import com.xerox.amazonws.sdb.SimpleDB;
  *
  */
 public class sdbShell {
+	static int itemCount;
 
 	/**
 	 * Executes specified query against given domain while demonstrating pagination.
@@ -49,24 +50,6 @@ public class sdbShell {
             }
         } while (nextToken != null && nextToken.trim().length() > 0);
         System.out.println("Done.");
-	}
-
-	private static void getItems(Domain domain, String queryString, int maxResults, ItemIdListener listener) {
-        String nextToken = "";
-        do {
-            try {
-                QueryResult result = domain.listItems(queryString, nextToken, maxResults);
-				List<Item> items = result.getItemList();
-                for (Item i : items) {
-                    listener.itemAvailable(i.getIdentifier());
-                }
-                nextToken = result.getNextToken();
-            }
-            catch (SDBException ex) {
-                System.out.println("Query '" + queryString + "' Failure: ");
-                ex.printStackTrace();
-            }
-        } while (nextToken != null && nextToken.trim().length() > 0);
 	}
 
 	/**
@@ -210,7 +193,7 @@ public class sdbShell {
 							continue;
 						}
 						Item item = dom.getItem(st.nextToken());
-						List<ItemAttribute> attrs = item.getAttributes(null);
+						List<ItemAttribute> attrs = item.getAttributes(st.nextToken());
 						System.out.println("Item : "+item.getIdentifier());
 						for (ItemAttribute attr : attrs) {
 							System.out.println(" "+attr.getName()+" = "+attr.getValue());
@@ -219,14 +202,22 @@ public class sdbShell {
 				}
 				else if (cmd.equals("gi") || cmd.equals("getitems")) {
 					if (checkDomain(dom)) {
+						itemCount = 0;
+						dom.setMaxThreads(20);
+						long start = System.currentTimeMillis();
+						dom.setSignatureVersion(0);
 						dom.listItemsAttributes("", new ItemListener() {
 								public synchronized void itemAvailable(String id, List<ItemAttribute> attrs) {
 									System.out.println("Item : "+id);
 									for (ItemAttribute attr : attrs) {
-										System.out.println("  "+attr.getName()+" = "+attr.getValue());
+										System.out.println("  "+attr.getName()+" = "+filter(attr.getValue()));
 									}
+									itemCount++;
 								}
 							});
+						long end = System.currentTimeMillis();
+						System.out.println("Time : "+((int)(end-start)/1000.0));
+						System.out.println("Number of items returned : "+itemCount);
 					}
 				}
 				else if (cmd.equals("l") || cmd.equals("list")) {
@@ -270,7 +261,20 @@ public class sdbShell {
 		System.out.println("quit(q) : exit the shell");
 	}
 
-	interface ItemIdListener {
-		public void itemAvailable(String item);
+	private static String filter(String val) {
+		if (val.length() == 0) return val;	// fast exit
+		StringBuilder ret = new StringBuilder();
+		char [] chars = new char[val.length()];
+		val.getChars(0, val.length(), chars, 0);
+		for (int i=0; i<chars.length; i++) {
+			if (!(chars[i]>0 && chars[i]<128)) {
+				ret.append("\\u");
+				ret.append(Integer.toHexString(chars[i]));
+			}
+			else {
+				ret.append(chars[i]);
+			}
+		}
+		return ret.toString();
 	}
 }

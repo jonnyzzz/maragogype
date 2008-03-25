@@ -1,4 +1,6 @@
 
+import java.util.Properties;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -16,8 +18,8 @@ public class DequeueSample {
     private static Log logger = LogFactory.getLog(DequeueSample.class);
 
 	public static void main( String[] args ) {
-//		final String AWSAccessKeyId = "[AWS Access Id]";
-//		final String SecretAccessKey = "[AWS Secret Key]";
+		Properties props = new Properties();
+		props.load(DequeueSample.class.getClassLoader().getResourceAsStream("aws.properties"));
 
 		int count = 0;
 		if (args.length < 1) {
@@ -27,7 +29,7 @@ public class DequeueSample {
 		logger.debug("queue : "+queueName);
 		try {
 			// Retrieve the message queue object (by name).
-			QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey);
+			QueueService qs = new QueueService(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
 			MessageQueue msgQueue = qs.getOrCreateMessageQueue(queueName);
 
 			// Try to retrieve (dequeue) the message, and then delete it.

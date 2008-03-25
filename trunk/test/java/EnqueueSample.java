@@ -1,4 +1,6 @@
 
+import java.util.Properties;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -14,8 +16,8 @@ public class EnqueueSample {
     private static Log logger = LogFactory.getLog(EnqueueSample.class);
 
 	public static void main( String[] args ) {
-//		final String AWSAccessKeyId = "[AWS Access Id]";
-//		final String SecretAccessKey = "[AWS Secret Key]";
+		Properties props = new Properties();
+		props.load(EnqueueSample.class.getClassLoader().getResourceAsStream("aws.properties"));
 
 		try {
 			if (args.length < 2) {
@@ -25,7 +27,7 @@ public class EnqueueSample {
 			String message = args[1];
 
 			// Create the message queue object
-			MessageQueue msgQueue = SQSUtils.connectToQueue(queueName, AWSAccessKeyId, SecretAccessKey);
+			MessageQueue msgQueue = SQSUtils.connectToQueue(queueName, props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
 			logger.info(" url returned = "+msgQueue.getUrl());
 
 			String msgId = msgQueue.sendMessage(message);

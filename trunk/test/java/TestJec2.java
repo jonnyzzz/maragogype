@@ -2,6 +2,7 @@
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -15,6 +16,7 @@ import com.xerox.amazonws.ec2.ImageAttribute.ImageAttributeType;
 import com.xerox.amazonws.ec2.ImageDescription;
 import com.xerox.amazonws.ec2.ImageListAttributeItem;
 import com.xerox.amazonws.ec2.ImageListAttribute.ImageListAttributeItemType;
+import com.xerox.amazonws.ec2.InstanceType;
 import com.xerox.amazonws.ec2.KeyPairInfo;
 import com.xerox.amazonws.ec2.LaunchPermissionAttribute;
 import com.xerox.amazonws.ec2.ProductCodesAttribute;
@@ -26,10 +28,10 @@ public class TestJec2 {
     private static Log logger = LogFactory.getLog(TestJec2.class);
 
 	public static void main(String [] args) throws Exception {
-		final String AWSAccessKeyId = "[AWS Access Id]";
-		final String SecretAccessKey = "[AWS Secret Key]";
+		Properties props = new Properties();
+		props.load(TestJec2.class.getClassLoader().getResourceAsStream("aws.properties"));
 
-		Jec2 ec2 = new Jec2(AWSAccessKeyId, SecretAccessKey, false, "localhost");
+		Jec2 ec2 = new Jec2(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
 		List<String> params = new ArrayList<String>();
 	
 /*
@@ -48,9 +50,9 @@ public class TestJec2 {
 		}
 
 //		ec2.runInstances("ami-20b65349", 1, 1, new ArrayList<String>(), null, "xrxdak-keypair");
+//		ec2.runInstances("ami-36ff1a5f", 1, 1, new ArrayList<String>(), null, "xrxdak-keypair", true, InstanceType.LARGE);
 		// confirm product instance
 /*
-*/
 		ReservationDescription res = ec2.runInstances("ami-45997c2c", 1, 1, new ArrayList<String>(), null, "dak-keypair");
 		ProductInstanceInfo pinfo = ec2.confirmProductInstance(res.getInstances().get(0).getInstanceId(), "BA7154BF");
 		if (pinfo == null) {
@@ -59,8 +61,10 @@ public class TestJec2 {
 		else {
 			logger.info("relationship confirmed. owner = "+pinfo.getOwnerId());
 		}
+*/
 
 /*
+*/
 		params = new ArrayList<String>();
 		List<ReservationDescription> instances = ec2.describeInstances(params);
 		logger.info("Instances");
@@ -69,19 +73,18 @@ public class TestJec2 {
 			logger.info(res.getOwner()+"\t"+res.getReservationId());
 			if (res.getInstances() != null) {
 				for (Instance inst : res.getInstances()) {
-					logger.info("\t"+inst.getImageId()+"\t"+inst.getDnsName()+"\t"+inst.getState()+"\t"+inst.getKeyName());
+					logger.info("\t"+inst.getImageId()+"\t"+inst.getDnsName()+"\t"+inst.getState()+"\t"+inst.getKeyName()+"\t"+inst.getInstanceType().getTypeId());
 					instanceId = inst.getInstanceId();
 				}
 			}
 		}
-*/
 
 		// test console output
 /*
+*/
 		ConsoleOutput consOutput = ec2.getConsoleOutput(instanceId);
 		logger.info("Console Output:");
 		logger.info(consOutput.getOutput());
-*/
 
 		// test keypair methods
 /*

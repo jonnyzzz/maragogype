@@ -1,5 +1,6 @@
 
 import java.util.ArrayList;
+import java.util.Properties;
 
 import com.xerox.amazonws.sqs.MessageQueue;
 import com.xerox.amazonws.sqs.QueueService;
@@ -10,10 +11,10 @@ public class ShowQueueLoadHistory {
 	private static final int SAMPLES_PER_MINUTE = 20;
 
 	public static void main(String [] args) throws Exception {
-		final String AWSAccessKeyId = "[AWS Access Id]";
-		final String SecretAccessKey = "[AWS Secret Key]";
+		Properties props = new Properties();
+		props.load(ShowQueueLoadHistory.class.getClassLoader().getResourceAsStream("aws.properties"));
 
-		QueueService qs = new QueueService(AWSAccessKeyId, SecretAccessKey);
+		QueueService qs = new QueueService(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
 		MessageQueue mq = qs.getOrCreateMessageQueue(args[0]);
 
 		ArrayList<Integer> samples = new ArrayList<Integer>(SAMPLES_PER_MINUTE*15);

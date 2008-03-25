@@ -2,6 +2,7 @@
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -20,10 +21,10 @@ public class Ec2Sample {
     private static Log logger = LogFactory.getLog(Ec2Sample.class);
 
 	public static void main(String [] args) throws Exception {
-		final String AWSAccessKeyId = "[AWS Access Id]";
-		final String SecretAccessKey = "[AWS Secret Key]";
+		Properties props = new Properties();
+		props.load(Ec2Sample.class.getClassLoader().getResourceAsStream("aws.properties"));
 
-		Jec2 ec2 = new Jec2(AWSAccessKeyId, SecretAccessKey);
+		Jec2 ec2 = new Jec2(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
 	
 		// describe images
 		List<String> params = new ArrayList<String>();
