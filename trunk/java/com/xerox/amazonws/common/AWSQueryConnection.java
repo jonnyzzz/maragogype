@@ -50,6 +50,8 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.URI;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 
 import com.xerox.amazonws.typica.jaxb.Response;
@@ -70,6 +72,10 @@ public class AWSQueryConnection extends AWSConnection {
 	private int sigVersion = 1;
 	private HttpClient hc = null;
 	private int maxConnections = 100;
+	private String proxyHost = null;
+	private int proxyPort;
+	private String proxyUser;
+	private String proxyPassword;
 
     /**
 	 * Initializes the queue service with your AWS login information.
@@ -136,6 +142,51 @@ public class AWSQueryConnection extends AWSConnection {
 	 */
 	public int getSignatureVersion() {
 		return sigVersion;
+	}
+
+	/**
+	 * This method sets the proxy host and port
+	 *
+	 * @param host the proxy host
+	 * @param port the proxy port
+	 */
+	public void setProxyValues(String host, int port) {
+		this.proxyHost = host;
+		this.proxyPort = port;
+	}
+
+	/**
+	 * This method sets the proxy host, port, user and password (for authenticating proxies)
+	 *
+	 * @param host the proxy host
+	 * @param port the proxy port
+	 * @param user the proxy user
+	 * @param password the proxy password
+	 */
+	public void setProxyValues(String host, int port, String user, String password) {
+		this.proxyHost = host;
+		this.proxyPort = port;
+		this.proxyUser = user;
+		this.proxyPassword = password;
+	}
+
+	/**
+	 * This method indicates the system properties should be used for proxy settings. These
+	 * properties are http.proxyHost, http.proxyPort, http.proxyUser and http.proxyPassword
+	 */
+	public void useSystemProxy() {
+		this.proxyHost = System.getProperty("http.proxyHost");
+		if (this.proxyHost != null && this.proxyHost.trim().equals("")) {
+			proxyHost = null;
+		}
+		this.proxyPort = getPort();
+		try {
+			this.proxyPort = Integer.parseInt(System.getProperty("http.proxyPort"));
+		} catch (NumberFormatException ex) {
+			/* use default */
+		}
+		this.proxyUser = System.getProperty("http.proxyUser");
+		this.proxyPassword = System.getProperty("http.proxyPassword");
 	}
 
 	/**
@@ -233,6 +284,16 @@ public class AWSQueryConnection extends AWSConnection {
 			connParams.setMaxConnectionsPerHost(HostConfiguration.ANY_HOST_CONFIGURATION, maxConnections);
 			connMgr.setParams(connParams);
 			hc = new HttpClient(connMgr);	// maybe, cache this?
+			if (proxyHost != null) {
+				HostConfiguration hostConfig = new HostConfiguration();
+				hostConfig.setHost(proxyHost, proxyPort);
+				hc.setHostConfiguration(hostConfig);
+				System.err.println("Proxy Host set!!");
+				if (proxyUser != null && !proxyUser.trim().equals("")) {
+					hc.getState().setProxyCredentials(new AuthScope(proxyHost, proxyPort),
+							new UsernamePasswordCredentials(proxyUser, proxyPassword));
+				}
+			}
 		}
 		Object response = null;
 		boolean done = false;
