@@ -74,7 +74,7 @@ public class SimpleDB extends AWSQueryConnection {
      * @param awsAccessId The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
      * @param isSecure True if the data should be encrypted on the wire on the way to or from SDB.
-     * @param server Which host to connect to.  Usually, this will be s3.amazonaws.com
+     * @param server Which host to connect to.  Usually, this will be sdb.amazonaws.com
 	 */
     public SimpleDB(String awsAccessId, String awsSecretKey, boolean isSecure,
                              String server)
@@ -89,7 +89,7 @@ public class SimpleDB extends AWSQueryConnection {
      * @param awsAccessId The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
      * @param isSecure True if the data should be encrypted on the wire on the way to or from SDB.
-     * @param server Which host to connect to.  Usually, this will be s3.amazonaws.com
+     * @param server Which host to connect to.  Usually, this will be sdb.amazonaws.com
      * @param port Which port to use.
      */
     public SimpleDB(String awsAccessId, String awsSecretKey, boolean isSecure,
