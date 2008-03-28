@@ -65,7 +65,7 @@ public class SimpleDB extends AWSQueryConnection {
      * @param isSecure True if the data should be encrypted on the wire on the way to or from SDB.
 	 */
     public SimpleDB(String awsAccessId, String awsSecretKey, boolean isSecure) {
-        this(awsAccessId, awsSecretKey, isSecure, "sds.amazonaws.com");
+        this(awsAccessId, awsSecretKey, isSecure, "sdb.amazonaws.com");
     }
 
 	/**
