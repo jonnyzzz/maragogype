@@ -26,12 +26,19 @@ public class DescribeImageAttributeResult {
 	private String imageId;
 	private ImageListAttribute imageListAttribute;
 	private List<String> productCodes;
+	private String kernelId;
+	private String ramdiskId;
+	private List<BlockDeviceMapping> blockDeviceMappings;
 	
 	public DescribeImageAttributeResult(String imageId, ImageListAttribute imageListAttribute,
-					List<String> productCodes) {
+					List<String> productCodes, String kernelId, String ramdiskId,
+					List<BlockDeviceMapping> blockDeviceMappings) {
 		this.imageId = imageId;
 		this.imageListAttribute = imageListAttribute;
 		this.productCodes = productCodes;
+		this.kernelId = kernelId;
+		this.ramdiskId = ramdiskId;
+		this.blockDeviceMappings = blockDeviceMappings;
 	}
 
 	public String getImageId() {
@@ -44,6 +51,18 @@ public class DescribeImageAttributeResult {
 
 	public List<String> getProductCodes() {
 		return productCodes;
+	}
+
+	public String getKernelId() {
+		return kernelId;
+	}
+
+	public String getRamdiskId() {
+		return ramdiskId;
+	}
+
+	public List<BlockDeviceMapping> getBlockDeviceMappings() {
+		return blockDeviceMappings;
 	}
 }
 

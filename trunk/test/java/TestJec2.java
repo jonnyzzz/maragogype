@@ -7,6 +7,8 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.xerox.amazonws.ec2.AddressInfo;
+import com.xerox.amazonws.ec2.AvailabilityZone;
 import com.xerox.amazonws.ec2.ConsoleOutput;
 import com.xerox.amazonws.ec2.DescribeImageAttributeResult;
 import com.xerox.amazonws.ec2.GroupDescription;
@@ -31,7 +33,7 @@ public class TestJec2 {
 		Properties props = new Properties();
 		props.load(TestJec2.class.getClassLoader().getResourceAsStream("aws.properties"));
 
-		Jec2 ec2 = new Jec2(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
+		Jec2 ec2 = new Jec2(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"), false, "localhost");
 		List<String> params = new ArrayList<String>();
 	
 /*
@@ -49,19 +51,19 @@ public class TestJec2 {
 			}
 		}
 
-//		ec2.runInstances("ami-20b65349", 1, 1, new ArrayList<String>(), null, "xrxdak-keypair");
-//		ec2.runInstances("ami-36ff1a5f", 1, 1, new ArrayList<String>(), null, "xrxdak-keypair", true, InstanceType.LARGE);
-		// confirm product instance
-/*
-		ReservationDescription res = ec2.runInstances("ami-45997c2c", 1, 1, new ArrayList<String>(), null, "dak-keypair");
-		ProductInstanceInfo pinfo = ec2.confirmProductInstance(res.getInstances().get(0).getInstanceId(), "BA7154BF");
-		if (pinfo == null) {
-			logger.info("no relationship here");
+		List<AvailabilityZone> zones = ec2.describeAvailabilityZones(null);
+		for (AvailabilityZone zone : zones) {
+			logger.info("zone : "+zone.getName()+" state : "+zone.getState());
 		}
-		else {
-			logger.info("relationship confirmed. owner = "+pinfo.getOwnerId());
+		List<AddressInfo> addrs = ec2.describeAddresses(null);
+		for (AddressInfo info : addrs) {
+			logger.info("address : "+info.getPublicIp()+" instance : "+info.getInstanceId());
 		}
-*/
+		String publicIp = ec2.allocateAddress();
+		logger.info("Address allocated : "+publicIp);
+
+//		ec2.runInstances("ami-20b65349", 1, 1, new ArrayList<String>(), null, "dak-keypair");
+		ReservationDescription runInst = ec2.runInstances("ami-36ff1a5f", 1, 1, new ArrayList<String>(), null, "dak-keypair", true, InstanceType.LARGE, "us-east-1c", null, null, null);
 
 /*
 */
@@ -79,12 +81,35 @@ public class TestJec2 {
 			}
 		}
 
+		ec2.associateAddress(runInst.getInstances().get(0).getInstanceId(), publicIp);
+
+		addrs = ec2.describeAddresses(null);
+		for (AddressInfo info : addrs) {
+			logger.info("address : "+info.getPublicIp()+" instance : "+info.getInstanceId());
+		}
+		ec2.disassociateAddress(publicIp);
+		ec2.releaseAddress(publicIp);
+
+		ec2.terminateInstances(new String [] {runInst.getInstances().get(0).getInstanceId()});
+
+		// confirm product instance
+/*
+		ReservationDescription res = ec2.runInstances("ami-45997c2c", 1, 1, new ArrayList<String>(), null, "dak-keypair");
+		ProductInstanceInfo pinfo = ec2.confirmProductInstance(res.getInstances().get(0).getInstanceId(), "BA7154BF");
+		if (pinfo == null) {
+			logger.info("no relationship here");
+		}
+		else {
+			logger.info("relationship confirmed. owner = "+pinfo.getOwnerId());
+		}
+*/
+
 		// test console output
 /*
-*/
 		ConsoleOutput consOutput = ec2.getConsoleOutput(instanceId);
 		logger.info("Console Output:");
 		logger.info(consOutput.getOutput());
+*/
 
 		// test keypair methods
 /*
@@ -137,14 +162,14 @@ public class TestJec2 {
 */
 
 		// test image attribute methods
-/*
-		DescribeImageAttributeResult res = ec2.describeImageAttribute("ami-5490753d", ImageAttributeType.launchPermission);
+		DescribeImageAttributeResult res = ec2.describeImageAttribute("ami-45997c2c", ImageAttributeType.launchPermission);
 		Iterator<ImageListAttributeItem> iter = res.getImageListAttribute().getImageListAttributeItems().iterator();
 		logger.info("image attrs");
 		while (iter.hasNext()) {
 			ImageListAttributeItem item = iter.next();
-			logger.info("image : "+res.getImageId()+", "+item.getValue());
+			logger.info("image : "+res.getImageId()+", "+item.getType()+"="+item.getValue());
 		}
+/*
 		LaunchPermissionAttribute attr = new LaunchPermissionAttribute();
 		attr.getImageListAttributeItems().add(new ImageListAttributeItem(ImageListAttributeItemType.userId, "291944132575"));
 		ec2.modifyImageAttribute("ami-11816478", attr, ImageListAttributeOperationType.add);

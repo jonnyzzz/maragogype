@@ -52,10 +52,11 @@ public class ReservationDescription {
 
 	public Instance addInstance(String imageId, String instanceId,
 			String privateDnsName, String dnsName, InstanceStateType state,
-			String reason, String keyName, Calendar launchTime, InstanceType instanceType) {
+			String reason, String keyName, Calendar launchTime, InstanceType instanceType,
+			String availabilityZone, String kernelId, String ramdiskId) {
 		Instance instance = new Instance(imageId, instanceId, privateDnsName,
 				dnsName, state.getName(), state.getCode(), reason, keyName,
-				instanceType, launchTime);
+				instanceType, launchTime, availabilityZone, kernelId, ramdiskId);
 		instances.add(instance);
 		return instance;
 	}
@@ -86,7 +87,9 @@ public class ReservationDescription {
 		private String keyName;
 		private InstanceType instanceType;
 		private Calendar launchTime;
-
+		private String availabilityZone;
+		private String kernelId;
+		private String ramdiskId;
 		/**
 		 * An EC2 instance may be in one of four states:
 		 * <ol>
@@ -104,7 +107,8 @@ public class ReservationDescription {
 
 		public Instance(String imageId, String instanceId, String privateDnsName,
 				String dnsName, String stateName, int stateCode, String reason,
-				String keyName, InstanceType instanceType, Calendar launchTime) {
+				String keyName, InstanceType instanceType, Calendar launchTime,
+				String availabilityZone, String kernelId, String ramdiskId) {
 			this.imageId = imageId;
 			this.instanceId = instanceId;
 			this.privateDnsName = privateDnsName;
@@ -115,6 +119,9 @@ public class ReservationDescription {
 			this.keyName = keyName;
 			this.instanceType = instanceType;
 			this.launchTime = launchTime;
+			this.availabilityZone = availabilityZone;
+			this.kernelId = kernelId;
+			this.ramdiskId = ramdiskId;
 		}
 
 		public String getImageId() {
@@ -171,6 +178,18 @@ public class ReservationDescription {
 
 		public Calendar getLaunchTime() {
 			return this.launchTime;
+		}
+
+		public String getAvailabilityZone() {
+			return availabilityZone;
+		}
+
+		public String getKernelId() {
+			return kernelId;
+		}
+
+		public String getRamdiskId() {
+			return ramdiskId;
 		}
 
 		public String toString() {

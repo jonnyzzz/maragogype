@@ -53,6 +53,8 @@ import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.xerox.amazonws.typica.jaxb.Response;
 import com.xerox.amazonws.typica.sqs2.jaxb.Error;
@@ -66,6 +68,8 @@ import com.xerox.amazonws.typica.sqs2.jaxb.ErrorResponse;
  * @author developer@dotech.com
  */
 public class AWSQueryConnection extends AWSConnection {
+	private static final Log log = LogFactory.getLog(AWSQueryConnection.class);
+
 	// this is the number of automatic retries
 	private int maxRetries = 5;
 	private String userAgent = "typica/";
@@ -286,9 +290,9 @@ public class AWSQueryConnection extends AWSConnection {
 			hc = new HttpClient(connMgr);	// maybe, cache this?
 			if (proxyHost != null) {
 				HostConfiguration hostConfig = new HostConfiguration();
-				hostConfig.setHost(proxyHost, proxyPort);
+				hostConfig.setProxy(proxyHost, proxyPort);
 				hc.setHostConfiguration(hostConfig);
-				System.err.println("Proxy Host set!!");
+				log.info("Proxy Host set to "+proxyHost+":"+proxyHost);
 				if (proxyUser != null && !proxyUser.trim().equals("")) {
 					hc.getState().setProxyCredentials(new AuthScope(proxyHost, proxyPort),
 							new UsernamePasswordCredentials(proxyUser, proxyPassword));
@@ -308,7 +312,6 @@ public class AWSQueryConnection extends AWSConnection {
 				// these can generally be retried. Treat it like a 500 error
 				doRetry = true;
 				errorMsg = ex.getMessage();
-				System.err.println("socket exception... retrying");
 			}
 			// 100's are these are handled by httpclient
 			if (responseCode < 300) {

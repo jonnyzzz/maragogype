@@ -32,7 +32,10 @@ public abstract class ImageListAttribute extends ImageAttribute {
 	public enum ImageListAttributeItemType {
 		group,
 		userId,
-		productCode
+		productCode,
+		kernel,
+		ramdisk,
+		blockDeviceMapping
 	}
 
 	public ImageListAttribute(ImageAttribute.ImageAttributeType _type) {

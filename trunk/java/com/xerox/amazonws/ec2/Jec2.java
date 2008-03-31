@@ -42,13 +42,25 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
+import com.xerox.amazonws.typica.jaxb.AllocateAddressResponse;
+import com.xerox.amazonws.typica.jaxb.AssociateAddressResponse;
+import com.xerox.amazonws.typica.jaxb.AvailabilityZoneItemType;
+import com.xerox.amazonws.typica.jaxb.AvailabilityZoneSetType;
 import com.xerox.amazonws.typica.jaxb.AuthorizeSecurityGroupIngressResponse;
+import com.xerox.amazonws.typica.jaxb.BlockDeviceMappingType;
+import com.xerox.amazonws.typica.jaxb.BlockDeviceMappingItemType;
 import com.xerox.amazonws.typica.jaxb.CreateKeyPairResponse;
 import com.xerox.amazonws.typica.jaxb.ConfirmProductInstanceResponse;
 import com.xerox.amazonws.typica.jaxb.CreateSecurityGroupResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteKeyPairResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteSecurityGroupResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponseInfoType;
+import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponseItemType;
+import com.xerox.amazonws.typica.jaxb.DescribeAvailabilityZonesResponse;
 import com.xerox.amazonws.typica.jaxb.DeregisterImageResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeImageAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponse;
@@ -59,6 +71,7 @@ import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponseInfoType;
 import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponseItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeSecurityGroupsResponse;
+import com.xerox.amazonws.typica.jaxb.DisassociateAddressResponse;
 import com.xerox.amazonws.typica.jaxb.GetConsoleOutputResponse;
 import com.xerox.amazonws.typica.jaxb.GroupItemType;
 import com.xerox.amazonws.typica.jaxb.GroupSetType;
@@ -70,6 +83,7 @@ import com.xerox.amazonws.typica.jaxb.IpRangeSetType;
 import com.xerox.amazonws.typica.jaxb.LaunchPermissionItemType;
 import com.xerox.amazonws.typica.jaxb.LaunchPermissionListType;
 import com.xerox.amazonws.typica.jaxb.ModifyImageAttributeResponse;
+import com.xerox.amazonws.typica.jaxb.NullableAttributeValueType;
 import com.xerox.amazonws.typica.jaxb.ObjectFactory;
 import com.xerox.amazonws.typica.jaxb.ProductCodeListType;
 import com.xerox.amazonws.typica.jaxb.ProductCodeItemType;
@@ -77,6 +91,7 @@ import com.xerox.amazonws.typica.jaxb.ProductCodesSetType;
 import com.xerox.amazonws.typica.jaxb.ProductCodesSetItemType;
 import com.xerox.amazonws.typica.jaxb.RebootInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.RegisterImageResponse;
+import com.xerox.amazonws.typica.jaxb.ReleaseAddressResponse;
 import com.xerox.amazonws.typica.jaxb.RevokeSecurityGroupIngressResponse;
 import com.xerox.amazonws.typica.jaxb.ReservationSetType;
 import com.xerox.amazonws.typica.jaxb.ResetImageAttributeResponse;
@@ -90,9 +105,6 @@ import com.xerox.amazonws.typica.jaxb.TerminateInstancesResponseInfoType;
 import com.xerox.amazonws.typica.jaxb.TerminateInstancesResponseItemType;
 import com.xerox.amazonws.typica.jaxb.UserIdGroupPairType;
 import com.xerox.amazonws.typica.jaxb.UserIdGroupPairSetType;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import com.xerox.amazonws.common.AWSQueryConnection;
 
@@ -153,7 +165,7 @@ public class Jec2 extends AWSQueryConnection {
     {
 		super(awsAccessId, awsSecretKey, isSecure, server, port);
 		ArrayList vals = new ArrayList();
-		vals.add("2007-08-29");
+		vals.add("2008-02-01");
 		super.headers.put("Version", vals);
     }
 
@@ -267,15 +279,30 @@ public class Jec2 extends AWSQueryConnection {
 	}
 
 	/**
+	 * Describe the AMIs image type (machine, kernel, ramdisk).
+	 * 
+	 * @param type An image type.
+	 * @return A list of {@link ImageDescription} instances describing each AMI ID.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<ImageDescription> describeImagesByImageType(ImageType type) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("ImageType", type.getTypeId());
+		return describeImages(params);
+	}
+
+	/**
 	 * Describe the AMIs that match the intersection of the criteria supplied
 	 * 
 	 * @param imageIds A list of AMI IDs as returned by {@link #registerImage(String)}.
 	 * @param owners A list of owners.
 	 * @param users A list of users.
+	 * @param type An image type.
 	 * @return A list of {@link ImageDescription} instances describing each AMI ID.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
-	public List<ImageDescription> describeImages(List<String> imageIds, List<String> owners, List<String> users) throws EC2Exception {
+	public List<ImageDescription> describeImages(List<String> imageIds, List<String> owners,
+										List<String> users, ImageType type) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		for (int i=0 ; i<imageIds.size(); i++) {
 			params.put("ImageId."+(i+1), imageIds.get(i));
@@ -285,6 +312,9 @@ public class Jec2 extends AWSQueryConnection {
 		}
 		for (int i=0 ; i<users.size(); i++) {
 			params.put("ExecutableBy."+(i+1), users.get(i));
+		}
+		if (type != null) {
+			params.put("ImageType", type.getTypeId());
 		}
 		return describeImages(params);
 	}
@@ -426,6 +456,38 @@ public class Jec2 extends AWSQueryConnection {
 	public ReservationDescription runInstances(String imageId, int minCount,
 			int maxCount, List<String> groupSet, String userData, String keyName, boolean publicAddr, InstanceType type)
 				throws EC2Exception {
+		return runInstances(imageId, minCount, maxCount, groupSet, userData, keyName, publicAddr, type, null, null, null, null);
+	}
+
+	/**
+	 * Requests reservation of a number of instances.
+	 * <p>
+	 * This will begin launching those instances for which a reservation was
+	 * successfully obtained.
+	 * <p>
+	 * If less than <code>minCount</code> instances are available no instances
+	 * will be reserved.
+	 * 
+	 * @param imageId An AMI ID as returned by {@link #registerImage(String)}.
+	 * @param minCount The minimum number of instances to attempt to reserve.
+	 * @param maxCount The maximum number of instances to attempt to reserve.
+	 * @param groupSet A (possibly empty) set of security group definitions.
+	 * @param userData User supplied data that will be made available to the instance(s)
+	 * @param publicAddr sets addressing mode to public
+	 * @param type instance type
+	 * @param availabilityZone the zone in which to launch the instance(s)
+	 * @param kernelId id of the kernel with which to launch the instance(s)
+	 * @param ramdiskId id of the RAM disk with wich to launch the imstance(s)
+	 * @param blockDeviceMappings mappings of virtual to device names
+	 * @return A {@link com.xerox.amazonws.ec2.ReservationDescription} describing the instances that
+	 *         have been reserved.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public ReservationDescription runInstances(String imageId, int minCount,
+			int maxCount, List<String> groupSet, String userData, String keyName,
+			boolean publicAddr, InstanceType type, String availabilityZone,
+			String kernelId, String ramdiskId, List<BlockDeviceMapping> blockDeviceMappings)
+				throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ImageId", imageId);
 		params.put("MinCount", ""+minCount);
@@ -448,6 +510,22 @@ public class Jec2 extends AWSQueryConnection {
 			}
 		}
 		params.put("InstanceType", type.getTypeId());
+		if (availabilityZone != null && !availabilityZone.trim().equals("")) {
+			params.put("Placement.AvailabilityZone", availabilityZone);
+		}
+		if (kernelId != null && !kernelId.trim().equals("")) {
+			params.put("KernelId", kernelId);
+		}
+		if (ramdiskId != null && !ramdiskId.trim().equals("")) {
+			params.put("RamdiskId", ramdiskId);
+		}
+		if (blockDeviceMappings != null) {
+			for (int i=0 ; i<blockDeviceMappings.size(); i++) {
+				BlockDeviceMapping bdm = blockDeviceMappings.get(i);
+				params.put("BlockDeviceMapping."+(i+1)+".VirtualName", bdm.getVirtualName());
+				params.put("BlockDeviceMapping."+(i+1)+".DeviceName", bdm.getDeviceName());
+			}
+		}
 
 		GetMethod method = new GetMethod();
 		try {
@@ -474,7 +552,9 @@ public class Jec2 extends AWSQueryConnection {
 								rsp_item.getReason(),
 								rsp_item.getKeyName(),
 								rsp_item.getLaunchTime().toGregorianCalendar(),
-								InstanceType.getTypeFromString(rsp_item.getInstanceType()));
+								InstanceType.getTypeFromString(rsp_item.getInstanceType()),
+								rsp_item.getPlacement().getAvailabilityZone(),
+								rsp_item.getKernelId(), rsp_item.getRamdiskId());
 			}
 			return res;
 		} catch (JAXBException ex) {
@@ -604,7 +684,9 @@ public class Jec2 extends AWSQueryConnection {
 									rsp_item.getReason(),
 									rsp_item.getKeyName(),
 									rsp_item.getLaunchTime().toGregorianCalendar(),
-									InstanceType.getTypeFromString(rsp_item.getInstanceType()));
+									InstanceType.getTypeFromString(rsp_item.getInstanceType()),
+									rsp_item.getPlacement().getAvailabilityZone(),
+									rsp_item.getKernelId(), rsp_item.getRamdiskId());
 				}
 				result.add(res);
 			}
@@ -1211,7 +1293,19 @@ public class Jec2 extends AWSQueryConnection {
 					codes.add(code.getProductCode());
 				}
 			}
-			return new DescribeImageAttributeResult(response.getImageId(), attribute, codes);
+			NullableAttributeValueType val = response.getKernel();
+			String kernel = (val != null)?val.getValue():"";
+			val = response.getRamdisk();
+			String ramdisk = (val != null)?val.getValue():"";
+			ArrayList<BlockDeviceMapping> bdm = new ArrayList<BlockDeviceMapping>();
+			BlockDeviceMappingType bdmSet = response.getBlockDeviceMapping();
+			if (bdmSet != null) {
+				for (BlockDeviceMappingItemType mapping : bdmSet.getItems()) {
+					bdm.add(new BlockDeviceMapping(mapping.getVirtualName(), mapping.getDeviceName()));
+				}
+			}
+
+			return new DescribeImageAttributeResult(response.getImageId(), attribute, codes, kernel, ramdisk, bdm);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
@@ -1238,11 +1332,192 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			ConfirmProductInstanceResponse response =
-					makeRequest(method, "ConfirmProductInstanceResponse", params, ConfirmProductInstanceResponse.class);
+					makeRequest(method, "ConfirmProductInstance", params, ConfirmProductInstanceResponse.class);
 			if (response.isReturn()) {
 				return new ProductInstanceInfo(instanceId, productCode, response.getOwnerId());
 			}
 			else return null;
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Returns a list of availability zones and their status.
+	 *
+	 * @param zones a list of zones to limit the results, or null
+	 * @return a list of zones and their availability
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<AvailabilityZone> describeAvailabilityZones(List<String> zones) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		if (zones != null && zones.size() > 0)  {
+			for (int i=0 ; i<zones.size(); i++) {
+				params.put("ZoneName."+(i+1), zones.get(i));
+			}
+		}
+		GetMethod method = new GetMethod();
+		try {
+			DescribeAvailabilityZonesResponse response =
+					makeRequest(method, "DescribeAvailabilityZones", params, DescribeAvailabilityZonesResponse.class);
+			List<AvailabilityZone> ret = new ArrayList<AvailabilityZone>();
+			AvailabilityZoneSetType set = response.getAvailabilityZoneInfo();
+			Iterator set_iter = set.getItems().iterator();
+			while (set_iter.hasNext()) {
+				AvailabilityZoneItemType item = (AvailabilityZoneItemType) set_iter.next();
+				ret.add(new AvailabilityZone(item.getZoneName(), item.getZoneState()));
+			}
+			return ret;
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Returns a list of addresses associated with this account.
+	 *
+	 * @param addresses a list of zones to limit the results, or null
+	 * @return a list of addresses and their associated instance
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<AddressInfo> describeAddresses(List<String> addresses) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		if (addresses != null && addresses.size() > 0)  {
+			for (int i=0 ; i<addresses.size(); i++) {
+				params.put("PublicIp."+(i+1), addresses.get(i));
+			}
+		}
+		GetMethod method = new GetMethod();
+		try {
+			DescribeAddressesResponse response =
+					makeRequest(method, "DescribeAddresses", params, DescribeAddressesResponse.class);
+			List<AddressInfo> ret = new ArrayList<AddressInfo>();
+			DescribeAddressesResponseInfoType set = response.getAddressesSet();
+			Iterator set_iter = set.getItems().iterator();
+			while (set_iter.hasNext()) {
+				DescribeAddressesResponseItemType item = (DescribeAddressesResponseItemType) set_iter.next();
+				ret.add(new AddressInfo(item.getPublicIp(), item.getInstanceId()));
+			}
+			return ret;
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Allocates an address for this account.
+	 *
+	 * @return the new address allocated
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public String allocateAddress() throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		GetMethod method = new GetMethod();
+		try {
+			AllocateAddressResponse response =
+					makeRequest(method, "AllocateAddress", params, AllocateAddressResponse.class);
+		return response.getPublicIp();
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Associates an address with an instance.
+	 *
+	 * @param instanceId the instance
+	 * @param publicIp the ip address to associate
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public void associateAddress(String instanceId, String publicIp) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("InstanceId", instanceId);
+		params.put("PublicIp", publicIp);
+		GetMethod method = new GetMethod();
+		try {
+			AssociateAddressResponse response =
+					makeRequest(method, "AssociateAddress", params, AssociateAddressResponse.class);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not associate address with instance (no reason given).");
+			}
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Disassociates an address with an instance.
+	 *
+	 * @param publicIp the ip address to disassociate
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public void disassociateAddress(String publicIp) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("PublicIp", publicIp);
+		GetMethod method = new GetMethod();
+		try {
+			DisassociateAddressResponse response =
+					makeRequest(method, "DisassociateAddress", params, DisassociateAddressResponse.class);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not disassociate address with instance (no reason given).");
+			}
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Releases an address
+	 *
+	 * @param publicIp the ip address to release
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public void releaseAddress(String publicIp) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("PublicIp", publicIp);
+		GetMethod method = new GetMethod();
+		try {
+			ReleaseAddressResponse response =
+					makeRequest(method, "ReleaseAddress", params, ReleaseAddressResponse.class);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not release address (no reason given).");
+			}
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
