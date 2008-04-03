@@ -288,6 +288,8 @@ public class AWSQueryConnection extends AWSConnection {
 			connParams.setMaxConnectionsPerHost(HostConfiguration.ANY_HOST_CONFIGURATION, maxConnections);
 			connMgr.setParams(connParams);
 			hc = new HttpClient(connMgr);	// maybe, cache this?
+			hc.getParams().setParameter("http.tcp.nodelay", true);
+			hc.getParams().setParameter("http.connection.stalecheck", false); 
 			if (proxyHost != null) {
 				HostConfiguration hostConfig = new HostConfiguration();
 				hostConfig.setProxy(proxyHost, proxyPort);
@@ -344,7 +346,7 @@ public class AWSQueryConnection extends AWSConnection {
 					throw new HttpException("Number of retries exceeded : "+action+", "+errorMsg);
 				}
 				doRetry = false;
-				try { Thread.sleep(retries*1000); } catch (InterruptedException ex) {}
+				try { Thread.sleep((int)Math.pow(2.0, retries)*1000); } catch (InterruptedException ex) {}
 			}
 		} while (!done);
 		return (T)response;

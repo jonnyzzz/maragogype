@@ -40,7 +40,7 @@ import java.util.TreeMap;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import ch.inventec.Base64Coder;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * This class provides common code to the query and rest connection classes
@@ -55,6 +55,9 @@ public abstract class AWSConnection {
     private String server;
     private int port;
 	protected Map <String, List<String>> headers;
+	// used for caching last used Mac obj.. to save time 99.99% of the time
+	private Mac mac;
+	private String lastSecretKey;
 
     /**
 	 * Initializes the queue service with your AWS login information.
@@ -137,22 +140,24 @@ public abstract class AWSConnection {
             new SecretKeySpec(awsSecretKey.getBytes(), "HmacSHA1");
 
         // Acquire the MAC instance and initialize with the signing key.
-        Mac mac = null;
-        try {
-            mac = Mac.getInstance("HmacSHA1");
-        } catch (NoSuchAlgorithmException e) {
-            // should not happen
-            throw new RuntimeException("Could not find sha1 algorithm", e);
-        }
-        try {
-            mac.init(signingKey);
-        } catch (InvalidKeyException e) {
-            // also should not happen
-            throw new RuntimeException("Could not initialize the MAC algorithm", e);
-        }
+		if (mac == null || !lastSecretKey.equals(awsSecretKey)) {
+			try {
+				mac = Mac.getInstance("HmacSHA1");
+			} catch (NoSuchAlgorithmException e) {
+				// should not happen
+				throw new RuntimeException("Could not find sha1 algorithm", e);
+			}
+			try {
+				mac.init(signingKey);
+			} catch (InvalidKeyException e) {
+				// also should not happen
+				throw new RuntimeException("Could not initialize the MAC algorithm", e);
+			}
+			lastSecretKey = new String(awsSecretKey);
+		}
 
         // Compute the HMAC on the digest, and set it.
-        String b64 = new String(Base64Coder.encode(mac.doFinal(canonicalString.getBytes())));
+        String b64 = new String(Base64.encodeBase64(mac.doFinal(canonicalString.getBytes())));
 
         if (urlencode) {
             return urlencode(b64);
