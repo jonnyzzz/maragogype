@@ -153,19 +153,19 @@ public class ReservationDescription {
 		}
 
 		public boolean isRunning() {
-			return this.state.equalsIgnoreCase("running");
+			return this.state.equals("running");
 		}
 
 		public boolean isPending() {
-			return this.state.equalsIgnoreCase("pending");
+			return this.state.equals("pending");
 		}
 
 		public boolean isShuttingDown() {
-			return this.state.equalsIgnoreCase("shutting-down");
+			return this.state.equals("shutting-down");
 		}
 
 		public boolean isTerminated() {
-			return this.state.equalsIgnoreCase("terminated");
+			return this.state.equals("terminated");
 		}
 
 		public int getStateCode() {
