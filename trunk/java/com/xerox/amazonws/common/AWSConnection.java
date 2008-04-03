@@ -56,8 +56,8 @@ public abstract class AWSConnection {
     private int port;
 	protected Map <String, List<String>> headers;
 	// used for caching last used Mac obj.. to save time 99.99% of the time
-	private Mac mac;
-	private String lastSecretKey;
+	private static Mac mac;
+	private static String lastSecretKey;
 
     /**
 	 * Initializes the queue service with your AWS login information.
@@ -153,11 +153,15 @@ public abstract class AWSConnection {
 				// also should not happen
 				throw new RuntimeException("Could not initialize the MAC algorithm", e);
 			}
-			lastSecretKey = new String(awsSecretKey);
+			lastSecretKey = awsSecretKey;
 		}
 
         // Compute the HMAC on the digest, and set it.
-        String b64 = new String(Base64.encodeBase64(mac.doFinal(canonicalString.getBytes())));
+		byte [] signedBytes = null;
+		synchronized (mac) {
+        	signedBytes = mac.doFinal(canonicalString.getBytes());
+		}
+        String b64 = new String(Base64.encodeBase64(signedBytes));
 
         if (urlencode) {
             return urlencode(b64);

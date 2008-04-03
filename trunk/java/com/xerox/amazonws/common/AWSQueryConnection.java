@@ -287,9 +287,10 @@ public class AWSQueryConnection extends AWSConnection {
 			connParams.setMaxTotalConnections(maxConnections);
 			connParams.setMaxConnectionsPerHost(HostConfiguration.ANY_HOST_CONFIGURATION, maxConnections);
 			connMgr.setParams(connParams);
-			hc = new HttpClient(connMgr);	// maybe, cache this?
-			hc.getParams().setParameter("http.tcp.nodelay", true);
-			hc.getParams().setParameter("http.connection.stalecheck", false); 
+			hc = new HttpClient(connMgr);
+// NOTE: These didn't seem to help in my initial testing
+//			hc.getParams().setParameter("http.tcp.nodelay", true);
+//			hc.getParams().setParameter("http.connection.stalecheck", false); 
 			if (proxyHost != null) {
 				HostConfiguration hostConfig = new HostConfiguration();
 				hostConfig.setProxy(proxyHost, proxyPort);
