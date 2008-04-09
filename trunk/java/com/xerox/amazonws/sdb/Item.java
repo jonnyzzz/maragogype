@@ -140,8 +140,8 @@ public class Item extends AWSQueryConnection {
 		}
 		GetMethod method = new GetMethod();
 		try {
-			PutAttributesResponse response =
-						makeRequest(method, "PutAttributes", params, PutAttributesResponse.class);
+			//PutAttributesResponse response =
+			makeRequest(method, "PutAttributes", params, PutAttributesResponse.class);
 		} catch (JAXBException ex) {
 			throw new SDBException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
@@ -176,8 +176,8 @@ public class Item extends AWSQueryConnection {
 		}
 		GetMethod method = new GetMethod();
 		try {
-			DeleteAttributesResponse response =
-						makeRequest(method, "DeleteAttributes", params, DeleteAttributesResponse.class);
+			//DeleteAttributesResponse response =
+			makeRequest(method, "DeleteAttributes", params, DeleteAttributesResponse.class);
 		} catch (JAXBException ex) {
 			throw new SDBException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {

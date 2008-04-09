@@ -295,8 +295,8 @@ public class MessageQueue extends AWSQueryConnection {
 		params.put("MessageId", msgId);
 		GetMethod method = new GetMethod();
 		try {
-			DeleteMessageResponse response =
-					makeRequest(method, "DeleteMessage", params, DeleteMessageResponse.class);
+			//DeleteMessageResponse response =
+			makeRequest(method, "DeleteMessage", params, DeleteMessageResponse.class);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
@@ -327,8 +327,8 @@ public class MessageQueue extends AWSQueryConnection {
 		}
 		GetMethod method = new GetMethod();
 		try {
-			DeleteQueueResponse response =
-					makeRequest(method, "DeleteQueue", params, DeleteQueueResponse.class);
+			//DeleteQueueResponse response =
+			makeRequest(method, "DeleteQueue", params, DeleteQueueResponse.class);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
@@ -364,8 +364,8 @@ public class MessageQueue extends AWSQueryConnection {
 		params.put("VisibilityTimeout", ""+timeout);
 		GetMethod method = new GetMethod();
 		try {
-			ChangeMessageVisibilityResponse response =
-					makeRequest(method, "ChangeMessageVisibility", params, ChangeMessageVisibilityResponse.class);
+			//ChangeMessageVisibilityResponse response =
+			makeRequest(method, "ChangeMessageVisibility", params, ChangeMessageVisibilityResponse.class);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem setting the visibility timeout.", ex);
 		} catch (HttpException ex) {
@@ -459,8 +459,8 @@ public class MessageQueue extends AWSQueryConnection {
 		params.put("Value", value);
 		GetMethod method = new GetMethod();
 		try {
-			SetQueueAttributesResponse response =
-					makeRequest(method, "SetQueueAttributes", params, SetQueueAttributesResponse.class);
+			//SetQueueAttributesResponse response =
+			makeRequest(method, "SetQueueAttributes", params, SetQueueAttributesResponse.class);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem setting the visibility timeout.", ex);
 		} catch (HttpException ex) {
@@ -506,8 +506,8 @@ public class MessageQueue extends AWSQueryConnection {
 	private void addGrant(Map<String, String> params) throws SQSException {
 		GetMethod method = new GetMethod();
 		try {
-			AddGrantResponse response =
-					makeRequest(method, "AddGrant", params, AddGrantResponse.class);
+			//AddGrantResponse response =
+			makeRequest(method, "AddGrant", params, AddGrantResponse.class);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
@@ -552,8 +552,8 @@ public class MessageQueue extends AWSQueryConnection {
 	private void removeGrant(Map<String, String> params) throws SQSException {
 		GetMethod method = new GetMethod();
 		try {
-			RemoveGrantResponse response =
-					makeRequest(method, "RemoveGrant", params, RemoveGrantResponse.class);
+			//RemoveGrantResponse response =
+			makeRequest(method, "RemoveGrant", params, RemoveGrantResponse.class);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {

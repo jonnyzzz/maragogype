@@ -255,8 +255,8 @@ public class MessageQueue extends AWSQueryConnection {
 		params.put("ReceiptHandle", receiptHandle);
 		GetMethod method = new GetMethod();
 		try {
-			DeleteMessageResponse response =
-					makeRequest(method, "DeleteMessage", params, DeleteMessageResponse.class);
+			//DeleteMessageResponse response =
+			makeRequest(method, "DeleteMessage", params, DeleteMessageResponse.class);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
@@ -275,8 +275,8 @@ public class MessageQueue extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		GetMethod method = new GetMethod();
 		try {
-			DeleteQueueResponse response =
-					makeRequest(method, "DeleteQueue", params, DeleteQueueResponse.class);
+			//DeleteQueueResponse response =
+			makeRequest(method, "DeleteQueue", params, DeleteQueueResponse.class);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
@@ -357,8 +357,8 @@ public class MessageQueue extends AWSQueryConnection {
 		params.put("Attribute.Value", value);
 		GetMethod method = new GetMethod();
 		try {
-			SetQueueAttributesResponse response =
-					makeRequest(method, "SetQueueAttributes", params, SetQueueAttributesResponse.class);
+			//SetQueueAttributesResponse response =
+			makeRequest(method, "SetQueueAttributes", params, SetQueueAttributesResponse.class);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem setting the visibility timeout.", ex);
 		} catch (HttpException ex) {

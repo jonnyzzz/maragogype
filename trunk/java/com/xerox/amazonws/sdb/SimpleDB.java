@@ -188,8 +188,8 @@ public class SimpleDB extends AWSQueryConnection {
 		params.put("DomainName", name);
 		GetMethod method = new GetMethod();
 		try {
-			DeleteDomainResponse response =
-						makeRequest(method, "DeleteDomain", params, DeleteDomainResponse.class);
+			//DeleteDomainResponse response =
+			makeRequest(method, "DeleteDomain", params, DeleteDomainResponse.class);
 		} catch (JAXBException ex) {
 			throw new SDBException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {

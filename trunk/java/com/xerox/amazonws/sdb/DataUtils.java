@@ -226,7 +226,7 @@ public class DataUtils {
      * @return string representation of the integer
      */
     public static String encodeRealNumberRange(float number, int maxDigitsLeft, int maxDigitsRight, int offsetValue) {
-        int shiftMultiplier = (int) Math.pow(10, maxDigitsRight);
+        long shiftMultiplier = (long) Math.pow(10, maxDigitsRight);
         long shiftedNumber = (long) Math.round(number * shiftMultiplier);
         long shiftedOffset = offsetValue * shiftMultiplier;
         long offsetNumber = shiftedNumber + shiftedOffset;
@@ -305,7 +305,7 @@ public class DataUtils {
      */
     public static float decodeRealNumberRangeFloat(String value, int maxDigitsRight, int offsetValue) {
         long offsetNumber = Long.parseLong(value, 10);
-        int shiftMultiplier = (int) Math.pow(10, maxDigitsRight);
+        long shiftMultiplier = (long) Math.pow(10, maxDigitsRight);
         double tempVal = (double) (offsetNumber - offsetValue * shiftMultiplier);
         return (float) (tempVal / (double) (shiftMultiplier));
     }

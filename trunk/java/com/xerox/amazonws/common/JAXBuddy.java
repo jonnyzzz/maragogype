@@ -35,7 +35,7 @@ import javax.xml.bind.Unmarshaller;
  * @author developer@dotech.com
  */
 public class JAXBuddy {
-	public static Hashtable<String, JAXBContext> contextCache = new Hashtable<String, JAXBContext>();
+	public final static Hashtable<String, JAXBContext> contextCache = new Hashtable<String, JAXBContext>();
 
 	/**
 	 * A convenience method to turn an object into a stream of XML.
