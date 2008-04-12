@@ -42,6 +42,7 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.UnmarshalException;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HostConfiguration;
@@ -356,9 +357,16 @@ public class AWSQueryConnection extends AWSConnection {
 	private String getErrorDetails(String errorResponse) throws JAXBException {
 		ByteArrayInputStream bais = new ByteArrayInputStream(errorResponse.getBytes());
 		if (errorResponse.indexOf("<ErrorResponse") > -1) {
-			ErrorResponse resp = JAXBuddy.deserializeXMLStream(ErrorResponse.class, bais);
-			Error err = resp.getError().get(0);
-			return "("+err.getCode()+") "+err.getMessage();
+			try {
+				ErrorResponse resp = JAXBuddy.deserializeXMLStream(ErrorResponse.class, bais);
+				Error err = resp.getErrors().get(0);
+				return "("+err.getCode()+") "+err.getMessage();
+			} catch (UnmarshalException ex) {
+				bais = new ByteArrayInputStream(errorResponse.getBytes());
+				com.xerox.amazonws.typica.jaxb.ErrorResponse resp = JAXBuddy.deserializeXMLStream(com.xerox.amazonws.typica.jaxb.ErrorResponse.class, bais);
+				com.xerox.amazonws.typica.jaxb.Error err = resp.getErrors().get(0);
+				return "("+err.getCode()+") "+err.getMessage();
+			}
 		}
 		else {
 			Response resp = JAXBuddy.deserializeXMLStream(Response.class, bais);

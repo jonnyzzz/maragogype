@@ -1,8 +1,21 @@
-<xs:schema 
-  targetNamespace="http://queue.amazonaws.com/doc/2008-01-01/"
-  xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  xmlns:tns="http://queue.amazonaws.com/doc/2008-01-01/"
-  elementFormDefault="qualified">
+<xs:schema targetNamespace="http://queue.amazonaws.com/doc/2008-01-01/"
+			xmlns:xs="http://www.w3.org/2001/XMLSchema"
+			xmlns:tns="http://queue.amazonaws.com/doc/2008-01-01/"
+			xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+			xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+			jaxb:extensionBindingPrefixes="xjc"
+			jaxb:version="2.0"
+			elementFormDefault="qualified">
+
+  <xs:annotation>
+	<xs:documentation xml:lang="en">
+	</xs:documentation>
+	<xs:appinfo>
+      <jaxb:globalBindings>
+      	<xjc:simple/>
+      </jaxb:globalBindings>
+	</xs:appinfo>
+  </xs:annotation>
 
   <!-- **************************** QueueService Interface *************************** -->
 

@@ -72,7 +72,7 @@ public class sdbShell {
 			System.err.println("usage: sdbShell <access key> <secret key> [command file]");
 			System.exit(1);
 		}
-//		try {
+		try {
 			String awsAccessId = args[0];
 			String awsSecretKey = args[1];
 
@@ -227,13 +227,13 @@ public class sdbShell {
 					if (checkDomain(dom)) executeQuery(dom, line);
 				}
 			}
-//		} catch (IOException ex) {
-//			ex.printStackTrace();
-//			if (ex.getCause() != null) {
-//				System.err.println("caused by : ");
-//				ex.getCause().printStackTrace();
-//			}
-//		}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			if (ex.getCause() != null) {
+				System.err.println("caused by : ");
+				ex.getCause().printStackTrace();
+			}
+		}
     }
 
 	private static boolean checkDomain(Domain dom) {

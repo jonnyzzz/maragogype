@@ -70,10 +70,10 @@ public class DevPayLS extends AWSQueryConnection {
 	 *
      * @param awsAccessId The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
-     * @param isSecure True if the data should be encrypted on the wire on the way to or from SDB.
+     * @param isSecure True if the data should be encrypted on the wire on the way to or from LS.
 	 */
     public DevPayLS(String awsAccessId, String awsSecretKey, boolean isSecure) {
-        this(awsAccessId, awsSecretKey, isSecure, "sds.amazonaws.com");
+        this(awsAccessId, awsSecretKey, isSecure, "ls.amazonaws.com");
     }
 
 	/**
@@ -81,7 +81,7 @@ public class DevPayLS extends AWSQueryConnection {
 	 *
      * @param awsAccessId The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
-     * @param isSecure True if the data should be encrypted on the wire on the way to or from SDB.
+     * @param isSecure True if the data should be encrypted on the wire on the way to or from LS.
      * @param server Which host to connect to.  Usually, this will be ls.amazonaws.com
 	 */
     public DevPayLS(String awsAccessId, String awsSecretKey, boolean isSecure,
@@ -96,7 +96,7 @@ public class DevPayLS extends AWSQueryConnection {
 	 *
      * @param awsAccessId The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
-     * @param isSecure True if the data should be encrypted on the wire on the way to or from SDB.
+     * @param isSecure True if the data should be encrypted on the wire on the way to or from LS.
      * @param server Which host to connect to.  Usually, this will be ls.amazonaws.com
      * @param port Which port to use.
      */
@@ -186,15 +186,15 @@ public class DevPayLS extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets list of active subscriptions by persistence identifier
+	 * Gets list of active subscriptions by persistent identifier
 	 *
-	 * @param persistenceIdentifier customers's PID
+	 * @param persistentIdentifier customers's PID
 	 * @return true if product is subscribed
 	 * @throws DevPayException wraps checked exceptions
 	 */
-	public List<String> getActiveSubscriptionsByPid(String persistenceIdentifier) throws DevPayException {
+	public List<String> getActiveSubscriptionsByPid(String persistentIdentifier) throws DevPayException {
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("PersistenceIdentifier", persistenceIdentifier);
+		params.put("PersistentIdentifier", persistentIdentifier);
 		GetMethod method = new GetMethod();
 		try {
 			GetActiveSubscriptionsByPidResponse response =
@@ -216,21 +216,21 @@ public class DevPayLS extends AWSQueryConnection {
 	/**
 	 * Verifies that a specified product is subscribed to by a customer.
 	 *
-	 * @param productToken the product token
-	 * @param userToken the user token
+	 * @param persistentIdentifier customers's PID
+	 * @param productCode the product code
 	 * @return true if product is subscribed
 	 * @throws DevPayException wraps checked exceptions
 	 */
-	public boolean isProductSubscribedByPid(String productToken, String userToken) throws DevPayException {
+	public boolean isProductSubscribedByPid(String persistentIdentifier, String productCode) throws DevPayException {
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("ProductToken", productToken);
-		params.put("UserToken", userToken);
+		params.put("PersistentIdentifier", persistentIdentifier);
+		params.put("ProductCode", productCode);
 		GetMethod method = new GetMethod();
 		try {
-			VerifyProductSubscriptionByTokensResponse response =
-						makeRequest(method, "VerifyProductSubscriptionByTokens", params, VerifyProductSubscriptionByTokensResponse.class);
+			VerifyProductSubscriptionByPidResponse response =
+						makeRequest(method, "VerifyProductSubscriptionByPid", params, VerifyProductSubscriptionByPidResponse.class);
 
-			VerifyProductSubscriptionByTokensResult result = response.getVerifyProductSubscriptionByTokensResult();
+			VerifyProductSubscriptionByPidResult result = response.getVerifyProductSubscriptionByPidResult();
 			return result.isSubscribed();
 		} catch (JAXBException ex) {
 			throw new DevPayException("Problem parsing returned message.", ex);
@@ -246,21 +246,21 @@ public class DevPayLS extends AWSQueryConnection {
 	/**
 	 * Verifies that a specified product is subscribed to by a customer.
 	 *
-	 * @param persistenceIdentifier customers's PID
-	 * @param productCode the product code
+	 * @param productToken the product token
+	 * @param userToken the user token
 	 * @return the list of product codes 
 	 * @throws DevPayException wraps checked exceptions
 	 */
-	public boolean isProductSubscribedByTokens(String persistenceIdentifier, String productCode) throws DevPayException {
+	public boolean isProductSubscribedByTokens(String productToken, String userToken) throws DevPayException {
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("PersistenceIdentifier", persistenceIdentifier);
-		params.put("ProductCode", productCode);
+		params.put("ProductToken", productToken);
+		params.put("UserToken", userToken);
 		GetMethod method = new GetMethod();
 		try {
-			VerifyProductSubscriptionByPidResponse response =
-						makeRequest(method, "VerifyProductSubscriptionByPid", params, VerifyProductSubscriptionByPidResponse.class);
+			VerifyProductSubscriptionByTokensResponse response =
+						makeRequest(method, "VerifyProductSubscriptionByTokens", params, VerifyProductSubscriptionByTokensResponse.class);
 
-			VerifyProductSubscriptionByPidResult result = response.getVerifyProductSubscriptionByPidResult();
+			VerifyProductSubscriptionByTokensResult result = response.getVerifyProductSubscriptionByTokensResult();
 			return result.isSubscribed();
 		} catch (JAXBException ex) {
 			throw new DevPayException("Problem parsing returned message.", ex);

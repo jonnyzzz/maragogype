@@ -212,12 +212,12 @@ public class MessageQueue extends AWSQueryConnection {
 		try {
 			ReceiveMessageResponse response =
 					makeRequest(method, "ReceiveMessage", params, ReceiveMessageResponse.class);
-			if (response.getReceiveMessageResult().getMessage() == null) {
+			if (response.getReceiveMessageResult().getMessages() == null) {
 				return new Message[0];
 			}
 			else {
 				ArrayList<Message> msgs = new ArrayList();
-				for (com.xerox.amazonws.typica.sqs2.jaxb.Message msg : response.getReceiveMessageResult().getMessage()) {
+				for (com.xerox.amazonws.typica.sqs2.jaxb.Message msg : response.getReceiveMessageResult().getMessages()) {
 					String decodedMsg = enableEncoding?
 								new String(Base64.decodeBase64(msg.getBody().getBytes())):
 											msg.getBody();
@@ -318,7 +318,7 @@ public class MessageQueue extends AWSQueryConnection {
 			GetQueueAttributesResponse response =
 					makeRequest(method, "GetQueueAttributes", params, GetQueueAttributesResponse.class);
 			Map<String,String> ret = new HashMap<String,String>();
-			List<Attribute> attrs = response.getGetQueueAttributesResult().getAttribute();
+			List<Attribute> attrs = response.getGetQueueAttributesResult().getAttributes();
 			for (Attribute attr : attrs) {
 				ret.put(attr.getName(), attr.getValue());
 			}
