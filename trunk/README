@@ -1,9 +1,9 @@
-typica 1.1
-29-Febrary-2008
+typica 1.2
+12-April-2008
 
 http://code.google.com/p/typica
 
-This is a simple API to access Amazon's SQS, EC2 and SimpleDB web services. It uses the QUERY interface and patterns the methods after those available from Amazon in their SOAP client for these services. This code is thread-safe and works very reliably to the best of my knowledge. I've been using it on a system where sending messages in SQS is critical and we manage pools of servers in EC2.
+This is a simple API to access Amazon's SQS, EC2, SimpleDB and DevPay web services. It uses the QUERY interface and patterns the methods after those available from Amazon in their SOAP client for these services. This code is thread-safe and works very reliably to the best of my knowledge. I've been using it on a system where sending messages in SQS is critical and we manage pools of servers in EC2.
 
 Distribution files;
 README      - this file
@@ -18,55 +18,65 @@ ant test.main -Dclass=TestQueueService -Dargs=testQueue
 
 Change history for this release;
 ------------------------------------------------------------------------
-r117 | dkavanagh | 2008-03-04 14:07:02 -0500 (Tue, 04 Mar 2008) | 2 lines
+r134 | dkavanagh | 2008-04-12 18:34:30 -0400 (Sat, 12 Apr 2008) | 2 lines
 
-re-worked class inheritance to be more sane
+fixes for DevPay interface, error response handling
 ------------------------------------------------------------------------
-r114 | dkavanagh | 2008-02-28 10:03:23 -0500 (Thu, 28 Feb 2008) | 2 lines
+r133 | dkavanagh | 2008-04-09 17:53:06 -0400 (Wed, 09 Apr 2008) | 2 lines
 
-fixed queue attribute call for sqs2; added error response handling for new error schema <ErrorResponse>
+small changes based on running findbugs on the code
 ------------------------------------------------------------------------
-r113 | dkavanagh | 2008-02-27 20:55:44 -0500 (Wed, 27 Feb 2008) | 2 lines
+r132 | dkavanagh | 2008-04-03 15:47:17 -0400 (Thu, 03 Apr 2008) | 2 lines
 
-corrected large # of javadoc errors
+support beans for EC2 return types
 ------------------------------------------------------------------------
-r112 | dkavanagh | 2008-02-27 14:31:51 -0500 (Wed, 27 Feb 2008) | 2 lines
+r131 | dkavanagh | 2008-04-03 15:46:33 -0400 (Thu, 03 Apr 2008) | 2 lines
 
-implemented signature version 0 for SimpleDB code.. allows UTF-8 chars in data
+fixed Mac caching. backed out http client params.. no effect on performance
 ------------------------------------------------------------------------
-r111 | dkavanagh | 2008-02-27 09:18:58 -0500 (Wed, 27 Feb 2008) | 2 lines
+r130 | dkavanagh | 2008-04-03 00:27:41 -0400 (Thu, 03 Apr 2008) | 2 lines
 
-sets version and arch info in user agent string
+changed from equalsIgnoreCase() to equals().. thanks Steve
 ------------------------------------------------------------------------
-r110 | dkavanagh | 2008-02-08 08:52:52 -0500 (Fri, 08 Feb 2008) | 2 lines
+r129 | dkavanagh | 2008-04-03 00:21:30 -0400 (Thu, 03 Apr 2008) | 3 lines
 
-schema for 2008-01-01 SQS API
+cache Mac obj for signing, finally switched base connection class from invetec base64coder.
+now, use proper expotential backoff on error retry, aset http connect params tospeed up ws calls
 ------------------------------------------------------------------------
-r109 | dkavanagh | 2008-02-08 08:51:35 -0500 (Fri, 08 Feb 2008) | 2 lines
+r128 | dkavanagh | 2008-03-30 20:52:55 -0400 (Sun, 30 Mar 2008) | 2 lines
 
-added support for new SQS API. Some testing done. posted some issues to forum.
+support for EC2 2008-02-01 API. Fixed proxy host setting (thanks Steve).
 ------------------------------------------------------------------------
-r108 | dkavanagh | 2008-02-08 08:48:17 -0500 (Fri, 08 Feb 2008) | 2 lines
+r127 | dkavanagh | 2008-03-28 13:31:57 -0400 (Fri, 28 Mar 2008) | 2 lines
 
-added methods for other data types (long, double)
+changed aws endpoint.
 ------------------------------------------------------------------------
-r107 | dkavanagh | 2008-02-08 08:47:43 -0500 (Fri, 08 Feb 2008) | 2 lines
+r126 | dkavanagh | 2008-03-27 09:38:34 -0400 (Thu, 27 Mar 2008) | 2 lines
 
-added method to set thread pool size for those threaded operations
+minor javadoc fixes, and support for DevPay License Service API
 ------------------------------------------------------------------------
-r106 | dkavanagh | 2008-02-08 08:47:01 -0500 (Fri, 08 Feb 2008) | 2 lines
+r125 | dkavanagh | 2008-03-26 15:25:24 -0400 (Wed, 26 Mar 2008) | 2 lines
 
-don't set attribute params if attribute value is null
+allow setting of proxy values to be used when connecting to the web service.
 ------------------------------------------------------------------------
-r105 | dkavanagh | 2008-01-24 10:17:11 -0500 (Thu, 24 Jan 2008) | 2 lines
+r124 | dkavanagh | 2008-03-24 20:50:39 -0400 (Mon, 24 Mar 2008) | 2 lines
 
-added rejectedExecutionHandler for threaded operations. DataUtils helps with data type conversion in SimpleDB
+fixes to test code
 ------------------------------------------------------------------------
-r104 | dkavanagh | 2008-01-21 14:45:02 -0500 (Mon, 21 Jan 2008) | 2 lines
+r123 | dkavanagh | 2008-03-24 20:39:28 -0400 (Mon, 24 Mar 2008) | 2 lines
 
-added command to get a bunch of items/attributes in one call
+converted test code to load aws id/key from aws.properties file
 ------------------------------------------------------------------------
-r103 | dkavanagh | 2008-01-21 14:32:51 -0500 (Mon, 21 Jan 2008) | 2 lines
+r122 | dkavanagh | 2008-03-10 14:00:16 -0400 (Mon, 10 Mar 2008) | 2 lines
 
-Added methods to Domain to do threaded get of multiple attributes at once
+fixed bug that didn't set item signature version when a list of items is returned (as in a domain query)
+------------------------------------------------------------------------
+r121 | dkavanagh | 2008-03-07 14:18:35 -0500 (Fri, 07 Mar 2008) | 2 lines
+
+reset HttpClient when max connections value is changed
+------------------------------------------------------------------------
+r120 | dkavanagh | 2008-03-07 14:15:49 -0500 (Fri, 07 Mar 2008) | 3 lines
+
+uses MultiThreadedHttpConnectionManager to properly re-use connections under threaded conditions.
+retries calls when SocketException is thrown
 ------------------------------------------------------------------------
