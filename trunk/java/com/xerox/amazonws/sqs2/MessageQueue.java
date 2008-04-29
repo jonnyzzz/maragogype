@@ -36,6 +36,7 @@ import java.util.Map;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -378,10 +379,14 @@ public class MessageQueue extends AWSQueryConnection {
 		return super.makeURL(queueId+resource);
 	}
 
-	public static List<MessageQueue> createList(String [] queueUrls, String awsAccessId, String awsSecretKey, boolean isSecure, String server) throws SQSException {
+	public static List<MessageQueue> createList(String [] queueUrls, String awsAccessId,
+								String awsSecretKey, boolean isSecure, String server, HttpClient hc)
+			throws SQSException {
 		ArrayList<MessageQueue> ret = new ArrayList<MessageQueue>();
 		for (int i=0; i<queueUrls.length; i++) {
-			ret.add(new MessageQueue(queueUrls[i], awsAccessId, awsSecretKey, isSecure, server));
+			MessageQueue mq = new MessageQueue(queueUrls[i], awsAccessId, awsSecretKey, isSecure, server);
+			mq.setHttpClient(hc);
+			ret.add(mq);
 		}
 		return ret;
 	}

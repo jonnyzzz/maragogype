@@ -4,9 +4,9 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.xerox.amazonws.sqs.MessageQueue;
-import com.xerox.amazonws.sqs.Message;
-import com.xerox.amazonws.sqs.SQSUtils;
+import com.xerox.amazonws.sqs2.MessageQueue;
+import com.xerox.amazonws.sqs2.Message;
+import com.xerox.amazonws.sqs2.SQSUtils;
 
 /**
  * This sample application creates a queue with the specified name (if the queue doesn't

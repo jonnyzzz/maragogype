@@ -155,6 +155,7 @@ public class SimpleDB extends AWSQueryConnection {
 			Domain ret = new Domain(name, getAwsAccessKeyId(), getSecretAccessKey(),
 									isSecure(), getServer());
 			ret.setSignatureVersion(getSignatureVersion());
+			ret.setHttpClient(getHttpClient());
 			return ret;
 		} catch (JAXBException ex) {
 			throw new SDBException("Problem parsing returned message.", ex);
@@ -211,6 +212,7 @@ public class SimpleDB extends AWSQueryConnection {
 		Domain ret = new Domain(domainName, getAwsAccessKeyId(), getSecretAccessKey(),
 								isSecure(), getServer());
 		ret.setSignatureVersion(getSignatureVersion());
+		ret.setHttpClient(getHttpClient());
 		return ret;
 	}
 
@@ -236,7 +238,7 @@ public class SimpleDB extends AWSQueryConnection {
 			return new ListDomainsResult(response.getListDomainsResult().getNextToken(),
 							Domain.createList(response.getListDomainsResult().getDomainNames().toArray(new String[] {}),
 								getAwsAccessKeyId(), getSecretAccessKey(),
-								isSecure(), getServer(), getSignatureVersion()));
+								isSecure(), getServer(), getSignatureVersion(), getHttpClient()));
 		} catch (JAXBException ex) {
 			throw new SDBException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {

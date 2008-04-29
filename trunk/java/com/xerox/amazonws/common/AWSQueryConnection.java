@@ -158,6 +158,7 @@ public class AWSQueryConnection extends AWSConnection {
 	public void setProxyValues(String host, int port) {
 		this.proxyHost = host;
 		this.proxyPort = port;
+		hc = null;
 	}
 
 	/**
@@ -173,6 +174,7 @@ public class AWSQueryConnection extends AWSConnection {
 		this.proxyPort = port;
 		this.proxyUser = user;
 		this.proxyPassword = password;
+		hc = null;
 	}
 
 	/**
@@ -192,6 +194,7 @@ public class AWSQueryConnection extends AWSConnection {
 		}
 		this.proxyUser = System.getProperty("http.proxyUser");
 		this.proxyPassword = System.getProperty("http.proxyPassword");
+		hc = null;
 	}
 
 	/**
@@ -214,6 +217,17 @@ public class AWSQueryConnection extends AWSConnection {
 			throw new IllegalArgumentException("Only signature versions 0 and 1 supported");
 		}
 		sigVersion = version;
+	}
+
+	protected HttpClient getHttpClient() {
+		if (hc == null) {
+			configureHttpClient();
+		}
+		return hc;
+	}
+
+	public void setHttpClient(HttpClient hc) {
+		this.hc = hc;
 	}
 
     /**
@@ -282,27 +296,6 @@ public class AWSQueryConnection extends AWSConnection {
 		if (sigVersion == 0) {
 			method.setRequestHeader(new Header("Content-Type", "application/x-www-form-urlencoded; charset=utf-8"));
 		}
-		if (hc == null) {
-			MultiThreadedHttpConnectionManager connMgr = new MultiThreadedHttpConnectionManager();
-			HttpConnectionManagerParams connParams = connMgr.getParams();
-			connParams.setMaxTotalConnections(maxConnections);
-			connParams.setMaxConnectionsPerHost(HostConfiguration.ANY_HOST_CONFIGURATION, maxConnections);
-			connMgr.setParams(connParams);
-			hc = new HttpClient(connMgr);
-// NOTE: These didn't seem to help in my initial testing
-//			hc.getParams().setParameter("http.tcp.nodelay", true);
-//			hc.getParams().setParameter("http.connection.stalecheck", false); 
-			if (proxyHost != null) {
-				HostConfiguration hostConfig = new HostConfiguration();
-				hostConfig.setProxy(proxyHost, proxyPort);
-				hc.setHostConfiguration(hostConfig);
-				log.info("Proxy Host set to "+proxyHost+":"+proxyHost);
-				if (proxyUser != null && !proxyUser.trim().equals("")) {
-					hc.getState().setProxyCredentials(new AuthScope(proxyHost, proxyPort),
-							new UsernamePasswordCredentials(proxyUser, proxyPassword));
-				}
-			}
-		}
 		Object response = null;
 		boolean done = false;
 		int retries = 0;
@@ -311,7 +304,7 @@ public class AWSQueryConnection extends AWSConnection {
 		do {
 			int responseCode = 600;	// default to high value, so we don't think it is valid
 			try {
-				responseCode = hc.executeMethod(method);
+				responseCode = getHttpClient().executeMethod(method);
 			} catch (SocketException ex) {
 				// these can generally be retried. Treat it like a 500 error
 				doRetry = true;
@@ -352,6 +345,28 @@ public class AWSQueryConnection extends AWSConnection {
 			}
 		} while (!done);
 		return (T)response;
+	}
+
+	private void configureHttpClient() {
+		MultiThreadedHttpConnectionManager connMgr = new MultiThreadedHttpConnectionManager();
+		HttpConnectionManagerParams connParams = connMgr.getParams();
+		connParams.setMaxTotalConnections(maxConnections);
+		connParams.setMaxConnectionsPerHost(HostConfiguration.ANY_HOST_CONFIGURATION, maxConnections);
+		connMgr.setParams(connParams);
+		hc = new HttpClient(connMgr);
+// NOTE: These didn't seem to help in my initial testing
+//			hc.getParams().setParameter("http.tcp.nodelay", true);
+//			hc.getParams().setParameter("http.connection.stalecheck", false); 
+		if (proxyHost != null) {
+			HostConfiguration hostConfig = new HostConfiguration();
+			hostConfig.setProxy(proxyHost, proxyPort);
+			hc.setHostConfiguration(hostConfig);
+			log.info("Proxy Host set to "+proxyHost+":"+proxyHost);
+			if (proxyUser != null && !proxyUser.trim().equals("")) {
+				hc.getState().setProxyCredentials(new AuthScope(proxyHost, proxyPort),
+						new UsernamePasswordCredentials(proxyUser, proxyPassword));
+			}
+		}
 	}
 
 	private String getErrorDetails(String errorResponse) throws JAXBException {

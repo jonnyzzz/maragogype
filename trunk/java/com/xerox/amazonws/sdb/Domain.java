@@ -33,6 +33,7 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.GetMethod;
 
@@ -52,6 +53,7 @@ public class Domain extends AWSQueryConnection {
 
 	private String domainName;
 	private int maxThreads = 30;
+	private ThreadPoolExecutor executor;
 
     protected Domain(String domainName, String awsAccessId,
 							String awsSecretKey, boolean isSecure,
@@ -99,6 +101,7 @@ public class Domain extends AWSQueryConnection {
 		Item ret = new Item(identifier, domainName, getAwsAccessKeyId(), getSecretAccessKey(),
 										isSecure(), getServer());
 		ret.setSignatureVersion(getSignatureVersion());
+		ret.setHttpClient(getHttpClient());
 		return ret;
 	}
 
@@ -161,7 +164,7 @@ public class Domain extends AWSQueryConnection {
 			return new QueryResult(response.getQueryResult().getNextToken(),
 					Item.createList(response.getQueryResult().getItemNames().toArray(new String[] {}), domainName,
 								getAwsAccessKeyId(), getSecretAccessKey(),
-								isSecure(), getServer(), getSignatureVersion()));
+								isSecure(), getServer(), getSignatureVersion(), getHttpClient()));
 		} catch (JAXBException ex) {
 			throw new SDBException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
@@ -183,8 +186,7 @@ public class Domain extends AWSQueryConnection {
 	 */
 	public Map<String, List<ItemAttribute>> getItemsAttributes(List<String> items) throws SDBException {
 		Map<String, List<ItemAttribute>> results = new Hashtable<String, List<ItemAttribute>>();
-		ThreadPoolExecutor pool =
-				new ThreadPoolExecutor(maxThreads, maxThreads, 5, TimeUnit.SECONDS, new ArrayBlockingQueue(maxThreads));
+		ThreadPoolExecutor pool = getThreadPoolExecutor();
 		pool.setRejectedExecutionHandler(new RejectionHandler());
 
 		for (String item : items) {
@@ -213,8 +215,7 @@ public class Domain extends AWSQueryConnection {
 	 * @throws SDBException wraps checked exceptions
 	 */
 	public void getItemsAttributes(List<String> items, ItemListener listener) throws SDBException {
-		ThreadPoolExecutor pool =
-				new ThreadPoolExecutor(maxThreads, maxThreads, 5, TimeUnit.SECONDS, new ArrayBlockingQueue(maxThreads));
+		ThreadPoolExecutor pool = getThreadPoolExecutor();
 		pool.setRejectedExecutionHandler(new RejectionHandler());
 
 		for (String item : items) {
@@ -242,8 +243,7 @@ public class Domain extends AWSQueryConnection {
 	 * @throws SDBException wraps checked exceptions
 	 */
 	public void listItemsAttributes(String queryString, ItemListener listener) throws SDBException {
-		ThreadPoolExecutor pool =
-				new ThreadPoolExecutor(maxThreads, maxThreads, 5, TimeUnit.SECONDS, new ArrayBlockingQueue(maxThreads));
+		ThreadPoolExecutor pool = getThreadPoolExecutor();
 		pool.setRejectedExecutionHandler(new RejectionHandler());
         String nextToken = "";
         do {
@@ -283,16 +283,33 @@ public class Domain extends AWSQueryConnection {
 		getItem(identifier).deleteAttributes(null);
 	}
 
-	static List<Domain> createList(String [] domainNames, String awsAccessKeyId, String awsSecretAccessKey, boolean isSecure, String server, int signatureVersion) throws SDBException {
+	static List<Domain> createList(String [] domainNames, String awsAccessKeyId,
+									String awsSecretAccessKey, boolean isSecure,
+									String server, int signatureVersion, HttpClient hc)
+			throws SDBException {
 		ArrayList<Domain> ret = new ArrayList<Domain>();
 		for (int i=0; i<domainNames.length; i++) {
-			Domain dom =new Domain(domainNames[i], awsAccessKeyId, awsSecretAccessKey, isSecure, server);
+			Domain dom = new Domain(domainNames[i], awsAccessKeyId, awsSecretAccessKey, isSecure, server);
 			dom.setSignatureVersion(signatureVersion);
+			dom.setHttpClient(hc);
 			ret.add(dom);
 		}
 		return ret;
 	}
 
+	public ThreadPoolExecutor getThreadPoolExecutor() {
+		if (executor != null) {
+			return executor;
+		}
+		else {
+			return new ThreadPoolExecutor(maxThreads, maxThreads, 5,
+							TimeUnit.SECONDS, new ArrayBlockingQueue(maxThreads));
+		}
+	}
+	
+	public void setThreadPoolExecutor(ThreadPoolExecutor executor) {
+		this.executor = executor;
+	}
 
 	protected class RejectionHandler implements RejectedExecutionHandler {
 		public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {

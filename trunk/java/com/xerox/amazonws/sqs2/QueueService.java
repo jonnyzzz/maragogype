@@ -121,9 +121,11 @@ public class QueueService extends AWSQueryConnection {
 			try {
 				CreateQueueResponse response =
 						makeRequest(method, "CreateQueue", params, CreateQueueResponse.class);
-				return new MessageQueue(response.getCreateQueueResult().getQueueUrl(),
+				MessageQueue ret = new MessageQueue(response.getCreateQueueResult().getQueueUrl(),
 									getAwsAccessKeyId(), getSecretAccessKey(),
 									isSecure(), getServer());
+				ret.setHttpClient(getHttpClient());
+				return ret;
 			} catch (JAXBException ex) {
 				throw new SQSException("Problem parsing returned message.", ex);
 			} catch (HttpException ex) {
@@ -149,8 +151,10 @@ public class QueueService extends AWSQueryConnection {
 				!queueName.startsWith("http")) {
 			throw new IllegalArgumentException("Queue name must be more fully specified or use getOrCreateMessageQueue().");
 		}
-		return new MessageQueue(queueName, getAwsAccessKeyId(), getSecretAccessKey(),
+		MessageQueue ret = new MessageQueue(queueName, getAwsAccessKeyId(), getSecretAccessKey(),
 									isSecure(), getServer());
+		ret.setHttpClient(getHttpClient());
+		return ret;
     }
 
 	/**
@@ -178,7 +182,7 @@ public class QueueService extends AWSQueryConnection {
 			else {
 				return MessageQueue.createList(urls.toArray(new String[] {}),
 								getAwsAccessKeyId(), getSecretAccessKey(),
-								isSecure(), getServer());
+								isSecure(), getServer(), getHttpClient());
 			}
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);

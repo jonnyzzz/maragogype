@@ -62,14 +62,14 @@
 		<copy toDir="${typica.classes}">
 			<fileset dir="xsd" includes="**/*"/>
 		</copy>
-		<javac srcdir="${typica.generated}" includes="**/*.java" destdir="${typica.classes}" debug="on">
+		<javac srcdir="${typica.generated}" includes="**/*.java" destdir="${typica.classes}" debug="on" target="1.5">
 			<classpath refid="typica.compile.classpath" />
 		</javac>
 		<copy todir="${typica.classes}">
 			<fileset dir="${typica.generated}" includes="**/*.ser"/>
 			<fileset dir="${typica.generated}" includes="**/*.properties"/>
 		</copy>
-		<javac destdir="${typica.classes}" debug="on">
+		<javac destdir="${typica.classes}" debug="on" target="1.5">
 			<src path="${typica.src}" />
 			<classpath refid="typica.compile.classpath" />
 		</javac>
@@ -77,7 +77,7 @@
 
 	<target name="test.compile" depends="compile" description="Compile test java files">
 		<property name="test.src.path" value="test/java"/>
-		<javac destdir="${typica.classes}" debug="on">
+		<javac destdir="${typica.classes}" debug="on" target="1.5">
 			<src path="test/java" />
 			<classpath refid="typica.compile.classpath" />
 		</javac>

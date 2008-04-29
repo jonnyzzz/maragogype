@@ -28,6 +28,7 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.GetMethod;
 
@@ -189,11 +190,15 @@ public class Item extends AWSQueryConnection {
 		}
 	}
 
-	static List<Item> createList(String [] itemNames, String domainName, String awsAccessId, String awsSecretKey, boolean isSecure, String server, int signatureVersion) throws SDBException {
+	static List<Item> createList(String [] itemNames, String domainName, String awsAccessId,
+								String awsSecretKey, boolean isSecure, String server,
+								int signatureVersion, HttpClient hc)
+			throws SDBException {
 		ArrayList<Item> ret = new ArrayList<Item>();
 		for (int i=0; i<itemNames.length; i++) {
 			Item item = new Item(itemNames[i], domainName, awsAccessId, awsSecretKey, isSecure, server);
 			item.setSignatureVersion(signatureVersion);
+			item.setHttpClient(hc);
 			ret.add(item);
 		}
 		return ret;
