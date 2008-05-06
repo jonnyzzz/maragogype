@@ -189,19 +189,25 @@ public class Domain extends AWSQueryConnection {
 		ThreadPoolExecutor pool = getThreadPoolExecutor();
 		pool.setRejectedExecutionHandler(new RejectionHandler());
 
+		Counter running = new Counter(0);
 		for (String item : items) {
 			while (pool.getActiveCount() == pool.getMaximumPoolSize()) {
 				try { Thread.sleep(100); } catch (InterruptedException ex) { }
 			}
-			pool.execute(new AttrWorker(getItem(item), results, null));
+			synchronized (running) {
+				running.increment();
+			}
+			pool.execute(new AttrWorker(getItem(item), running, results, null));
 			Thread.yield();
 		}
-		pool.shutdown();
 		while (true) {
-			try {
-				pool.awaitTermination(999999, TimeUnit.SECONDS);
+			if (running.getValue() == 0) {
 				break;
-			} catch (InterruptedException ex) {}
+			}
+			try { Thread.sleep(500); } catch (InterruptedException ex) { }
+		}
+		if (this.executor == null) {
+			pool.shutdown();
 		}
 		return results;
 	}
@@ -218,19 +224,25 @@ public class Domain extends AWSQueryConnection {
 		ThreadPoolExecutor pool = getThreadPoolExecutor();
 		pool.setRejectedExecutionHandler(new RejectionHandler());
 
+		Counter running = new Counter(0);
 		for (String item : items) {
 			while (pool.getActiveCount() == pool.getMaximumPoolSize()) {
 				try { Thread.sleep(100); } catch (InterruptedException ex) { }
 			}
-			pool.execute(new AttrWorker(getItem(item), null, listener));
+			synchronized (running) {
+				running.increment();
+			}
+			pool.execute(new AttrWorker(getItem(item), running, null, listener));
 			Thread.yield();
 		}
-		pool.shutdown();
 		while (true) {
-			try {
-				pool.awaitTermination(999999, TimeUnit.SECONDS);
+			if (running.getValue() == 0) {
 				break;
-			} catch (InterruptedException ex) {}
+			}
+			try { Thread.sleep(500); } catch (InterruptedException ex) { }
+		}
+		if (this.executor == null) {
+			pool.shutdown();
 		}
 	}
 
@@ -246,6 +258,7 @@ public class Domain extends AWSQueryConnection {
 		ThreadPoolExecutor pool = getThreadPoolExecutor();
 		pool.setRejectedExecutionHandler(new RejectionHandler());
         String nextToken = "";
+		Counter running = new Counter(0);
         do {
             try {
                 QueryResult result = listItems(queryString, nextToken, 250);
@@ -254,7 +267,10 @@ public class Domain extends AWSQueryConnection {
 					while (pool.getActiveCount() == pool.getMaximumPoolSize()) {
 						try { Thread.sleep(100); } catch (InterruptedException ex) { }
 					}
-					pool.execute(new AttrWorker(i, null, listener));
+					synchronized (running) {
+						running.increment();
+					}
+					pool.execute(new AttrWorker(i, running, null, listener));
 					Thread.yield();
                 }
                 nextToken = result.getNextToken();
@@ -264,12 +280,14 @@ public class Domain extends AWSQueryConnection {
                 ex.printStackTrace();
             }
         } while (nextToken != null && nextToken.trim().length() > 0);
-		pool.shutdown();
 		while (true) {
-			try {
-				pool.awaitTermination(999999, TimeUnit.SECONDS);
+			if (running.getValue() == 0) {
 				break;
-			} catch (InterruptedException ex) {}
+			}
+			try { Thread.sleep(500); } catch (InterruptedException ex) { }
+		}
+		if (this.executor == null) {
+			pool.shutdown();
 		}
 	}
 

@@ -28,11 +28,13 @@ import java.util.Map;
  */
 class AttrWorker implements Runnable {
 	private Item item;
+	private Counter running;
 	private Map<String, List<ItemAttribute>> results;
 	private ItemListener listener;
 
-	public AttrWorker(Item item, Map<String, List<ItemAttribute>> results, ItemListener listener) {
+	public AttrWorker(Item item, Counter running, Map<String, List<ItemAttribute>> results, ItemListener listener) {
 		this.item = item;
+		this.running = running;
 		this.results = results;
 		this.listener = listener;
 	}
@@ -50,6 +52,11 @@ class AttrWorker implements Runnable {
 				done = true;
 			} catch (SDBException sdbex) {
 				System.err.println("some sdb error, retrying... "+sdbex.getMessage());
+			}
+			finally {
+				synchronized (running) {
+					running.decrement();
+				}
 			}
 		}
 	}
