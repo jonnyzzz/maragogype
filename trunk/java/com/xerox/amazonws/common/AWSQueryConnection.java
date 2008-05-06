@@ -50,6 +50,7 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.httpclient.NTCredentials;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
@@ -81,6 +82,7 @@ public class AWSQueryConnection extends AWSConnection {
 	private int proxyPort;
 	private String proxyUser;
 	private String proxyPassword;
+	private String proxyDomain;	// for ntlm authentication
 
     /**
 	 * Initializes the queue service with your AWS login information.
@@ -178,6 +180,24 @@ public class AWSQueryConnection extends AWSConnection {
 	}
 
 	/**
+	 * This method sets the proxy host, port, user, password and domain (for NTLM authentication)
+	 *
+	 * @param host the proxy host
+	 * @param port the proxy port
+	 * @param user the proxy user
+	 * @param password the proxy password
+	 * @param domain the proxy domain
+	 */
+	public void setProxyValues(String host, int port, String user, String password, String domain) {
+		this.proxyHost = host;
+		this.proxyPort = port;
+		this.proxyUser = user;
+		this.proxyPassword = password;
+		this.proxyDomain = domain;
+		hc = null;
+	}
+
+	/**
 	 * This method indicates the system properties should be used for proxy settings. These
 	 * properties are http.proxyHost, http.proxyPort, http.proxyUser and http.proxyPassword
 	 */
@@ -194,6 +214,7 @@ public class AWSQueryConnection extends AWSConnection {
 		}
 		this.proxyUser = System.getProperty("http.proxyUser");
 		this.proxyPassword = System.getProperty("http.proxyPassword");
+		this.proxyDomain = System.getProperty("http.proxyDomain");
 		hc = null;
 	}
 
@@ -363,8 +384,14 @@ public class AWSQueryConnection extends AWSConnection {
 			hc.setHostConfiguration(hostConfig);
 			log.info("Proxy Host set to "+proxyHost+":"+proxyHost);
 			if (proxyUser != null && !proxyUser.trim().equals("")) {
-				hc.getState().setProxyCredentials(new AuthScope(proxyHost, proxyPort),
-						new UsernamePasswordCredentials(proxyUser, proxyPassword));
+				if (proxyDomain != null) {
+					hc.getState().setProxyCredentials(new AuthScope(proxyHost, proxyPort),
+							new NTCredentials(proxyUser, proxyPassword, proxyHost, proxyDomain));
+				}
+				else {
+					hc.getState().setProxyCredentials(new AuthScope(proxyHost, proxyPort),
+							new UsernamePasswordCredentials(proxyUser, proxyPassword));
+				}
 			}
 		}
 	}
