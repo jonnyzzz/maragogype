@@ -1,7 +1,7 @@
-#This will highlight real apps that use typica.
+This will highlight real apps that use typica.
 
 WIP...
 
-* IntelliJ EC2 plugin
-* lifeguard
-* elasticweb
+ * IntelliJ EC2 plugin
+ * lifeguard
+ * elasticweb
