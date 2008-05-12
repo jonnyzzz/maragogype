@@ -151,6 +151,7 @@ public abstract class AWSConnection {
 				mac.init(signingKey);
 			} catch (InvalidKeyException e) {
 				// also should not happen
+				mac = null;
 				throw new RuntimeException("Could not initialize the MAC algorithm", e);
 			}
 			lastSecretKey = awsSecretKey;
