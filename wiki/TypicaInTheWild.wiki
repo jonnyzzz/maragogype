@@ -2,6 +2,7 @@ This will highlight real apps that use typica.
 
 WIP...
 
- * IntelliJ EC2 plugin
- * lifeguard
- * elasticweb
+ * [http://blog.elastic-grid.com/2008/04/23/screencast-1-amazon-ec2-plugin-for-intellij/ IntelliJ EC2 plugin]
+ * [http://code.google.com/p/lifeguard/ Lifeguard]
+ * [http://code.google.com/p/elasticweb/ Elasticweb]
+ * [http://code.google.com/p/t-437/ t-437 SimplDB Console]
