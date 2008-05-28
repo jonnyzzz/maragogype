@@ -19,7 +19,9 @@ package com.xerox.amazonws.common;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -346,19 +348,18 @@ public class AWSQueryConnection extends AWSConnection {
 			}
 			else if (responseCode < 500) {
 				// 400's : parse client error message
-				String body = method.getResponseBodyAsString();
+				String body = getStringFromStream(method.getResponseBodyAsStream());
 				throw new HttpException("Client error : "+getErrorDetails(body));
 			}
 			else if (responseCode < 600) {
 				// 500's : retry...
 				doRetry = true;
-				String body = method.getResponseBodyAsString();
+				String body = getStringFromStream(method.getResponseBodyAsStream());
 				errorMsg = getErrorDetails(body);
 			}
 			if (doRetry) {
 				retries++;
 				if (retries > maxRetries) {
-					String body = method.getResponseBodyAsString();
 					throw new HttpException("Number of retries exceeded : "+action+", "+errorMsg);
 				}
 				doRetry = false;
@@ -382,7 +383,7 @@ public class AWSQueryConnection extends AWSConnection {
 			HostConfiguration hostConfig = new HostConfiguration();
 			hostConfig.setProxy(proxyHost, proxyPort);
 			hc.setHostConfiguration(hostConfig);
-			log.info("Proxy Host set to "+proxyHost+":"+proxyHost);
+			log.info("Proxy Host set to "+proxyHost+":"+proxyPort);
 			if (proxyUser != null && !proxyUser.trim().equals("")) {
 				if (proxyDomain != null) {
 					hc.getState().setProxyCredentials(new AuthScope(proxyHost, proxyPort),
@@ -394,6 +395,20 @@ public class AWSQueryConnection extends AWSConnection {
 				}
 			}
 		}
+	}
+
+	private String getStringFromStream(InputStream iStr) throws IOException {
+		InputStreamReader rdr = new InputStreamReader(iStr, "UTF-8");
+		StringWriter wtr = new StringWriter();
+		char [] buf = new char[1024];
+		int bytes;
+		while ((bytes = rdr.read(buf)) > -1) {
+			if (bytes > 0) {
+				wtr.write(buf, 0, bytes);
+			}
+		}
+		iStr.close();
+		return wtr.toString();
 	}
 
 	private String getErrorDetails(String errorResponse) throws JAXBException {
