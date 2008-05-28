@@ -488,42 +488,76 @@ public class Jec2 extends AWSQueryConnection {
 			boolean publicAddr, InstanceType type, String availabilityZone,
 			String kernelId, String ramdiskId, List<BlockDeviceMapping> blockDeviceMappings)
 				throws EC2Exception {
+
+		LaunchConfiguration lc = new LaunchConfiguration(imageId);
+		lc.setMinCount(minCount);
+		lc.setMaxCount(maxCount);
+		lc.setSecurityGroup(groupSet);
+		if (userData != null) {
+			lc.setUserData(userData.getBytes());
+		}
+		lc.setKeyName(keyName);
+		lc.setInstanceType(type);
+		lc.setAvailabilityZone(availabilityZone);
+		lc.setKernelId(kernelId);
+		lc.setRamdiskId(ramdiskId);
+		lc.setBlockDevicemappings(blockDeviceMappings);
+		return runInstances(lc);
+	}
+
+	/**
+	 * Requests reservation of a number of instances.
+	 * <p>
+	 * This will begin launching those instances for which a reservation was
+	 * successfully obtained.
+	 * <p>
+	 * If less than <code>minCount</code> instances are available no instances
+	 * will be reserved.
+	 * 
+	 * @param lc object containing launch configuration
+	 * @return A {@link com.xerox.amazonws.ec2.ReservationDescription} describing the instances that
+	 *         have been reserved.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public ReservationDescription runInstances(LaunchConfiguration lc) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("ImageId", imageId);
-		params.put("MinCount", ""+minCount);
-		params.put("MaxCount", ""+maxCount);
-		if (userData != null && !userData.trim().equals("")) {
-			params.put("UserData", new String(Base64.encodeBase64(userData.getBytes())));
+		params.put("ImageId", lc.getImageId());
+		params.put("MinCount", "" + lc.getMinCount());
+		params.put("MaxCount", "" + lc.getMaxCount());
+
+		byte[] userData = lc.getUserData();
+		if (userData != null && userData.length > 0) {
+			params.put("UserData",
+			new String(Base64.encodeBase64(userData)));
 		}
-		if (publicAddr) {
-			params.put("AddressingType", "public");
-		}
-		else {
-			params.put("AddressingType", "direct");
-		}
+		params.put("AddressingType", "public");
+		String keyName = lc.getKeyName();
 		if (keyName != null && !keyName.trim().equals("")) {
 			params.put("KeyName", keyName);
 		}
-		if (groupSet != null) {
-			for (int i=0 ; i<groupSet.size(); i++) {
-				params.put("SecurityGroup."+(i+1), groupSet.get(i));
+
+		if (lc.getSecurityGroup() != null) {
+			for(int i = 0; i < lc.getSecurityGroup().size(); i++) {
+				params.put("SecurityGroup." + (i + 1), lc.getSecurityGroup().get(i));
 			}
 		}
-		params.put("InstanceType", type.getTypeId());
-		if (availabilityZone != null && !availabilityZone.trim().equals("")) {
-			params.put("Placement.AvailabilityZone", availabilityZone);
+		params.put("InstanceType", lc.getInstanceType().getTypeId());
+		if (lc.getAvailabilityZone() != null && !lc.getAvailabilityZone().trim().equals("")) {
+			params.put("Placement.AvailabilityZone", lc.getAvailabilityZone());
 		}
-		if (kernelId != null && !kernelId.trim().equals("")) {
-			params.put("KernelId", kernelId);
+		if (lc.getKernelId() != null && !lc.getKernelId().trim().equals("")) {
+			params.put("KernelId", lc.getKernelId());
 		}
-		if (ramdiskId != null && !ramdiskId.trim().equals("")) {
-			params.put("RamdiskId", ramdiskId);
+		if (lc.getRamdiskId() != null && !lc.getRamdiskId().trim().equals("")) {
+			params.put("RamdiskId", lc.getRamdiskId());
 		}
-		if (blockDeviceMappings != null) {
-			for (int i=0 ; i<blockDeviceMappings.size(); i++) {
-				BlockDeviceMapping bdm = blockDeviceMappings.get(i);
-				params.put("BlockDeviceMapping."+(i+1)+".VirtualName", bdm.getVirtualName());
-				params.put("BlockDeviceMapping."+(i+1)+".DeviceName", bdm.getDeviceName());
+		if (lc.getBlockDevicemappings() != null) {
+			for(int i = 0; i < lc.getBlockDevicemappings().size(); i++) {
+				BlockDeviceMapping bdm = lc.getBlockDevicemappings().get(i);
+				params.put("BlockDeviceMapping." + (i + 1) + ".VirtualName",
+				bdm.getVirtualName());
+				params.put("BlockDeviceMapping." + (i + 1) + ".DeviceName",
+				bdm.getDeviceName());
 			}
 		}
 
