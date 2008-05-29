@@ -83,12 +83,17 @@ public class DequeueSample {
 
 			// Try to retrieve (dequeue) the message, and then delete it.
 			Message msg = null;
-			while ((msg = msgQueue.receiveMessage()) != null) {
+			while (true) {
+				msg = msgQueue.receiveMessage();
+				if (msg == null) {
+					logger.debug("nothing... retrying");
+					try { Thread.sleep(1000); } catch (Exception ex) {}
+					continue;
+				}
 				String text = msg.getMessageBody();
-
-				log.debug("msg : "+text);
-				msgQueue.deleteMessage( msg.getMessageId() );
-				log.info( "Deleted message id " + msg.getMessageId());
+				logger.info("msg : "+text);
+				msgQueue.deleteMessage(msg);
+				logger.info( "Deleted message id " + msg.getMessageId());
 				count++;
 			}
 		} catch ( Exception ex ) {
