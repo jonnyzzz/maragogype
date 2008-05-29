@@ -20,6 +20,7 @@ import com.xerox.amazonws.ec2.ImageListAttributeItem;
 import com.xerox.amazonws.ec2.ImageListAttribute.ImageListAttributeItemType;
 import com.xerox.amazonws.ec2.InstanceType;
 import com.xerox.amazonws.ec2.KeyPairInfo;
+import com.xerox.amazonws.ec2.LaunchConfiguration;
 import com.xerox.amazonws.ec2.LaunchPermissionAttribute;
 import com.xerox.amazonws.ec2.ProductCodesAttribute;
 import com.xerox.amazonws.ec2.ProductInstanceInfo;
@@ -33,7 +34,7 @@ public class TestJec2 {
 		Properties props = new Properties();
 		props.load(TestJec2.class.getClassLoader().getResourceAsStream("aws.properties"));
 
-		Jec2 ec2 = new Jec2(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"), false, "localhost");
+		Jec2 ec2 = new Jec2(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
 		List<String> params = new ArrayList<String>();
 	
 /*
@@ -59,10 +60,10 @@ public class TestJec2 {
 		for (AddressInfo info : addrs) {
 			logger.info("address : "+info.getPublicIp()+" instance : "+info.getInstanceId());
 		}
-		String publicIp = ec2.allocateAddress();
-		logger.info("Address allocated : "+publicIp);
+//		String publicIp = ec2.allocateAddress();
+//		logger.info("Address allocated : "+publicIp);
 
-//		ec2.runInstances("ami-20b65349", 1, 1, new ArrayList<String>(), null, "dak-keypair");
+//		ReservationDescription runInst = ec2.runInstances(new LaunchConfiguration("ami-20b65349", 1, 1));
 		ReservationDescription runInst = ec2.runInstances("ami-36ff1a5f", 1, 1, new ArrayList<String>(), null, "dak-keypair", true, InstanceType.LARGE, "us-east-1c", null, null, null);
 
 /*
@@ -81,14 +82,14 @@ public class TestJec2 {
 			}
 		}
 
-		ec2.associateAddress(runInst.getInstances().get(0).getInstanceId(), publicIp);
+//		ec2.associateAddress(runInst.getInstances().get(0).getInstanceId(), publicIp);
 
-		addrs = ec2.describeAddresses(null);
-		for (AddressInfo info : addrs) {
-			logger.info("address : "+info.getPublicIp()+" instance : "+info.getInstanceId());
-		}
-		ec2.disassociateAddress(publicIp);
-		ec2.releaseAddress(publicIp);
+//		addrs = ec2.describeAddresses(null);
+//		for (AddressInfo info : addrs) {
+//			logger.info("address : "+info.getPublicIp()+" instance : "+info.getInstanceId());
+//		}
+//		ec2.disassociateAddress(publicIp);
+//		ec2.releaseAddress(publicIp);
 
 		ec2.terminateInstances(new String [] {runInst.getInstances().get(0).getInstanceId()});
 

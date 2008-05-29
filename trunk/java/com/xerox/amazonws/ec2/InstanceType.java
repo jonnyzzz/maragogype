@@ -23,7 +23,9 @@ package com.xerox.amazonws.ec2;
 public enum InstanceType {
 	DEFAULT ("m1.small"),
 	LARGE ("m1.large"),
-	XLARGE ("m1.xlarge");
+	XLARGE ("m1.xlarge"),
+	MEDIUM_HCPU ("c1.medium"),
+	XLARGE_HCPU ("c1.xlarge");
 
 	private final String typeId;
 
