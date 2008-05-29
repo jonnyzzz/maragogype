@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema targetNamespace="http://ls.amazonaws.com/doc/2007-06-05/"
+<xs:schema targetNamespace="http://ls.amazonaws.com/doc/2008-04-28/"
 		xmlns:xs="http://www.w3.org/2001/XMLSchema"
-		xmlns:tns="http://ls.amazonaws.com/doc/2007-06-05/"
+		xmlns:tns="http://ls.amazonaws.com/doc/2008-04-28/"
 		elementFormDefault="qualified">
 
 
@@ -48,6 +48,26 @@
 	<xs:complexType>
 	  <xs:sequence>
 		<xs:element ref="tns:ActivateHostedProductResult"/>
+		<xs:element ref="tns:ResponseMetadata"/>
+	  </xs:sequence>
+	</xs:complexType>
+  </xs:element>
+
+  <!-- RefreshUserToken Action -->
+  <xs:element name="RefreshUserToken">
+	<xs:complexType>
+	  <xs:sequence>
+		<xs:element name="UserToken" type="xs:string"/>
+		<xs:element name="AdditionalTokens" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+	  </xs:sequence>
+	</xs:complexType>
+  </xs:element>
+
+  <!-- RefreshUserToken Action Response -->
+  <xs:element name="RefreshUserTokenResponse">
+	<xs:complexType>
+	  <xs:sequence>
+		<xs:element ref="tns:RefreshUserTokenResult"/>
 		<xs:element ref="tns:ResponseMetadata"/>
 	  </xs:sequence>
 	</xs:complexType>
@@ -133,6 +153,14 @@
 	</xs:complexType>
   </xs:element>
 
+  <xs:element name="RefreshUserTokenResult">
+	<xs:complexType>
+	  <xs:sequence>
+		<xs:element name="UserToken" type="xs:string"/>
+	  </xs:sequence>
+	</xs:complexType>
+  </xs:element>
+
   <xs:element name="VerifyProductSubscriptionByTokensResult">
 	<xs:complexType>
 	  <xs:sequence>
@@ -199,4 +227,3 @@
 	</xs:complexType>
   </xs:element>
 </xs:schema>
-

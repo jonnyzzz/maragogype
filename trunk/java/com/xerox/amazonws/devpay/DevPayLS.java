@@ -39,6 +39,8 @@ import com.xerox.amazonws.typica.jaxb.ActivateHostedProductResponse;
 import com.xerox.amazonws.typica.jaxb.ActivateHostedProductResult;
 import com.xerox.amazonws.typica.jaxb.GetActiveSubscriptionsByPidResponse;
 import com.xerox.amazonws.typica.jaxb.GetActiveSubscriptionsByPidResult;
+import com.xerox.amazonws.typica.jaxb.RefreshUserTokenResponse;
+import com.xerox.amazonws.typica.jaxb.RefreshUserTokenResult;
 import com.xerox.amazonws.typica.jaxb.VerifyProductSubscriptionByPidResponse;
 import com.xerox.amazonws.typica.jaxb.VerifyProductSubscriptionByPidResult;
 import com.xerox.amazonws.typica.jaxb.VerifyProductSubscriptionByTokensResponse;
@@ -273,9 +275,41 @@ public class DevPayLS extends AWSQueryConnection {
 		}
 	}
 
+	/**
+	 * Gets the most up-to-date version of the user token.
+	 *
+	 * @param userToken the user token
+	 * @param additionalTokens optional token (see dev guide), null if not used
+	 * @return the list of product codes 
+	 * @throws DevPayException wraps checked exceptions
+	 */
+	public String refreshUserToken(String userToken, String additionalTokens) throws DevPayException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("UserToken", userToken);
+		if (additionalTokens != null) {
+			params.put("AdditionalTokens", additionalTokens);
+		}
+		GetMethod method = new GetMethod();
+		try {
+			RefreshUserTokenResponse response =
+						makeRequest(method, "RefreshUserToken", params, RefreshUserTokenResponse.class);
+
+			RefreshUserTokenResult result = response.getRefreshUserTokenResult();
+			return result.getUserToken();
+		} catch (JAXBException ex) {
+			throw new DevPayException("Problem parsing returned message.", ex);
+		} catch (HttpException ex) {
+			throw new DevPayException(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new DevPayException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
 	static void setVersionHeader(AWSQueryConnection connection) {
 		ArrayList vals = new ArrayList();
-		vals.add("2007-06-05");
+		vals.add("2008-04-28");
 		connection.getHeaders().put("Version", vals);
 	}
 }
