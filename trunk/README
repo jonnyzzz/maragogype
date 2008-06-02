@@ -1,5 +1,5 @@
-typica 1.2
-12-April-2008
+typica 1.3
+02-June-2008
 
 http://code.google.com/p/typica
 
@@ -18,65 +18,42 @@ ant test.main -Dclass=TestQueueService -Dargs=testQueue
 
 Change history for this release;
 ------------------------------------------------------------------------
-r134 | dkavanagh | 2008-04-12 18:34:30 -0400 (Sat, 12 Apr 2008) | 2 lines
+r147 | dkavanagh | 2008-05-29 12:38:04 -0400 (Thu, 29 May 2008) | 2 lines
 
-fixes for DevPay interface, error response handling
+support for new instance types
 ------------------------------------------------------------------------
-r133 | dkavanagh | 2008-04-09 17:53:06 -0400 (Wed, 09 Apr 2008) | 2 lines
+r146 | dkavanagh | 2008-05-29 10:17:14 -0400 (Thu, 29 May 2008) | 2 lines
 
-small changes based on running findbugs on the code
+Updated DevPay to API version 2008-04-28
 ------------------------------------------------------------------------
-r132 | dkavanagh | 2008-04-03 15:47:17 -0400 (Thu, 03 Apr 2008) | 2 lines
+r145 | dkavanagh | 2008-05-27 23:47:12 -0400 (Tue, 27 May 2008) | 2 lines
 
-support beans for EC2 return types
+utility code for fetching instance metadata/userdata, and methods for encoding a map of params to a string of user data, and decoding a string back to a map of params
 ------------------------------------------------------------------------
-r131 | dkavanagh | 2008-04-03 15:46:33 -0400 (Thu, 03 Apr 2008) | 2 lines
+r144 | dkavanagh | 2008-05-27 21:44:53 -0400 (Tue, 27 May 2008) | 2 lines
 
-fixed Mac caching. backed out http client params.. no effect on performance
+code to pull error responses from stream, instead of relying on httpclient to buffer (removes periodic runtime warning)
 ------------------------------------------------------------------------
-r130 | dkavanagh | 2008-04-03 00:27:41 -0400 (Thu, 03 Apr 2008) | 2 lines
+r143 | dkavanagh | 2008-05-27 21:19:55 -0400 (Tue, 27 May 2008) | 2 lines
 
-changed from equalsIgnoreCase() to equals().. thanks Steve
+changes to support new LaunchConfiguration object to better manage EC2 instance launch params. Thanks Moritz
 ------------------------------------------------------------------------
-r129 | dkavanagh | 2008-04-03 00:21:30 -0400 (Thu, 03 Apr 2008) | 3 lines
+r141 | dkavanagh | 2008-05-12 07:55:55 -0400 (Mon, 12 May 2008) | 2 lines
 
-cache Mac obj for signing, finally switched base connection class from invetec base64coder.
-now, use proper expotential backoff on error retry, aset http connect params tospeed up ws calls
+clear mac object in the rare occurance of an initialization failure
 ------------------------------------------------------------------------
-r128 | dkavanagh | 2008-03-30 20:52:55 -0400 (Sun, 30 Mar 2008) | 2 lines
+r138 | dkavanagh | 2008-05-06 09:40:13 -0400 (Tue, 06 May 2008) | 2 lines
 
-support for EC2 2008-02-01 API. Fixed proxy host setting (thanks Steve).
+changes to handle NTLM autentication with proxies, thanks Jawahar!
 ------------------------------------------------------------------------
-r127 | dkavanagh | 2008-03-28 13:31:57 -0400 (Fri, 28 Mar 2008) | 2 lines
+r137 | dkavanagh | 2008-05-05 22:58:10 -0400 (Mon, 05 May 2008) | 2 lines
 
-changed aws endpoint.
+now, threaded calls don't kill the thread pool that may have been supplied externally
 ------------------------------------------------------------------------
-r126 | dkavanagh | 2008-03-27 09:38:34 -0400 (Thu, 27 Mar 2008) | 2 lines
+r136 | dkavanagh | 2008-04-29 07:44:17 -0400 (Tue, 29 Apr 2008) | 5 lines
 
-minor javadoc fixes, and support for DevPay License Service API
-------------------------------------------------------------------------
-r125 | dkavanagh | 2008-03-26 15:25:24 -0400 (Wed, 26 Mar 2008) | 2 lines
-
-allow setting of proxy values to be used when connecting to the web service.
-------------------------------------------------------------------------
-r124 | dkavanagh | 2008-03-24 20:50:39 -0400 (Mon, 24 Mar 2008) | 2 lines
-
-fixes to test code
-------------------------------------------------------------------------
-r123 | dkavanagh | 2008-03-24 20:39:28 -0400 (Mon, 24 Mar 2008) | 2 lines
-
-converted test code to load aws id/key from aws.properties file
-------------------------------------------------------------------------
-r122 | dkavanagh | 2008-03-10 14:00:16 -0400 (Mon, 10 Mar 2008) | 2 lines
-
-fixed bug that didn't set item signature version when a list of items is returned (as in a domain query)
-------------------------------------------------------------------------
-r121 | dkavanagh | 2008-03-07 14:18:35 -0500 (Fri, 07 Mar 2008) | 2 lines
-
-reset HttpClient when max connections value is changed
-------------------------------------------------------------------------
-r120 | dkavanagh | 2008-03-07 14:15:49 -0500 (Fri, 07 Mar 2008) | 3 lines
-
-uses MultiThreadedHttpConnectionManager to properly re-use connections under threaded conditions.
-retries calls when SocketException is thrown
+updated SQS samples to use new API
+httpclient (which manages connection pool) is now passed to child objects (queue, simpledb)
+ThreadPoolExecutor can now be managed externally (simpledb)
+build now forces 1.5 bytecodes
 ------------------------------------------------------------------------
