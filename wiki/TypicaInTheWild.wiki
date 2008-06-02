@@ -1,6 +1,16 @@
+#labels Featured
 Typica sees a steady stream of downloads for every release, which is extremely gratifying. I've asked for typica users to share how typica is being used. To that end, this page will highlight projects that are using typica to interface with AWS.
 
- * [http://blog.elastic-grid.com/intellij/amazon-ec2/ IntelliJ EC2 plugin]
- * [http://code.google.com/p/t-437/ t-437 SimplDB Console]
- * [http://code.google.com/p/lifeguard/ Lifeguard]
- * [http://code.google.com/p/elasticweb/ Elasticweb]
+
+[http://blog.elastic-grid.com/intellij/amazon-ec2/ IntelliJ EC2 plugin]
+
+  http://blog.elastic-grid.com/wp-content/plugins/wp-image-resizer/thumb/phpThumb.php?fltr=usm&src=//wp-content/uploads/2007/11/amazon_ec2_527.png&w=400
+
+
+[http://code.google.com/p/t-437/ t-437 SimplDB Console]
+
+
+[http://code.google.com/p/lifeguard/ Lifeguard]
+
+
+[http://code.google.com/p/elasticweb/ Elasticweb]
