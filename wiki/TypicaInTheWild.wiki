@@ -16,3 +16,5 @@ Typica sees a steady stream of downloads for every release, which is extremely g
 [http://code.google.com/p/elasticweb/ Elasticweb]
 
   http://elasticweb.googlecode.com/svn/wiki/ClientScreenshot.png
+
+[http://code.google.com/p/simplejpa/ SimpleJPA - persistent objects in SimpleDB]
