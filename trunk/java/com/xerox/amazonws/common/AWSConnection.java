@@ -58,6 +58,7 @@ public abstract class AWSConnection {
 	// used for caching last used Mac obj.. to save time 99.99% of the time
 	private static Mac mac;
 	private static String lastSecretKey;
+	private static Object macSync = new Object();
 
     /**
 	 * Initializes the queue service with your AWS login information.
@@ -140,21 +141,23 @@ public abstract class AWSConnection {
             new SecretKeySpec(awsSecretKey.getBytes(), "HmacSHA1");
 
         // Acquire the MAC instance and initialize with the signing key.
-		if (mac == null || !lastSecretKey.equals(awsSecretKey)) {
-			try {
-				mac = Mac.getInstance("HmacSHA1");
-			} catch (NoSuchAlgorithmException e) {
-				// should not happen
-				throw new RuntimeException("Could not find sha1 algorithm", e);
+		synchronized (macSync) {
+			if (mac == null || !lastSecretKey.equals(awsSecretKey)) {
+				try {
+					mac = Mac.getInstance("HmacSHA1");
+				} catch (NoSuchAlgorithmException e) {
+					// should not happen
+					throw new RuntimeException("Could not find sha1 algorithm", e);
+				}
+				try {
+					mac.init(signingKey);
+				} catch (InvalidKeyException e) {
+					// also should not happen
+					mac = null;
+					throw new RuntimeException("Could not initialize the MAC algorithm", e);
+				}
+				lastSecretKey = awsSecretKey;
 			}
-			try {
-				mac.init(signingKey);
-			} catch (InvalidKeyException e) {
-				// also should not happen
-				mac = null;
-				throw new RuntimeException("Could not initialize the MAC algorithm", e);
-			}
-			lastSecretKey = awsSecretKey;
 		}
 
         // Compute the HMAC on the digest, and set it.
