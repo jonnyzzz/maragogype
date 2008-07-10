@@ -40,7 +40,7 @@ public class EnqueueSample {
 			MessageQueue msgQueue = SQSUtils.connectToQueue(queueName, AWSAccessKeyId, SecretAccessKey);
 			log.info(" url returned = "+msgQueue.getUrl());
 
-			String msgId = msgQueue.sendMessage( Base64Coder.encodeString(message) );
+			String msgId = msgQueue.sendMessage(message);
 			log.info( "Sent message with id " + msgId );
 		} catch ( Exception ex ) {
 			log.error( "EXCEPTION", ex );
