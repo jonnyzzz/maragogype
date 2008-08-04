@@ -120,4 +120,44 @@ public class SQSUtils {
 		}
 		return msgQueue;
 	}
+
+	/**
+	 * This method will block until the requested message queue is fetched or created.
+	 * Good for those times when the app simply must have a message queue to run.
+	 *
+	 * @param qs the queue service we're using
+	 * @param queueName the name of the queue to find or create
+	 * @return object representing the message queue
+	 */
+	public static MessageQueue getQueueOrElse(QueueService qs, String queueName) {
+		MessageQueue ret = null;
+		while (ret == null) {
+			try {
+				ret = qs.getOrCreateMessageQueue(queueName);
+			} catch (SQSException ex) {
+				logger.error("Error access message queue, Retrying.", ex);
+				try { Thread.sleep(1000); } catch (InterruptedException iex) { }
+			}
+		}
+		return ret;
+	}
+
+	/**
+	 * This method will block until the message has been sent.
+	 * Good for those times when the app simply must send the message to proceed.
+	 *
+	 * @param queue the queue the message is sent to
+	 * @param message the message to send
+	 */
+	public static void sendMessageForSure(MessageQueue queue, String message) {
+		while (true) {
+			try {
+				queue.sendMessage(message);
+				return;
+			} catch (SQSException ex) {
+				logger.warn("Error sending message, Retrying.");
+				try { Thread.sleep(2000); } catch (InterruptedException iex) {}
+			}
+		}
+	}
 }
