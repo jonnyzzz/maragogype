@@ -135,7 +135,7 @@ public class Domain extends AWSQueryConnection {
 	 * @throws SDBException wraps checked exceptions
 	 */
 	public QueryResult listItems(String queryString, String nextToken) throws SDBException {
-		return listItems(queryString, null, 0);
+		return listItems(queryString, nextToken, 0);
 	}
 
 	/**
