@@ -68,6 +68,7 @@ public class EC2Utils {
 				else {
 					logger.debug("Problem getting instance data, retrying...");
 					try { Thread.sleep((int)Math.pow(2.0, retries)*1000); } catch (InterruptedException e) {}
+					retries++;
 				}
 			}
 		}
@@ -96,6 +97,7 @@ public class EC2Utils {
 				else {
 					logger.debug("Problem getting instance data, retrying...");
 					try { Thread.sleep((int)Math.pow(2.0, retries)*1000); } catch (InterruptedException e) {}
+					retries++;
 				}
 			}
 		}
@@ -131,6 +133,7 @@ public class EC2Utils {
 				else {
 					logger.debug("Problem getting user data, retrying...");
 					try { Thread.sleep((int)Math.pow(2.0, retries)*1000); } catch (InterruptedException e) {}
+					retries++;
 				}
 			}
 		}
