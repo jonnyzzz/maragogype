@@ -13,7 +13,7 @@ Typica sees a steady stream of downloads for every release, which is extremely g
 [http://code.google.com/p/t-437/ t-437 SimplDB Console]
 
 
-[http://code.google.com/p/lifeguard/ Lifeguard] - Manages EC2 servers to provided scalable processing
+[http://code.google.com/p/lifeguard/ Lifeguard] - Manages EC2 servers to provide scalable processing
 
 
 [http://code.google.com/p/elasticweb/ Elasticweb] - Software to manage your web tier in EC2
