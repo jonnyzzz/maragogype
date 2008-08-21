@@ -1,6 +1,6 @@
 //
 // typica - A client library for Amazon Web Services
-// Copyright (C) 2007 Xerox Corporation
+// Copyright (C) 2007,2008 Xerox Corporation
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -47,30 +47,44 @@ import org.apache.commons.logging.LogFactory;
 
 import com.xerox.amazonws.typica.jaxb.AllocateAddressResponse;
 import com.xerox.amazonws.typica.jaxb.AssociateAddressResponse;
+import com.xerox.amazonws.typica.jaxb.AttachmentSetResponseType;
+import com.xerox.amazonws.typica.jaxb.AttachmentSetItemResponseType;
+import com.xerox.amazonws.typica.jaxb.AttachVolumeResponse;
 import com.xerox.amazonws.typica.jaxb.AvailabilityZoneItemType;
 import com.xerox.amazonws.typica.jaxb.AvailabilityZoneSetType;
 import com.xerox.amazonws.typica.jaxb.AuthorizeSecurityGroupIngressResponse;
 import com.xerox.amazonws.typica.jaxb.BlockDeviceMappingType;
 import com.xerox.amazonws.typica.jaxb.BlockDeviceMappingItemType;
 import com.xerox.amazonws.typica.jaxb.CreateKeyPairResponse;
+import com.xerox.amazonws.typica.jaxb.CreateSnapshotResponse;
+import com.xerox.amazonws.typica.jaxb.CreateVolumeResponse;
 import com.xerox.amazonws.typica.jaxb.ConfirmProductInstanceResponse;
 import com.xerox.amazonws.typica.jaxb.CreateSecurityGroupResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteKeyPairResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteSecurityGroupResponse;
+import com.xerox.amazonws.typica.jaxb.DeleteSnapshotResponse;
+import com.xerox.amazonws.typica.jaxb.DeleteVolumeResponse;
+import com.xerox.amazonws.typica.jaxb.DeregisterImageResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponseInfoType;
 import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponseItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeAvailabilityZonesResponse;
-import com.xerox.amazonws.typica.jaxb.DeregisterImageResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeImageAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseInfoType;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsSetResponseType;
+import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsSetItemResponseType;
+import com.xerox.amazonws.typica.jaxb.DescribeVolumesResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeVolumesSetResponseType;
+import com.xerox.amazonws.typica.jaxb.DescribeVolumesSetItemResponseType;
 import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponseInfoType;
 import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponseItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeSecurityGroupsResponse;
+import com.xerox.amazonws.typica.jaxb.DetachVolumeResponse;
 import com.xerox.amazonws.typica.jaxb.DisassociateAddressResponse;
 import com.xerox.amazonws.typica.jaxb.GetConsoleOutputResponse;
 import com.xerox.amazonws.typica.jaxb.GroupItemType;
@@ -165,7 +179,7 @@ public class Jec2 extends AWSQueryConnection {
     {
 		super(awsAccessId, awsSecretKey, isSecure, server, port);
 		ArrayList vals = new ArrayList();
-		vals.add("2008-02-01");
+		vals.add("2008-05-05");
 		super.headers.put("Version", vals);
     }
 
@@ -1468,7 +1482,7 @@ public class Jec2 extends AWSQueryConnection {
 		try {
 			AllocateAddressResponse response =
 					makeRequest(method, "AllocateAddress", params, AllocateAddressResponse.class);
-		return response.getPublicIp();
+			return response.getPublicIp();
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
@@ -1562,4 +1576,303 @@ public class Jec2 extends AWSQueryConnection {
 			method.releaseConnection();
 		}
 	}
+
+	/**
+	 * Allocates an address for this account.
+	 *
+	 * @return the new address allocated
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public VolumeInfo createVolume(String size, String snapshotId, String zoneName) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		if (size != null && !size.equals("")) {
+			params.put("Size", size);
+		}
+		params.put("SnapshotId", (snapshotId==null)?"":snapshotId);
+		params.put("AvailabilityZone", zoneName);
+		GetMethod method = new GetMethod();
+		try {
+			CreateVolumeResponse response =
+					makeRequest(method, "CreateVolume", params, CreateVolumeResponse.class);
+			return new VolumeInfo(response.getVolumeId(), response.getSize(),
+								response.getSnapshotId(), response.getAvailabilityZone(), response.getStatus(),
+								response.getCreateTime().toGregorianCalendar());
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Releases an address
+	 *
+	 * @param volumeId the ip address to release
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public void deleteVolume(String volumeId) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("VolumeId", volumeId);
+		GetMethod method = new GetMethod();
+		try {
+			DeleteVolumeResponse response =
+					makeRequest(method, "DeleteVolume", params, DeleteVolumeResponse.class);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not release delete volume (no reason given).");
+			}
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Gets a list of running instances.
+	 * <p>
+	 * If the array of instance IDs is empty then a list of all instances owned
+	 * by the caller will be returned. Otherwise the list will contain
+	 * information for the requested instances only.
+	 * 
+	 * @param volumeIds An array of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
+	 * @return A list of {@link com.xerox.amazonws.ec2.ReservationDescription} instances.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<VolumeInfo> describeVolumes(String[] volumeIds) throws EC2Exception {
+		return this.describeVolumes(Arrays.asList(volumeIds));
+	}
+
+	/**
+	 * Gets a list of running instances.
+	 * <p>
+	 * If the list of instance IDs is empty then a list of all instances owned
+	 * by the caller will be returned. Otherwise the list will contain
+	 * information for the requested instances only.
+	 * 
+	 * @param volumeIds A list of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
+	 * @return A list of {@link com.xerox.amazonws.ec2.ReservationDescription} instances.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<VolumeInfo> describeVolumes(List<String> volumeIds) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		for (int i=0 ; i<volumeIds.size(); i++) {
+			params.put("VolumeId."+(i+1), volumeIds.get(i));
+		}
+		GetMethod method = new GetMethod();
+		try {
+			DescribeVolumesResponse response =
+					makeRequest(method, "DescribeVolumes", params, DescribeVolumesResponse.class);
+			List<VolumeInfo> result = new ArrayList<VolumeInfo>();
+			DescribeVolumesSetResponseType res_set = response.getVolumeSet();
+			Iterator reservations_iter = res_set.getItems().iterator();
+			while (reservations_iter.hasNext()) {
+				DescribeVolumesSetItemResponseType item = (DescribeVolumesSetItemResponseType) reservations_iter.next();
+				VolumeInfo vol = new VolumeInfo(item.getVolumeId(), item.getSize(),
+									item.getSnapshotId(), item.getAvailabilityZone(), item.getStatus(),
+									item.getCreateTime().toGregorianCalendar());
+				AttachmentSetResponseType set = item.getAttachmentSet();
+				Iterator attachments_iter = set.getItems().iterator();
+				while (attachments_iter.hasNext()) {
+					AttachmentSetItemResponseType as_item = (AttachmentSetItemResponseType) attachments_iter
+														.next();
+					vol.addAttachmentInfo(as_item.getVolumeId(),
+									as_item.getInstanceId(),
+									as_item.getDevice(),
+									as_item.getStatus(),
+									as_item.getAttachTime().toGregorianCalendar());
+				}
+				result.add(vol);
+			}
+			return result;
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Allocates an address for this account.
+	 *
+	 * @return the new address allocated
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public AttachmentInfo attachVolume(String volumeId, String instanceId, String device) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("VolumeId", volumeId);
+		params.put("InstanceId", instanceId);
+		params.put("Device", device);
+		GetMethod method = new GetMethod();
+		try {
+			AttachVolumeResponse response =
+					makeRequest(method, "AttachVolume", params, AttachVolumeResponse.class);
+			return new AttachmentInfo(response.getVolumeId(), response.getInstanceId(),
+								response.getDevice(), response.getStatus(),
+								response.getAttachTime().toGregorianCalendar());
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Allocates an address for this account.
+	 *
+	 * @return the new address allocated
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public AttachmentInfo detachVolume(String volumeId, String instanceId, String device, boolean force) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("VolumeId", volumeId);
+		params.put("InstanceId", (instanceId==null)?"":instanceId);
+		params.put("Device", (device==null)?"":device);
+		params.put("Force", force?"true":"false");
+		GetMethod method = new GetMethod();
+		try {
+			DetachVolumeResponse response =
+					makeRequest(method, "DetachVolume", params, DetachVolumeResponse.class);
+			return new AttachmentInfo(response.getVolumeId(), response.getInstanceId(),
+								response.getDevice(), response.getStatus(),
+								response.getAttachTime().toGregorianCalendar());
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Allocates an address for this account.
+	 *
+	 * @return the new address allocated
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public SnapshotInfo createSnapshot(String volumeId) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("VolumeId", volumeId);
+		GetMethod method = new GetMethod();
+		try {
+			CreateSnapshotResponse response =
+					makeRequest(method, "CreateSnapshot", params, CreateSnapshotResponse.class);
+			return new SnapshotInfo(response.getSnapshotId(), response.getVolumeId(),
+								response.getStatus(),
+								response.getStartTime().toGregorianCalendar(),
+								response.getProgress());
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Releases an address
+	 *
+	 * @param snapshotId the ip address to release
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public void deleteSnapshot(String snapshotId) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("SnapshotId", snapshotId);
+		GetMethod method = new GetMethod();
+		try {
+			DeleteSnapshotResponse response =
+					makeRequest(method, "DeleteSnapshot", params, DeleteSnapshotResponse.class);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not release delete snapshot (no reason given).");
+			}
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Gets a list of running instances.
+	 * <p>
+	 * If the array of instance IDs is empty then a list of all instances owned
+	 * by the caller will be returned. Otherwise the list will contain
+	 * information for the requested instances only.
+	 * 
+	 * @param snapshotIds An array of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
+	 * @return A list of {@link com.xerox.amazonws.ec2.ReservationDescription} instances.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<SnapshotInfo> describeSnapshots(String[] snapshotIds) throws EC2Exception {
+		return this.describeSnapshots(Arrays.asList(snapshotIds));
+	}
+
+	/**
+	 * Gets a list of running instances.
+	 * <p>
+	 * If the list of instance IDs is empty then a list of all instances owned
+	 * by the caller will be returned. Otherwise the list will contain
+	 * information for the requested instances only.
+	 * 
+	 * @param snapshotIds A list of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
+	 * @return A list of {@link com.xerox.amazonws.ec2.ReservationDescription} instances.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<SnapshotInfo> describeSnapshots(List<String> snapshotIds) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		for (int i=0 ; i<snapshotIds.size(); i++) {
+			params.put("SnapshotId."+(i+1), snapshotIds.get(i));
+		}
+		GetMethod method = new GetMethod();
+		try {
+			DescribeSnapshotsResponse response =
+					makeRequest(method, "DescribeSnapshots", params, DescribeSnapshotsResponse.class);
+			List<SnapshotInfo> result = new ArrayList<SnapshotInfo>();
+			DescribeSnapshotsSetResponseType res_set = response.getSnapshotSet();
+			Iterator reservations_iter = res_set.getItems().iterator();
+			while (reservations_iter.hasNext()) {
+				DescribeSnapshotsSetItemResponseType item = (DescribeSnapshotsSetItemResponseType) reservations_iter.next();
+				SnapshotInfo vol = new SnapshotInfo(item.getSnapshotId(), item.getVolumeId(),
+									item.getStatus(),
+									item.getStartTime().toGregorianCalendar(),
+									item.getProgress());
+				result.add(vol);
+			}
+			return result;
+		} catch (JAXBException ex) {
+			throw new EC2Exception("Problem parsing returned message.", ex);
+		} catch (MalformedURLException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
 }
