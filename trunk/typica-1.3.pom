@@ -6,7 +6,7 @@
    This POM file is released under the Apache License 2.0
   -->
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.xerox.amazonws</groupId>
+  <groupId>com.google.code.typica</groupId>
   <artifactId>typica</artifactId>
   <packaging>jar</packaging>
   <version>1.3</version>

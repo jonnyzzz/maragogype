@@ -19,16 +19,16 @@ public class TestQueueService {
 		Properties props = new Properties();
 		props.load(TestQueueService.class.getClassLoader().getResourceAsStream("aws.properties"));
 
-		QueueService qs = new QueueService(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
+		QueueService qs = new QueueService(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"), false, "localhost");
 /*
 	*/
 		List<MessageQueue> queues = qs.listMessageQueues(null);
 		for (MessageQueue queue : queues) {
 			logger.info("Queue : "+queue.getUrl().toString());
 			// delete queues that contain a certain phrase
-			if (queue.getUrl().toString().indexOf("delete")>-1) {
+			if (queue.getUrl().toString().indexOf("dak")>-1) {
 				try {
-					queue.deleteQueue();
+					queue.deleteQueue(true);
 				} catch (SQSException ex) {
 					ex.printStackTrace();
 				}
@@ -36,9 +36,9 @@ public class TestQueueService {
 		}
 		for (int i=0; i<args.length; i++) {
 			MessageQueue mq = qs.getOrCreateMessageQueue(args[i]);
+			ArrayList<String> msgids = new ArrayList<String>();
 /* test send/receive
 */
-			ArrayList<String> msgids = new ArrayList<String>();
 			for (int j=0; j<5; j++) {
 				String msgid = mq.sendMessage("Testing 1, 2, 3");
 				msgids.add(msgid);
@@ -75,7 +75,6 @@ public class TestQueueService {
 */
 		}
 		/* test forced deletion
-		*/
 		MessageQueue mq = qs.getOrCreateMessageQueue("deleteTest-12345");
 		for (int j=0; j<10; j++) {	// throw 10 messages in the queue
 			mq.sendMessage("Testing 1, 2, 3");
@@ -94,5 +93,6 @@ public class TestQueueService {
 		} catch (SQSException ex) {
 			logger.error("Queue deletion failed (this is not exptected) !!");
 		}
+		*/
 	}
 }
