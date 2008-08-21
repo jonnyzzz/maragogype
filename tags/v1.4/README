@@ -1,0 +1,48 @@
+typica 1.4
+21-August-2008
+
+http://code.google.com/p/typica
+
+This is a simple API to access Amazon's SQS, EC2, SimpleDB and DevPay web services. It uses the QUERY interface and patterns the methods after those available from Amazon in their SOAP client for these services. This code is thread-safe and works very reliably to the best of my knowledge. I've been using it on a system where sending messages in SQS is critical and we manage pools of servers in EC2.
+
+Distribution files;
+README      - this file
+LICENSE.txt - full version of the Apache 2.0 license
+Log4J.xml   - a Log4J config file you can include in your classpath
+typica.jar  - the classes for this release
+apidocs     - JavaDoc for this release
+
+Test files
+In subversion, the test directory contains some java test files. Sample code is also documented on the wiki @ http://code.google.com/p/typica/wiki/TypicaSampleCode. These can be used as sample files and to test various features of the client code. There is a target "test.main". To invoke the sample code, you can use this target like this;
+ant test.main -Dclass=TestQueueService -Dargs=testQueue
+
+Change history for this release;
+------------------------------------------------------------------------
+r168 | dkavanagh | 2008-08-21 07:20:27 -0400 (Thu, 21 Aug 2008) | 2 lines
+
+support for the EBS feature (API 2008-05-05)
+------------------------------------------------------------------------
+r165 | dkavanagh | 2008-08-04 16:22:56 -0400 (Mon, 04 Aug 2008) | 2 lines
+
+helper methods for getqueue and sendmessage
+------------------------------------------------------------------------
+r164 | dkavanagh | 2008-08-04 15:42:45 -0400 (Mon, 04 Aug 2008) | 2 lines
+
+fixed retry issue #22
+------------------------------------------------------------------------
+r163 | dkavanagh | 2008-08-04 15:38:45 -0400 (Mon, 04 Aug 2008) | 2 lines
+
+fix for nextToken issue #24
+------------------------------------------------------------------------
+r162 | dkavanagh | 2008-08-04 14:56:57 -0400 (Mon, 04 Aug 2008) | 2 lines
+
+removed the deprecated Base64Coder which is under GPL and should not be included in typica
+------------------------------------------------------------------------
+r161 | dkavanagh | 2008-07-30 09:56:15 -0400 (Wed, 30 Jul 2008) | 2 lines
+
+pom file to enable publishing to Maven repo
+------------------------------------------------------------------------
+r159 | dkavanagh | 2008-06-26 15:15:26 -0400 (Thu, 26 Jun 2008) | 2 lines
+
+synchronized block around mac var test/set
+------------------------------------------------------------------------
