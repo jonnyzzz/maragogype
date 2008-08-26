@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.HttpURLConnection;
@@ -38,10 +39,12 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 
+import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.typica.jaxb.AddGrantResponse;
 import com.xerox.amazonws.typica.jaxb.AttributedValue;
@@ -130,14 +133,10 @@ public class MessageQueue extends AWSQueryConnection {
 		try {
 			method.setRequestEntity(new StringRequestEntity(encodedMsg, "text/plain", null));
 			SendMessageResponse response =
-					makeRequest(method, "SendMessage", params, SendMessageResponse.class);
+					makeRequestInt(method, "SendMessage", params, SendMessageResponse.class);
 			return response.getMessageId();
-		} catch (JAXBException ex) {
+		} catch (UnsupportedEncodingException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SQSException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SQSException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -217,7 +216,7 @@ public class MessageQueue extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			ReceiveMessageResponse response =
-					makeRequest(method, "ReceiveMessage", params, ReceiveMessageResponse.class);
+					makeRequestInt(method, "ReceiveMessage", params, ReceiveMessageResponse.class);
 			if (response.getMessages() == null) {
 				return new Message[0];
 			}
@@ -231,12 +230,6 @@ public class MessageQueue extends AWSQueryConnection {
 				}
 				return msgs.toArray(new Message [msgs.size()]);
 			}
-		} catch (JAXBException ex) {
-			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SQSException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SQSException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -255,7 +248,7 @@ public class MessageQueue extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			PeekMessageResponse response =
-					makeRequest(method, "PeekMessage", params, PeekMessageResponse.class);
+					makeRequestInt(method, "PeekMessage", params, PeekMessageResponse.class);
 			com.xerox.amazonws.typica.jaxb.Message msg = response.getMessage();
 			if (msg == null) {
 				return null;
@@ -266,12 +259,6 @@ public class MessageQueue extends AWSQueryConnection {
 										msg.getMessageBody();
 				return new Message(msg.getMessageId(), decodedMsg);
 			}
-		} catch (JAXBException ex) {
-			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SQSException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SQSException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -297,13 +284,7 @@ public class MessageQueue extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			//DeleteMessageResponse response =
-			makeRequest(method, "DeleteMessage", params, DeleteMessageResponse.class);
-		} catch (JAXBException ex) {
-			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SQSException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SQSException(ex.getMessage(), ex);
+			makeRequestInt(method, "DeleteMessage", params, DeleteMessageResponse.class);
 		} finally {
 			method.releaseConnection();
 		}
@@ -329,13 +310,7 @@ public class MessageQueue extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			//DeleteQueueResponse response =
-			makeRequest(method, "DeleteQueue", params, DeleteQueueResponse.class);
-		} catch (JAXBException ex) {
-			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SQSException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SQSException(ex.getMessage(), ex);
+			makeRequestInt(method, "DeleteQueue", params, DeleteQueueResponse.class);
 		} finally {
 			method.releaseConnection();
 		}
@@ -366,13 +341,7 @@ public class MessageQueue extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			//ChangeMessageVisibilityResponse response =
-			makeRequest(method, "ChangeMessageVisibility", params, ChangeMessageVisibilityResponse.class);
-		} catch (JAXBException ex) {
-			throw new SQSException("Problem setting the visibility timeout.", ex);
-		} catch (HttpException ex) {
-			throw new SQSException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SQSException(ex.getMessage(), ex);
+			makeRequestInt(method, "ChangeMessageVisibility", params, ChangeMessageVisibilityResponse.class);
 		} finally {
 			method.releaseConnection();
 		}
@@ -419,19 +388,13 @@ public class MessageQueue extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			GetQueueAttributesResponse response =
-					makeRequest(method, "GetQueueAttributes", params, GetQueueAttributesResponse.class);
+					makeRequestInt(method, "GetQueueAttributes", params, GetQueueAttributesResponse.class);
 			Map<String,String> ret = new HashMap<String,String>();
 			List<AttributedValue> attrs = response.getAttributedValues();
 			for (AttributedValue attr : attrs) {
 				ret.put(attr.getAttribute(), attr.getValue());
 			}
 			return ret;
-		} catch (JAXBException ex) {
-			throw new SQSException("Problem getting the visilibity timeout.", ex);
-		} catch (HttpException ex) {
-			throw new SQSException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SQSException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -461,13 +424,7 @@ public class MessageQueue extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			//SetQueueAttributesResponse response =
-			makeRequest(method, "SetQueueAttributes", params, SetQueueAttributesResponse.class);
-		} catch (JAXBException ex) {
-			throw new SQSException("Problem setting the visibility timeout.", ex);
-		} catch (HttpException ex) {
-			throw new SQSException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SQSException(ex.getMessage(), ex);
+			makeRequestInt(method, "SetQueueAttributes", params, SetQueueAttributesResponse.class);
 		} finally {
 			method.releaseConnection();
 		}
@@ -508,13 +465,7 @@ public class MessageQueue extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			//AddGrantResponse response =
-			makeRequest(method, "AddGrant", params, AddGrantResponse.class);
-		} catch (JAXBException ex) {
-			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SQSException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SQSException(ex.getMessage(), ex);
+			makeRequestInt(method, "AddGrant", params, AddGrantResponse.class);
 		} finally {
 			method.releaseConnection();
 		}
@@ -554,13 +505,7 @@ public class MessageQueue extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			//RemoveGrantResponse response =
-			makeRequest(method, "RemoveGrant", params, RemoveGrantResponse.class);
-		} catch (JAXBException ex) {
-			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SQSException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SQSException(ex.getMessage(), ex);
+			makeRequestInt(method, "RemoveGrant", params, RemoveGrantResponse.class);
 		} finally {
 			method.releaseConnection();
 		}
@@ -585,7 +530,7 @@ public class MessageQueue extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			ListGrantsResponse response =
-					makeRequest(method, "ListGrants", params, ListGrantsResponse.class);
+					makeRequestInt(method, "ListGrants", params, ListGrantsResponse.class);
 			Grant [] grants = new Grant[response.getGrantLists().size()];
 			int i=0;
 			for (com.xerox.amazonws.typica.jaxb.Grant g : response.getGrantLists()) {
@@ -604,12 +549,6 @@ public class MessageQueue extends AWSQueryConnection {
 				i++;
 			}
 			return grants;
-		} catch (JAXBException ex) {
-			throw new SQSException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SQSException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SQSException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -621,6 +560,21 @@ public class MessageQueue extends AWSQueryConnection {
 	 */
 	protected URL makeURL(String resource) throws MalformedURLException {
 		return super.makeURL(queueId+resource);
+	}
+
+	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+		throws SQSException {
+		try {
+			return makeRequest(method, action, params, respType);
+		} catch (AWSException ex) {
+			throw new SQSException(ex);
+		} catch (JAXBException ex) {
+			throw new SQSException("Problem parsing returned message.", ex);
+		} catch (HttpException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new SQSException(ex.getMessage(), ex);
+		}
 	}
 
 	public static List<MessageQueue> createList(String [] queueUrls, String awsAccesseyId,

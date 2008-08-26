@@ -17,18 +17,25 @@
 
 package com.xerox.amazonws.sdb;
 
+import com.xerox.amazonws.common.AWSException;
+
 /**
  * A wrapper exception to simplify catching errors related to sdb activity.
  *
  * @author D. Kavanagh
  * @author developer@dotech.com
  */
-public class SDBException extends Exception {
+public class SDBException extends AWSException {
 
     public SDBException(String s) {
         super(s);
     }
+
     public SDBException(String s, Exception ex) {
         super(s, ex);
+    }
+
+    public SDBException(AWSException ex) {
+        super(ex);
     }
 }

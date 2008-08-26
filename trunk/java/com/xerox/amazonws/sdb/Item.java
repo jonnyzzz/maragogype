@@ -30,8 +30,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
 
+import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.typica.sdb.jaxb.Attribute;
 import com.xerox.amazonws.typica.sdb.jaxb.DeleteAttributesResponse;
@@ -98,19 +100,13 @@ public class Item extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			GetAttributesResponse response =
-						makeRequest(method, "GetAttributes", params, GetAttributesResponse.class);
+						makeRequestInt(method, "GetAttributes", params, GetAttributesResponse.class);
 			List<ItemAttribute> ret = new ArrayList<ItemAttribute>();
 			List<Attribute> attrs = response.getGetAttributesResult().getAttributes();
 			for (Attribute attr : attrs) {
 				ret.add(new ItemAttribute(attr.getName(), attr.getValue(), false));
 			}
 			return ret;
-		} catch (JAXBException ex) {
-			throw new SDBException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SDBException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SDBException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -138,19 +134,13 @@ public class Item extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			GetAttributesResponse response =
-						makeRequest(method, "GetAttributes", params, GetAttributesResponse.class);
+						makeRequestInt(method, "GetAttributes", params, GetAttributesResponse.class);
 			List<ItemAttribute> ret = new ArrayList<ItemAttribute>();
 			List<Attribute> attrs = response.getGetAttributesResult().getAttributes();
 			for (Attribute attr : attrs) {
 				ret.add(new ItemAttribute(attr.getName(), attr.getValue(), false));
 			}
 			return ret;
-		} catch (JAXBException ex) {
-			throw new SDBException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SDBException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SDBException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -178,7 +168,7 @@ public class Item extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			GetAttributesResponse response =
-						makeRequest(method, "GetAttributes", params, GetAttributesResponse.class);
+						makeRequestInt(method, "GetAttributes", params, GetAttributesResponse.class);
 			Map<String, List<String>> ret = new HashMap<String, List<String>>();
 			List<Attribute> attrs = response.getGetAttributesResult().getAttributes();
 			for (Attribute attr : attrs) {
@@ -190,12 +180,6 @@ public class Item extends AWSQueryConnection {
 				vals.add(attr.getValue());
 			}
 			return ret;
-		} catch (JAXBException ex) {
-			throw new SDBException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SDBException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SDBException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -228,13 +212,7 @@ public class Item extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			//PutAttributesResponse response =
-			makeRequest(method, "PutAttributes", params, PutAttributesResponse.class);
-		} catch (JAXBException ex) {
-			throw new SDBException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SDBException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SDBException(ex.getMessage(), ex);
+			makeRequestInt(method, "PutAttributes", params, PutAttributesResponse.class);
 		} finally {
 			method.releaseConnection();
 		}
@@ -264,15 +242,24 @@ public class Item extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			//DeleteAttributesResponse response =
-			makeRequest(method, "DeleteAttributes", params, DeleteAttributesResponse.class);
+			makeRequestInt(method, "DeleteAttributes", params, DeleteAttributesResponse.class);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+		throws SDBException {
+		try {
+			return makeRequest(method, action, params, respType);
+		} catch (AWSException ex) {
+			throw new SDBException(ex);
 		} catch (JAXBException ex) {
 			throw new SDBException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
 			throw new SDBException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SDBException(ex.getMessage(), ex);
-		} finally {
-			method.releaseConnection();
 		}
 	}
 

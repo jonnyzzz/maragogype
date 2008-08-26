@@ -30,8 +30,10 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
 
+import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.typica.jaxb.ActivateDesktopProductResponse;
 import com.xerox.amazonws.typica.jaxb.ActivateDesktopProductResult;
@@ -142,16 +144,10 @@ public class DevPayLS extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			ActivateDesktopProductResponse response =
-						makeRequest(method, "ActivateDesktopProduct", params, ActivateDesktopProductResponse.class);
+						makeRequestInt(method, "ActivateDesktopProduct", params, ActivateDesktopProductResponse.class);
 
 			ActivateDesktopProductResult result = response.getActivateDesktopProductResult();
 			return new DesktopProductInfo(result.getAWSAccessKeyId(), result.getSecretAccessKey(), result.getUserToken());
-		} catch (JAXBException ex) {
-			throw new DevPayException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new DevPayException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new DevPayException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -172,16 +168,10 @@ public class DevPayLS extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			ActivateHostedProductResponse response =
-						makeRequest(method, "ActivateHostedProduct", params, ActivateHostedProductResponse.class);
+						makeRequestInt(method, "ActivateHostedProduct", params, ActivateHostedProductResponse.class);
 
 			ActivateHostedProductResult result = response.getActivateHostedProductResult();
 			return new HostedProductInfo(result.getPersistentIdentifier(), result.getUserToken());
-		} catch (JAXBException ex) {
-			throw new DevPayException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new DevPayException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new DevPayException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -200,16 +190,10 @@ public class DevPayLS extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			GetActiveSubscriptionsByPidResponse response =
-						makeRequest(method, "GetActiveSubscriptionsByPid", params, GetActiveSubscriptionsByPidResponse.class);
+						makeRequestInt(method, "GetActiveSubscriptionsByPid", params, GetActiveSubscriptionsByPidResponse.class);
 
 			GetActiveSubscriptionsByPidResult result = response.getGetActiveSubscriptionsByPidResult();
 			return result.getProductCodes();
-		} catch (JAXBException ex) {
-			throw new DevPayException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new DevPayException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new DevPayException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -230,16 +214,10 @@ public class DevPayLS extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			VerifyProductSubscriptionByPidResponse response =
-						makeRequest(method, "VerifyProductSubscriptionByPid", params, VerifyProductSubscriptionByPidResponse.class);
+						makeRequestInt(method, "VerifyProductSubscriptionByPid", params, VerifyProductSubscriptionByPidResponse.class);
 
 			VerifyProductSubscriptionByPidResult result = response.getVerifyProductSubscriptionByPidResult();
 			return result.isSubscribed();
-		} catch (JAXBException ex) {
-			throw new DevPayException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new DevPayException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new DevPayException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -260,16 +238,10 @@ public class DevPayLS extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			VerifyProductSubscriptionByTokensResponse response =
-						makeRequest(method, "VerifyProductSubscriptionByTokens", params, VerifyProductSubscriptionByTokensResponse.class);
+						makeRequestInt(method, "VerifyProductSubscriptionByTokens", params, VerifyProductSubscriptionByTokensResponse.class);
 
 			VerifyProductSubscriptionByTokensResult result = response.getVerifyProductSubscriptionByTokensResult();
 			return result.isSubscribed();
-		} catch (JAXBException ex) {
-			throw new DevPayException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new DevPayException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new DevPayException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -292,18 +264,27 @@ public class DevPayLS extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			RefreshUserTokenResponse response =
-						makeRequest(method, "RefreshUserToken", params, RefreshUserTokenResponse.class);
+						makeRequestInt(method, "RefreshUserToken", params, RefreshUserTokenResponse.class);
 
 			RefreshUserTokenResult result = response.getRefreshUserTokenResult();
 			return result.getUserToken();
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+		throws DevPayException {
+		try {
+			return makeRequest(method, action, params, respType);
+		} catch (AWSException ex) {
+			throw new DevPayException(ex);
 		} catch (JAXBException ex) {
 			throw new DevPayException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
 			throw new DevPayException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new DevPayException(ex.getMessage(), ex);
-		} finally {
-			method.releaseConnection();
 		}
 	}
 

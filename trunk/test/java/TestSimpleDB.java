@@ -13,11 +13,13 @@ import com.xerox.amazonws.sdb.Item;
 import com.xerox.amazonws.sdb.ItemAttribute;
 import com.xerox.amazonws.sdb.ListDomainsResult;
 import com.xerox.amazonws.sdb.SimpleDB;
+import com.xerox.amazonws.sdb.SDBException;
 
 public class TestSimpleDB {
     private static Log logger = LogFactory.getLog(TestSimpleDB.class);
 
 	public static void main(String [] args) throws Exception {
+		try {
 		Properties props = new Properties();
 		props.load(TestSimpleDB.class.getClassLoader().getResourceAsStream("aws.properties"));
 
@@ -75,6 +77,10 @@ public class TestSimpleDB {
 			for (String value : attrMap.get(key)) {
 				logger.info("Item:"+key+" Value:"+value);
 			}
+		}
+		} catch (SDBException ex) {
+			System.err.println("message : "+ex.getMessage());
+			System.err.println("requestID : "+ex.getRequestId());
 		}
 	}
 }

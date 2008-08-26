@@ -262,7 +262,7 @@ public class AWSQueryConnection extends AWSConnection {
      * @param respType the class that represents the desired/expected return type
      */
 	protected <T> T makeRequest(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
-		throws HttpException, IOException, JAXBException {
+		throws HttpException, IOException, JAXBException, AWSException {
 
 		// add auth params, and protocol specific headers
 		Map<String, String> qParams = new HashMap<String, String>(params);
@@ -323,7 +323,7 @@ public class AWSQueryConnection extends AWSConnection {
 		boolean done = false;
 		int retries = 0;
 		boolean doRetry = false;
-		String errorMsg = "";
+		AWSException error = null;
 		do {
 			int responseCode = 600;	// default to high value, so we don't think it is valid
 			try {
@@ -331,7 +331,7 @@ public class AWSQueryConnection extends AWSConnection {
 			} catch (SocketException ex) {
 				// these can generally be retried. Treat it like a 500 error
 				doRetry = true;
-				errorMsg = ex.getMessage();
+				error = new AWSException(ex.getMessage(), ex);
 			}
 			// 100's are these are handled by httpclient
 			if (responseCode < 300) {
@@ -349,18 +349,18 @@ public class AWSQueryConnection extends AWSConnection {
 			else if (responseCode < 500) {
 				// 400's : parse client error message
 				String body = getStringFromStream(method.getResponseBodyAsStream());
-				throw new HttpException("Client error : "+getErrorDetails(body));
+				throw createException(body, "Client error : ");
 			}
 			else if (responseCode < 600) {
 				// 500's : retry...
 				doRetry = true;
 				String body = getStringFromStream(method.getResponseBodyAsStream());
-				errorMsg = getErrorDetails(body);
+				error = createException(body, "");
 			}
 			if (doRetry) {
 				retries++;
 				if (retries > maxRetries) {
-					throw new HttpException("Number of retries exceeded : "+action+", "+errorMsg);
+					throw new HttpException("Number of retries exceeded : "+action, error);
 				}
 				doRetry = false;
 				try { Thread.sleep((int)Math.pow(2.0, retries)*1000); } catch (InterruptedException ex) {}
@@ -411,24 +411,48 @@ public class AWSQueryConnection extends AWSConnection {
 		return wtr.toString();
 	}
 
-	private String getErrorDetails(String errorResponse) throws JAXBException {
+	/**
+	 * This method creates a detail packed exception to pass up
+	 */
+	private AWSException createException(String errorResponse, String msgPrefix) throws JAXBException {
+		String errorMsg;
+		String requestId;
+		List<AWSError> errors = null;
 		ByteArrayInputStream bais = new ByteArrayInputStream(errorResponse.getBytes());
 		if (errorResponse.indexOf("<ErrorResponse") > -1) {
 			try {
+				// this comes form the SQS2 schema, and is the standard new response
 				ErrorResponse resp = JAXBuddy.deserializeXMLStream(ErrorResponse.class, bais);
-				Error err = resp.getErrors().get(0);
-				return "("+err.getCode()+") "+err.getMessage();
+				List<Error> errs = resp.getErrors();
+				errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
+				requestId = resp.getRequestId();
+				errors = new ArrayList<AWSError>();
+				for (Error e : errs) {
+					errors.add(new AWSError(AWSError.ErrorType.getTypeFromString(e.getType()),
+											e.getCode(), e.getMessage()));
+				}
 			} catch (UnmarshalException ex) {
+				// this comes form the DevpayLS schema, duplicated because of the different namespace
 				bais = new ByteArrayInputStream(errorResponse.getBytes());
 				com.xerox.amazonws.typica.jaxb.ErrorResponse resp = JAXBuddy.deserializeXMLStream(com.xerox.amazonws.typica.jaxb.ErrorResponse.class, bais);
-				com.xerox.amazonws.typica.jaxb.Error err = resp.getErrors().get(0);
-				return "("+err.getCode()+") "+err.getMessage();
+				List<com.xerox.amazonws.typica.jaxb.Error> errs = resp.getErrors();
+				errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
+				requestId = resp.getRequestId();
+				errors = new ArrayList<AWSError>();
+				for (com.xerox.amazonws.typica.jaxb.Error e : errs) {
+					errors.add(new AWSError(AWSError.ErrorType.getTypeFromString(e.getType()),
+											e.getCode(), e.getMessage()));
+				}
 			}
 		}
 		else {
 			Response resp = JAXBuddy.deserializeXMLStream(Response.class, bais);
-			return resp.getErrors().getError().getMessage();
+			errorMsg = resp.getErrors().getError().getMessage();
+			requestId = resp.getRequestID();
 		}
+		AWSException ex = new AWSException(msgPrefix+errorMsg, requestId);
+		ex.setErrors(errors);
+		return ex;
 	}
 
     /**

@@ -31,8 +31,10 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
 
+import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.typica.jaxb.CreateQueueResponse;
 import com.xerox.amazonws.typica.jaxb.ListQueuesResponse;
@@ -120,18 +122,12 @@ public class QueueService extends AWSQueryConnection {
 			GetMethod method = new GetMethod();
 			try {
 				CreateQueueResponse response =
-						makeRequest(method, "CreateQueue", params, CreateQueueResponse.class);
+						makeRequestInt(method, "CreateQueue", params, CreateQueueResponse.class);
 				MessageQueue mq = new MessageQueue(response.getQueueUrl(),
 									getAwsAccessKeyId(), getSecretAccessKey(),
 									isSecure(), getServer());
 				mq.setHttpClient(getHttpClient());
 				return mq;
-			} catch (JAXBException ex) {
-				throw new SQSException("Problem parsing returned message.", ex);
-			} catch (HttpException ex) {
-				throw new SQSException(ex.getMessage(), ex);
-			} catch (IOException ex) {
-				throw new SQSException(ex.getMessage(), ex);
 			} finally {
 				method.releaseConnection();
 			}
@@ -174,20 +170,29 @@ public class QueueService extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			ListQueuesResponse response =
-				makeRequest(method, "ListQueues", params, ListQueuesResponse.class);
+				makeRequestInt(method, "ListQueues", params, ListQueuesResponse.class);
 			return MessageQueue.createList(response.getQueueUrls().toArray(new String[] {}),
 								getAwsAccessKeyId(), getSecretAccessKey(),
 								isSecure(), getServer(), getHttpClient());
+		} finally {
+			method.releaseConnection();
+		}
+    }
+
+	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+		throws SQSException {
+		try {
+			return makeRequest(method, action, params, respType);
+		} catch (AWSException ex) {
+			throw new SQSException(ex);
 		} catch (JAXBException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SQSException(ex.getMessage(), ex);
-		} finally {
-			method.releaseConnection();
 		}
-    }
+	}
 
 	static void setVersionHeader(AWSQueryConnection connection) {
 		ArrayList vals = new ArrayList();

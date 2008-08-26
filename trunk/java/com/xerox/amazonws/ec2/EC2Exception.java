@@ -17,18 +17,25 @@
 
 package com.xerox.amazonws.ec2;
 
+import com.xerox.amazonws.common.AWSException;
+
 /**
  * A wrapper exception to simplify catching errors related to queue activity.
  *
  * @author D. Kavanagh
  * @author developer@dotech.com
  */
-public class EC2Exception extends Exception {
+public class EC2Exception extends AWSException {
 
     public EC2Exception(String s) {
         super(s);
     }
+
     public EC2Exception(String s, Exception ex) {
         super(s, ex);
+    }
+
+    public EC2Exception(AWSException ex) {
+        super(ex);
     }
 }

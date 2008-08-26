@@ -17,18 +17,21 @@
 
 package com.xerox.amazonws.devpay;
 
+import com.xerox.amazonws.common.AWSException;
+
 /**
  * A wrapper exception to simplify catching errors related to devpay activity.
  *
  * @author D. Kavanagh
  * @author developer@dotech.com
  */
-public class DevPayException extends Exception {
+public class DevPayException extends AWSException {
 
-    public DevPayException(String s) {
-        super(s);
-    }
     public DevPayException(String s, Exception ex) {
         super(s, ex);
+    }
+
+    public DevPayException(AWSException ex) {
+        super(ex);
     }
 }

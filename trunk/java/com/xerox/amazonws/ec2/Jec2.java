@@ -39,12 +39,15 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.xerox.amazonws.common.AWSException;
+import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.typica.jaxb.AllocateAddressResponse;
 import com.xerox.amazonws.typica.jaxb.AssociateAddressResponse;
 import com.xerox.amazonws.typica.jaxb.AttachmentSetResponseType;
@@ -120,8 +123,6 @@ import com.xerox.amazonws.typica.jaxb.TerminateInstancesResponseItemType;
 import com.xerox.amazonws.typica.jaxb.UserIdGroupPairType;
 import com.xerox.amazonws.typica.jaxb.UserIdGroupPairSetType;
 
-import com.xerox.amazonws.common.AWSQueryConnection;
-
 /**
  * A Java wrapper for the EC2 web services API
  */
@@ -196,14 +197,8 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			RegisterImageResponse response =
-					makeRequest(method, "RegisterImage", params, RegisterImageResponse.class);
+					makeRequestInt(method, "RegisterImage", params, RegisterImageResponse.class);
 			return response.getImageId();
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -221,16 +216,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DeregisterImageResponse response =
-					makeRequest(method, "DeregisterImage", params, DeregisterImageResponse.class);
+					makeRequestInt(method, "DeregisterImage", params, DeregisterImageResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not deregister image : "+imageId+". No reason given.");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -338,7 +327,7 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DescribeImagesResponse response =
-					makeRequest(method, "DescribeImages", params, DescribeImagesResponse.class);
+					makeRequestInt(method, "DescribeImages", params, DescribeImagesResponse.class);
 			List<ImageDescription> result = new ArrayList<ImageDescription>();
 			DescribeImagesResponseInfoType set = response.getImagesSet();
 			Iterator set_iter = set.getItems().iterator();
@@ -357,12 +346,6 @@ public class Jec2 extends AWSQueryConnection {
 						.getImageState(), item.isIsPublic(), codes));
 			}
 			return result;
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -578,7 +561,7 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			RunInstancesResponse response =
-					makeRequest(method, "RunInstances", params, RunInstancesResponse.class);
+					makeRequestInt(method, "RunInstances", params, RunInstancesResponse.class);
 			ReservationDescription res = new ReservationDescription(response.getOwnerId(),
 															response.getReservationId());
 			GroupSetType grp_set = response.getGroupSet();
@@ -605,12 +588,6 @@ public class Jec2 extends AWSQueryConnection {
 								rsp_item.getKernelId(), rsp_item.getRamdiskId());
 			}
 			return res;
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -644,7 +621,7 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			TerminateInstancesResponse response =
-					makeRequest(method, "TerminateInstances", params, TerminateInstancesResponse.class);
+					makeRequestInt(method, "TerminateInstances", params, TerminateInstancesResponse.class);
 			response.getInstancesSet();
 			List<TerminatingInstanceDescription> res =
 						new ArrayList<TerminatingInstanceDescription>();
@@ -660,12 +637,6 @@ public class Jec2 extends AWSQueryConnection {
 								.getShutdownState().getCode()));
 			}
 			return res;
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -705,7 +676,7 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DescribeInstancesResponse response =
-					makeRequest(method, "DescribeInstances", params, DescribeInstancesResponse.class);
+					makeRequestInt(method, "DescribeInstances", params, DescribeInstancesResponse.class);
 			List<ReservationDescription> result = new ArrayList<ReservationDescription>();
 			ReservationSetType res_set = response.getReservationSet();
 			Iterator reservations_iter = res_set.getItems().iterator();
@@ -739,12 +710,6 @@ public class Jec2 extends AWSQueryConnection {
 				result.add(res);
 			}
 			return result;
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -774,16 +739,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			RebootInstancesResponse response =
-					makeRequest(method, "RebootInstances", params, RebootInstancesResponse.class);
+					makeRequestInt(method, "RebootInstances", params, RebootInstancesResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not reboot instances. No reason given.");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -802,16 +761,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			GetConsoleOutputResponse response =
-					makeRequest(method, "GetConsoleOutput", params, GetConsoleOutputResponse.class);
+					makeRequestInt(method, "GetConsoleOutput", params, GetConsoleOutputResponse.class);
 			return new ConsoleOutput(response.getInstanceId(),
 				response.getTimestamp().toGregorianCalendar(),
 				new String(Base64.decodeBase64(response.getOutput().getBytes())));
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -831,16 +784,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			CreateSecurityGroupResponse response =
-					makeRequest(method, "CreateSecurityGroup", params, CreateSecurityGroupResponse.class);
+					makeRequestInt(method, "CreateSecurityGroup", params, CreateSecurityGroupResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not create security group : "+name+". No reason given.");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -858,16 +805,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DeleteSecurityGroupResponse response =
-					makeRequest(method, "DeleteSecurityGroup", params, DeleteSecurityGroupResponse.class);
+					makeRequestInt(method, "DeleteSecurityGroup", params, DeleteSecurityGroupResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not delete security group : "+name+". No reason given.");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -901,7 +842,7 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DescribeSecurityGroupsResponse response =
-					makeRequest(method, "DescribeSecurityGroups", params, DescribeSecurityGroupsResponse.class);
+					makeRequestInt(method, "DescribeSecurityGroups", params, DescribeSecurityGroupsResponse.class);
 			List<GroupDescription> result = new ArrayList<GroupDescription>();
 			SecurityGroupSetType rsp_set = response.getSecurityGroupInfo();
 			Iterator set_iter = rsp_set.getItems().iterator();
@@ -935,12 +876,6 @@ public class Jec2 extends AWSQueryConnection {
 				result.add(group);
 			}
 			return result;
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -963,16 +898,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			AuthorizeSecurityGroupIngressResponse response =
-					makeRequest(method, "AuthorizeSecurityGroupIngress", params, AuthorizeSecurityGroupIngressResponse.class);
+					makeRequestInt(method, "AuthorizeSecurityGroupIngress", params, AuthorizeSecurityGroupIngressResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not authorize security ingress : "+groupName+". No reason given.");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1000,16 +929,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			AuthorizeSecurityGroupIngressResponse response =
-					makeRequest(method, "AuthorizeSecurityGroupIngress", params, AuthorizeSecurityGroupIngressResponse.class);
+					makeRequestInt(method, "AuthorizeSecurityGroupIngress", params, AuthorizeSecurityGroupIngressResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not authorize security ingress : "+groupName+". No reason given.");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1032,16 +955,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			RevokeSecurityGroupIngressResponse response =
-					makeRequest(method, "RevokeSecurityGroupIngress", params, RevokeSecurityGroupIngressResponse.class);
+					makeRequestInt(method, "RevokeSecurityGroupIngress", params, RevokeSecurityGroupIngressResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not revoke security ingress : "+groupName+". No reason given.");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1069,16 +986,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			RevokeSecurityGroupIngressResponse response =
-					makeRequest(method, "RevokeSecurityGroupIngress", params, RevokeSecurityGroupIngressResponse.class);
+					makeRequestInt(method, "RevokeSecurityGroupIngress", params, RevokeSecurityGroupIngressResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not revoke security ingress : "+groupName+". No reason given.");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1098,16 +1009,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			CreateKeyPairResponse response =
-					makeRequest(method, "CreateKeyPair", params, CreateKeyPairResponse.class);
+					makeRequestInt(method, "CreateKeyPair", params, CreateKeyPairResponse.class);
 			return new KeyPairInfo(response.getKeyName(),
 									response.getKeyFingerprint(),
 									response.getKeyMaterial());
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1140,7 +1045,7 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DescribeKeyPairsResponse response =
-					makeRequest(method, "DescribeKeyPairs", params, DescribeKeyPairsResponse.class);
+					makeRequestInt(method, "DescribeKeyPairs", params, DescribeKeyPairsResponse.class);
 			List<KeyPairInfo> result = new ArrayList<KeyPairInfo>();
 			DescribeKeyPairsResponseInfoType set = response.getKeySet();
 			Iterator set_iter = set.getItems().iterator();
@@ -1149,12 +1054,6 @@ public class Jec2 extends AWSQueryConnection {
 				result.add(new KeyPairInfo(item.getKeyName(), item.getKeyFingerprint(), null));
 			}
 			return result;
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1172,16 +1071,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DeleteKeyPairResponse response =
-					makeRequest(method, "DeleteKeyPair", params, DeleteKeyPairResponse.class);
+					makeRequestInt(method, "DeleteKeyPair", params, DeleteKeyPairResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not delete keypair : "+keyName+". No reason given.");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1235,16 +1128,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			ModifyImageAttributeResponse response =
-					makeRequest(method, "ModifyImageAttribute", params, ModifyImageAttributeResponse.class);
+					makeRequestInt(method, "ModifyImageAttribute", params, ModifyImageAttributeResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not reset image attribute. No reason given.");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1269,16 +1156,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			ResetImageAttributeResponse response =
-					makeRequest(method, "ResetImageAttribute", params, ResetImageAttributeResponse.class);
+					makeRequestInt(method, "ResetImageAttribute", params, ResetImageAttributeResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not reset image attribute. No reason given.");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1305,7 +1186,7 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DescribeImageAttributeResponse response =
-					makeRequest(method, "DescribeImageAttribute", params, DescribeImageAttributeResponse.class);
+					makeRequestInt(method, "DescribeImageAttribute", params, DescribeImageAttributeResponse.class);
 			ImageListAttribute attribute = null;
 			if (response.getLaunchPermission() != null) {
 				LaunchPermissionListType list = response.getLaunchPermission();
@@ -1354,12 +1235,6 @@ public class Jec2 extends AWSQueryConnection {
 			}
 
 			return new DescribeImageAttributeResult(response.getImageId(), attribute, codes, kernel, ramdisk, bdm);
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1380,17 +1255,11 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			ConfirmProductInstanceResponse response =
-					makeRequest(method, "ConfirmProductInstance", params, ConfirmProductInstanceResponse.class);
+					makeRequestInt(method, "ConfirmProductInstance", params, ConfirmProductInstanceResponse.class);
 			if (response.isReturn()) {
 				return new ProductInstanceInfo(instanceId, productCode, response.getOwnerId());
 			}
 			else return null;
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1413,7 +1282,7 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DescribeAvailabilityZonesResponse response =
-					makeRequest(method, "DescribeAvailabilityZones", params, DescribeAvailabilityZonesResponse.class);
+					makeRequestInt(method, "DescribeAvailabilityZones", params, DescribeAvailabilityZonesResponse.class);
 			List<AvailabilityZone> ret = new ArrayList<AvailabilityZone>();
 			AvailabilityZoneSetType set = response.getAvailabilityZoneInfo();
 			Iterator set_iter = set.getItems().iterator();
@@ -1422,12 +1291,6 @@ public class Jec2 extends AWSQueryConnection {
 				ret.add(new AvailabilityZone(item.getZoneName(), item.getZoneState()));
 			}
 			return ret;
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1450,7 +1313,7 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DescribeAddressesResponse response =
-					makeRequest(method, "DescribeAddresses", params, DescribeAddressesResponse.class);
+					makeRequestInt(method, "DescribeAddresses", params, DescribeAddressesResponse.class);
 			List<AddressInfo> ret = new ArrayList<AddressInfo>();
 			DescribeAddressesResponseInfoType set = response.getAddressesSet();
 			Iterator set_iter = set.getItems().iterator();
@@ -1459,12 +1322,6 @@ public class Jec2 extends AWSQueryConnection {
 				ret.add(new AddressInfo(item.getPublicIp(), item.getInstanceId()));
 			}
 			return ret;
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1481,14 +1338,8 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			AllocateAddressResponse response =
-					makeRequest(method, "AllocateAddress", params, AllocateAddressResponse.class);
+					makeRequestInt(method, "AllocateAddress", params, AllocateAddressResponse.class);
 			return response.getPublicIp();
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1508,16 +1359,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			AssociateAddressResponse response =
-					makeRequest(method, "AssociateAddress", params, AssociateAddressResponse.class);
+					makeRequestInt(method, "AssociateAddress", params, AssociateAddressResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not associate address with instance (no reason given).");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1535,16 +1380,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DisassociateAddressResponse response =
-					makeRequest(method, "DisassociateAddress", params, DisassociateAddressResponse.class);
+					makeRequestInt(method, "DisassociateAddress", params, DisassociateAddressResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not disassociate address with instance (no reason given).");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1562,16 +1401,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			ReleaseAddressResponse response =
-					makeRequest(method, "ReleaseAddress", params, ReleaseAddressResponse.class);
+					makeRequestInt(method, "ReleaseAddress", params, ReleaseAddressResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not release address (no reason given).");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1593,16 +1426,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			CreateVolumeResponse response =
-					makeRequest(method, "CreateVolume", params, CreateVolumeResponse.class);
+					makeRequestInt(method, "CreateVolume", params, CreateVolumeResponse.class);
 			return new VolumeInfo(response.getVolumeId(), response.getSize(),
 								response.getSnapshotId(), response.getAvailabilityZone(), response.getStatus(),
 								response.getCreateTime().toGregorianCalendar());
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1620,16 +1447,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DeleteVolumeResponse response =
-					makeRequest(method, "DeleteVolume", params, DeleteVolumeResponse.class);
+					makeRequestInt(method, "DeleteVolume", params, DeleteVolumeResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not release delete volume (no reason given).");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1669,7 +1490,7 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DescribeVolumesResponse response =
-					makeRequest(method, "DescribeVolumes", params, DescribeVolumesResponse.class);
+					makeRequestInt(method, "DescribeVolumes", params, DescribeVolumesResponse.class);
 			List<VolumeInfo> result = new ArrayList<VolumeInfo>();
 			DescribeVolumesSetResponseType res_set = response.getVolumeSet();
 			Iterator reservations_iter = res_set.getItems().iterator();
@@ -1692,12 +1513,6 @@ public class Jec2 extends AWSQueryConnection {
 				result.add(vol);
 			}
 			return result;
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1717,16 +1532,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			AttachVolumeResponse response =
-					makeRequest(method, "AttachVolume", params, AttachVolumeResponse.class);
+					makeRequestInt(method, "AttachVolume", params, AttachVolumeResponse.class);
 			return new AttachmentInfo(response.getVolumeId(), response.getInstanceId(),
 								response.getDevice(), response.getStatus(),
 								response.getAttachTime().toGregorianCalendar());
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1747,16 +1556,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DetachVolumeResponse response =
-					makeRequest(method, "DetachVolume", params, DetachVolumeResponse.class);
+					makeRequestInt(method, "DetachVolume", params, DetachVolumeResponse.class);
 			return new AttachmentInfo(response.getVolumeId(), response.getInstanceId(),
 								response.getDevice(), response.getStatus(),
 								response.getAttachTime().toGregorianCalendar());
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1774,17 +1577,11 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			CreateSnapshotResponse response =
-					makeRequest(method, "CreateSnapshot", params, CreateSnapshotResponse.class);
+					makeRequestInt(method, "CreateSnapshot", params, CreateSnapshotResponse.class);
 			return new SnapshotInfo(response.getSnapshotId(), response.getVolumeId(),
 								response.getStatus(),
 								response.getStartTime().toGregorianCalendar(),
 								response.getProgress());
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1802,16 +1599,10 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DeleteSnapshotResponse response =
-					makeRequest(method, "DeleteSnapshot", params, DeleteSnapshotResponse.class);
+					makeRequestInt(method, "DeleteSnapshot", params, DeleteSnapshotResponse.class);
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not release delete snapshot (no reason given).");
 			}
-		} catch (JAXBException ex) {
-			throw new EC2Exception("Problem parsing returned message.", ex);
-		} catch (MalformedURLException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new EC2Exception(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1851,7 +1642,7 @@ public class Jec2 extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			DescribeSnapshotsResponse response =
-					makeRequest(method, "DescribeSnapshots", params, DescribeSnapshotsResponse.class);
+					makeRequestInt(method, "DescribeSnapshots", params, DescribeSnapshotsResponse.class);
 			List<SnapshotInfo> result = new ArrayList<SnapshotInfo>();
 			DescribeSnapshotsSetResponseType res_set = response.getSnapshotSet();
 			Iterator reservations_iter = res_set.getItems().iterator();
@@ -1864,15 +1655,23 @@ public class Jec2 extends AWSQueryConnection {
 				result.add(vol);
 			}
 			return result;
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+		throws EC2Exception {
+		try {
+			return makeRequest(method, action, params, respType);
+		} catch (AWSException ex) {
+			throw new EC2Exception(ex);
 		} catch (JAXBException ex) {
 			throw new EC2Exception("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
-		} finally {
-			method.releaseConnection();
 		}
 	}
-
 }

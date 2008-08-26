@@ -29,8 +29,10 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
 
+import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.typica.sdb.jaxb.CreateDomainResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.DeleteDomainResponse;
@@ -151,18 +153,12 @@ public class SimpleDB extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			CreateDomainResponse response =
-						makeRequest(method, "CreateDomain", params, CreateDomainResponse.class);
+						makeRequestInt(method, "CreateDomain", params, CreateDomainResponse.class);
 			Domain ret = new Domain(name, getAwsAccessKeyId(), getSecretAccessKey(),
 									isSecure(), getServer());
 			ret.setSignatureVersion(getSignatureVersion());
 			ret.setHttpClient(getHttpClient());
 			return ret;
-		} catch (JAXBException ex) {
-			throw new SDBException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SDBException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SDBException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -190,13 +186,7 @@ public class SimpleDB extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			//DeleteDomainResponse response =
-			makeRequest(method, "DeleteDomain", params, DeleteDomainResponse.class);
-		} catch (JAXBException ex) {
-			throw new SDBException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SDBException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SDBException(ex.getMessage(), ex);
+			makeRequestInt(method, "DeleteDomain", params, DeleteDomainResponse.class);
 		} finally {
 			method.releaseConnection();
 		}
@@ -234,19 +224,28 @@ public class SimpleDB extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			ListDomainsResponse response =
-						makeRequest(method, "ListDomains", params, ListDomainsResponse.class);
+						makeRequestInt(method, "ListDomains", params, ListDomainsResponse.class);
 			return new ListDomainsResult(response.getListDomainsResult().getNextToken(),
 							Domain.createList(response.getListDomainsResult().getDomainNames().toArray(new String[] {}),
 								getAwsAccessKeyId(), getSecretAccessKey(),
 								isSecure(), getServer(), getSignatureVersion(), getHttpClient()));
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+		throws SDBException {
+		try {
+			return makeRequest(method, action, params, respType);
+		} catch (AWSException ex) {
+			throw new SDBException(ex);
 		} catch (JAXBException ex) {
 			throw new SDBException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
 			throw new SDBException(ex.getMessage(), ex);
 		} catch (IOException ex) {
 			throw new SDBException(ex.getMessage(), ex);
-		} finally {
-			method.releaseConnection();
 		}
 	}
 

@@ -35,8 +35,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
 
+import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.typica.sdb.jaxb.QueryResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.Attribute;
@@ -162,17 +164,11 @@ public class Domain extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			QueryResponse response =
-						makeRequest(method, "Query", params, QueryResponse.class);
+						makeRequestInt(method, "Query", params, QueryResponse.class);
 			return new QueryResult(response.getQueryResult().getNextToken(),
 					Item.createList(response.getQueryResult().getItemNames().toArray(new String[] {}), domainName,
 								getAwsAccessKeyId(), getSecretAccessKey(),
 								isSecure(), getServer(), getSignatureVersion(), getHttpClient()));
-		} catch (JAXBException ex) {
-			throw new SDBException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SDBException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SDBException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -324,7 +320,7 @@ public class Domain extends AWSQueryConnection {
 		GetMethod method = new GetMethod();
 		try {
 			QueryWithAttributesResponse response =
-						makeRequest(method, "QueryWithAttributes", params, QueryWithAttributesResponse.class);
+						makeRequestInt(method, "QueryWithAttributes", params, QueryWithAttributesResponse.class);
 			Map<String, List<ItemAttribute>> results = new Hashtable<String, List<ItemAttribute>>();
 			for (com.xerox.amazonws.typica.sdb.jaxb.Item i : response.getQueryWithAttributesResult().getItems()) {
 				List<ItemAttribute> attrs = new ArrayList<ItemAttribute>();
@@ -335,12 +331,6 @@ public class Domain extends AWSQueryConnection {
 			}
 
 			return new QueryWithAttributesResult(response.getQueryWithAttributesResult().getNextToken(), results);
-		} catch (JAXBException ex) {
-			throw new SDBException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SDBException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SDBException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -370,7 +360,7 @@ public class Domain extends AWSQueryConnection {
 			String nextToken = null;
 			do {
 				QueryWithAttributesResponse response =
-						makeRequest(method, "QueryWithAttributes", params, QueryWithAttributesResponse.class);
+						makeRequestInt(method, "QueryWithAttributes", params, QueryWithAttributesResponse.class);
 				for (com.xerox.amazonws.typica.sdb.jaxb.Item i : response.getQueryWithAttributesResult().getItems()) {
 					List<ItemAttribute> attrs = new ArrayList<ItemAttribute>();
 					for (Attribute a : i.getAttributes()) {
@@ -384,12 +374,6 @@ public class Domain extends AWSQueryConnection {
 				params.remove("NextToken");
 				params.put("NextToken", nextToken);
 			} while (nextToken != null && !nextToken.equals(""));
-		} catch (JAXBException ex) {
-			throw new SDBException("Problem parsing returned message.", ex);
-		} catch (HttpException ex) {
-			throw new SDBException(ex.getMessage(), ex);
-		} catch (IOException ex) {
-			throw new SDBException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -437,6 +421,21 @@ public class Domain extends AWSQueryConnection {
 		public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
 			// ok, on the rare occasion, just run it here!
 			r.run();
+		}
+	}
+
+	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+		throws SDBException {
+		try {
+			return makeRequest(method, action, params, respType);
+		} catch (AWSException ex) {
+			throw new SDBException(ex);
+		} catch (JAXBException ex) {
+			throw new SDBException("Problem parsing returned message.", ex);
+		} catch (HttpException ex) {
+			throw new SDBException(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new SDBException(ex.getMessage(), ex);
 		}
 	}
 }
