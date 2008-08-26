@@ -2,6 +2,7 @@
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -37,7 +38,6 @@ public class TestSimpleDB {
 		Item i = dom.getItem("ab\u2022cd");
 		List<ItemAttribute> list = new ArrayList<ItemAttribute>();
 		list.add(new ItemAttribute("test1", "value1", false));
-		/*
 		list.add(new ItemAttribute("test1", "value2", false));
 		list.add(new ItemAttribute("test1", "value3", false));
 		list.add(new ItemAttribute("test1", "value4", false));
@@ -45,12 +45,37 @@ public class TestSimpleDB {
 		list.add(new ItemAttribute("test1", "value6", false));
 		list.add(new ItemAttribute("test1", "value7", false));
 		list.add(new ItemAttribute("test1", "value8", false));
-		list.add(new ItemAttribute("test1", "value9", false));
-		list.add(new ItemAttribute("test1", "value10", false));
-		list.add(new ItemAttribute("test1", "value11", false));
-		list.add(new ItemAttribute("test1", "value12", true));
-		*/
+		list.add(new ItemAttribute("test2", "value9", false));
+		list.add(new ItemAttribute("test2", "value10", false));
+		list.add(new ItemAttribute("test2", "value11", false));
+		list.add(new ItemAttribute("test2", "value12", false));
 		i.putAttributes(list);
+
+		List<ItemAttribute> attrs = i.getAttributes();
+		logger.info("all");
+		for (ItemAttribute attr : attrs) {
+			logger.info("Item:"+attr.getName()+" Value:"+attr.getValue());
+		}
+		attrs = i.getAttributes("test1");
+		logger.info("test1");
+		for (ItemAttribute attr : attrs) {
+			logger.info("Item:"+attr.getName()+" Value:"+attr.getValue());
+		}
+		ArrayList<String> some = new ArrayList<String>();
+		some.add("test1");
+		some.add("test2");
+		attrs = i.getAttributes(some);
+		logger.info("test1,test2");
+		for (ItemAttribute attr : attrs) {
+			logger.info("Item:"+attr.getName()+" Value:"+attr.getValue());
+		}
+		Map<String, List<String>> attrMap = i.getAttributesMap(some);
+		logger.info("test1,test2 - map");
+		for (String key : attrMap.keySet()) {
+			for (String value : attrMap.get(key)) {
+				logger.info("Item:"+key+" Value:"+value);
+			}
+		}
 	}
 }
 

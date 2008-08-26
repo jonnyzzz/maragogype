@@ -76,7 +76,7 @@ public class Item extends AWSQueryConnection {
 	 * @throws SDBException wraps checked exceptions
 	 */
 	public List<ItemAttribute> getAttributes() throws SDBException {
-		return getAttributes(null);
+		return getAttributes((String)null);
 	}
 
 	/**
@@ -86,13 +86,14 @@ public class Item extends AWSQueryConnection {
 	 * @param attributeName a name that limits the results
      * @return the list of attributes
 	 * @throws SDBException wraps checked exceptions
+	 * @deprecated this didn't work, so I don't expect anyone was using it anyway!
 	 */
 	public List<ItemAttribute> getAttributes(String attributeName) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", domainName);
 		params.put("ItemName", identifier);
 		if (attributeName != null) {
-			params.put("AttributeName", attributeName);
+			params.put("AttributeName.1", attributeName);
 		}
 		GetMethod method = new GetMethod();
 		try {
@@ -102,6 +103,91 @@ public class Item extends AWSQueryConnection {
 			List<Attribute> attrs = response.getGetAttributesResult().getAttributes();
 			for (Attribute attr : attrs) {
 				ret.add(new ItemAttribute(attr.getName(), attr.getValue(), false));
+			}
+			return ret;
+		} catch (JAXBException ex) {
+			throw new SDBException("Problem parsing returned message.", ex);
+		} catch (HttpException ex) {
+			throw new SDBException(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new SDBException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Gets selected attributes. The parameter limits the results to those of
+	 * the name(s) given.
+	 *
+	 * @param attributes name(s) that limits the results
+     * @return the list of attributes
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public List<ItemAttribute> getAttributes(List<String> attributes) throws SDBException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("DomainName", domainName);
+		params.put("ItemName", identifier);
+		int idx = 1;
+		if (attributes != null) {
+			for (String attr : attributes) {
+				params.put("AttributeName."+idx, attr);
+				idx++;
+			}
+		}
+		GetMethod method = new GetMethod();
+		try {
+			GetAttributesResponse response =
+						makeRequest(method, "GetAttributes", params, GetAttributesResponse.class);
+			List<ItemAttribute> ret = new ArrayList<ItemAttribute>();
+			List<Attribute> attrs = response.getGetAttributesResult().getAttributes();
+			for (Attribute attr : attrs) {
+				ret.add(new ItemAttribute(attr.getName(), attr.getValue(), false));
+			}
+			return ret;
+		} catch (JAXBException ex) {
+			throw new SDBException("Problem parsing returned message.", ex);
+		} catch (HttpException ex) {
+			throw new SDBException(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new SDBException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Gets selected attributes. The parameter limits the results to those of
+	 * the name(s) given.
+	 *
+	 * @param attributes name(s) that limits the results
+     * @return the list of attributes
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public Map<String, List<String>> getAttributesMap(List<String> attributes) throws SDBException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("DomainName", domainName);
+		params.put("ItemName", identifier);
+		int idx = 1;
+		if (attributes != null) {
+			for (String attr : attributes) {
+				params.put("AttributeName."+idx, attr);
+				idx++;
+			}
+		}
+		GetMethod method = new GetMethod();
+		try {
+			GetAttributesResponse response =
+						makeRequest(method, "GetAttributes", params, GetAttributesResponse.class);
+			Map<String, List<String>> ret = new HashMap<String, List<String>>();
+			List<Attribute> attrs = response.getGetAttributesResult().getAttributes();
+			for (Attribute attr : attrs) {
+				List<String> vals = ret.get(attr.getName());
+				if (vals == null) {
+					vals = new ArrayList<String>();
+					ret.put(attr.getName(), vals);
+				}
+				vals.add(attr.getValue());
 			}
 			return ret;
 		} catch (JAXBException ex) {

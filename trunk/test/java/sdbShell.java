@@ -15,6 +15,7 @@ import com.xerox.amazonws.sdb.ItemAttribute;
 import com.xerox.amazonws.sdb.ItemListener;
 import com.xerox.amazonws.sdb.ListDomainsResult;
 import com.xerox.amazonws.sdb.QueryResult;
+import com.xerox.amazonws.sdb.QueryWithAttributesResult;
 import com.xerox.amazonws.sdb.SDBException;
 import com.xerox.amazonws.sdb.SimpleDB;
 
@@ -205,8 +206,9 @@ public class sdbShell {
 						itemCount = 0;
 						dom.setMaxThreads(20);
 						long start = System.currentTimeMillis();
-						dom.setSignatureVersion(0);
-						dom.listItemsAttributes("", new ItemListener() {
+						//dom.setSignatureVersion(0);
+						//dom.listItemsAttributes("", new ItemListener() {
+						dom.listItemsWithAttributes("", null, new ItemListener() {
 								public synchronized void itemAvailable(String id, List<ItemAttribute> attrs) {
 									System.out.println("Item : "+id);
 									for (ItemAttribute attr : attrs) {
@@ -215,6 +217,28 @@ public class sdbShell {
 									itemCount++;
 								}
 							});
+						long end = System.currentTimeMillis();
+						System.out.println("Time : "+((int)(end-start)/1000.0));
+						System.out.println("Number of items returned : "+itemCount);
+					}
+				}
+				else if (cmd.equals("ga") || cmd.equals("getattributes")) {
+					if (checkDomain(dom)) {
+						itemCount = 0;
+						long start = System.currentTimeMillis();
+						String nextToken = null;
+						do {
+							QueryWithAttributesResult qwar = dom.listItemsWithAttributes("", null, nextToken, 250);
+							Map<String, List<ItemAttribute>> items = qwar.getItems();
+							for (String id : items.keySet()) {
+								System.out.println("Item : "+id);
+								for (ItemAttribute attr : items.get(id)) {
+									System.out.println("  "+attr.getName()+" = "+filter(attr.getValue()));
+								}
+								itemCount++;
+							}
+							nextToken = qwar.getNextToken();
+						} while (nextToken != null && !nextToken.trim().equals(""));
 						long end = System.currentTimeMillis();
 						System.out.println("Time : "+((int)(end-start)/1000.0));
 						System.out.println("Number of items returned : "+itemCount);

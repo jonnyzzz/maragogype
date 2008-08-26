@@ -39,6 +39,8 @@ import org.apache.commons.httpclient.methods.GetMethod;
 
 import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.typica.sdb.jaxb.QueryResponse;
+import com.xerox.amazonws.typica.sdb.jaxb.Attribute;
+import com.xerox.amazonws.typica.sdb.jaxb.QueryWithAttributesResponse;
 
 /**
  * This class provides an interface with the Amazon SDB service. It provides methods for
@@ -288,6 +290,108 @@ public class Domain extends AWSQueryConnection {
 		}
 		if (this.executor == null) {
 			pool.shutdown();
+		}
+	}
+
+	/**
+	 * Gets a list of items (with attributes) in this domain filtered by the query string.
+	 *
+	 * @param queryString the filter statement
+	 * @param attributes an optional list of attributes to limit the results
+	 * @param nextToken the token used to return more items in the query result set
+	 * @param maxResults a limit to the number of results to return now
+     * @return the object containing the items, a more token, etc.
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public QueryWithAttributesResult listItemsWithAttributes(String queryString,
+				List<String> attributes, String nextToken, int maxResults) throws SDBException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("DomainName", domainName);
+		int idx = 1;
+		if (attributes != null) {
+			for (String attr : attributes) {
+				params.put("AttributeName."+idx, attr);
+				idx++;
+			}
+		}
+		params.put("QueryExpression", (queryString==null)?"":queryString);
+		if (nextToken != null) {
+			params.put("NextToken", nextToken);
+		}
+		if (maxResults > 0) {
+			params.put("MaxNumberOfItems", ""+maxResults);
+		}
+		GetMethod method = new GetMethod();
+		try {
+			QueryWithAttributesResponse response =
+						makeRequest(method, "QueryWithAttributes", params, QueryWithAttributesResponse.class);
+			Map<String, List<ItemAttribute>> results = new Hashtable<String, List<ItemAttribute>>();
+			for (com.xerox.amazonws.typica.sdb.jaxb.Item i : response.getQueryWithAttributesResult().getItems()) {
+				List<ItemAttribute> attrs = new ArrayList<ItemAttribute>();
+				for (Attribute a : i.getAttributes()) {
+					attrs.add(new ItemAttribute(a.getName(), a.getValue(), false));
+				}
+				results.put(i.getName(), attrs);
+			}
+
+			return new QueryWithAttributesResult(response.getQueryWithAttributesResult().getNextToken(), results);
+		} catch (JAXBException ex) {
+			throw new SDBException("Problem parsing returned message.", ex);
+		} catch (HttpException ex) {
+			throw new SDBException(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new SDBException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Gets a list of items (with attributes) in this domain filtered by the query string.
+	 *
+	 * @param queryString the filter statement
+	 * @param attributes an optional list of attributes to limit the results
+	 * @param listener class that will be notified when items are ready
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public void listItemsWithAttributes(String queryString, List<String> attributes, ItemListener listener) throws SDBException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("DomainName", domainName);
+		int idx = 1;
+		if (attributes != null) {
+			for (String attr : attributes) {
+				params.put("AttributeName."+idx, attr);
+				idx++;
+			}
+		}
+		params.put("QueryExpression", (queryString==null)?"":queryString);
+		GetMethod method = new GetMethod();
+		try {
+			String nextToken = null;
+			do {
+				QueryWithAttributesResponse response =
+						makeRequest(method, "QueryWithAttributes", params, QueryWithAttributesResponse.class);
+				for (com.xerox.amazonws.typica.sdb.jaxb.Item i : response.getQueryWithAttributesResult().getItems()) {
+					List<ItemAttribute> attrs = new ArrayList<ItemAttribute>();
+					for (Attribute a : i.getAttributes()) {
+						attrs.add(new ItemAttribute(a.getName(), a.getValue(), false));
+					}
+					if (listener != null) {
+						listener.itemAvailable(i.getName(), attrs);
+					}
+				}
+				nextToken = response.getQueryWithAttributesResult().getNextToken();
+				params.remove("NextToken");
+				params.put("NextToken", nextToken);
+			} while (nextToken != null && !nextToken.equals(""));
+		} catch (JAXBException ex) {
+			throw new SDBException("Problem parsing returned message.", ex);
+		} catch (HttpException ex) {
+			throw new SDBException(ex.getMessage(), ex);
+		} catch (IOException ex) {
+			throw new SDBException(ex.getMessage(), ex);
+		} finally {
+			method.releaseConnection();
 		}
 	}
 
