@@ -425,7 +425,7 @@ public class AWSQueryConnection extends AWSConnection {
 				ErrorResponse resp = JAXBuddy.deserializeXMLStream(ErrorResponse.class, bais);
 				List<Error> errs = resp.getErrors();
 				errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
-				requestId = resp.getRequestId();
+				requestId = resp.getRequestID();
 				errors = new ArrayList<AWSError>();
 				for (Error e : errs) {
 					errors.add(new AWSError(AWSError.ErrorType.getTypeFromString(e.getType()),
@@ -437,7 +437,7 @@ public class AWSQueryConnection extends AWSConnection {
 				com.xerox.amazonws.typica.jaxb.ErrorResponse resp = JAXBuddy.deserializeXMLStream(com.xerox.amazonws.typica.jaxb.ErrorResponse.class, bais);
 				List<com.xerox.amazonws.typica.jaxb.Error> errs = resp.getErrors();
 				errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
-				requestId = resp.getRequestId();
+				requestId = resp.getRequestID();
 				errors = new ArrayList<AWSError>();
 				for (com.xerox.amazonws.typica.jaxb.Error e : errs) {
 					errors.add(new AWSError(AWSError.ErrorType.getTypeFromString(e.getType()),

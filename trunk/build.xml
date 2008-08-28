@@ -127,6 +127,21 @@
 		</zip>
 	</target>
 
+	<target name="upload">
+		<taskdef name="S3Upload" classname="dak.ant.taskdefs.S3Upload">
+			<classpath refid="typica.compile.classpath" />
+		</taskdef>
+
+		<property file="${basedir}/aws.properties"/>
+		<S3Upload verbose="true"
+				accessId="${aws.accessId}"
+				secretKey="${aws.secretKey}"
+				bucket="typica"
+				publicRead="true">
+			<fileset dir="build/apidocs/" includes="**/*"/>
+		</S3Upload>
+	</target>
+
 	<target name="sdbshell" depends="compile, test.compile">
 		<input message="Enter the version # : " addproperty="rel.version"/>
 		<antcall target="test.compile">

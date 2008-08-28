@@ -47,6 +47,10 @@ public class AWSError {
 		return message;
 	}
 
+	public String toString() {
+		return "AWSError [type="+type.getTypeId()+",code="+code+",message="+message+"]";
+	}
+
 	public enum ErrorType {
 		RECEIVER("Receiver"),
 		SENDER("Sender");

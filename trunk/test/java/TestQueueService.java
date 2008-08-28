@@ -7,19 +7,20 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 //import com.xerox.amazonws.sqs.Grant;
-import com.xerox.amazonws.sqs.Message;
-import com.xerox.amazonws.sqs.MessageQueue;
-import com.xerox.amazonws.sqs.QueueService;
-import com.xerox.amazonws.sqs.SQSException;
+import com.xerox.amazonws.sqs2.Message;
+import com.xerox.amazonws.sqs2.MessageQueue;
+import com.xerox.amazonws.sqs2.QueueService;
+import com.xerox.amazonws.sqs2.SQSException;
 
 public class TestQueueService {
     private static Log logger = LogFactory.getLog(TestQueueService.class);
 
 	public static void main(String [] args) throws Exception {
+		try {
 		Properties props = new Properties();
 		props.load(TestQueueService.class.getClassLoader().getResourceAsStream("aws.properties"));
 
-		QueueService qs = new QueueService(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"), false, "localhost");
+		QueueService qs = new QueueService(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
 /*
 	*/
 		List<MessageQueue> queues = qs.listMessageQueues(null);
@@ -28,9 +29,10 @@ public class TestQueueService {
 			// delete queues that contain a certain phrase
 			if (queue.getUrl().toString().indexOf("dak")>-1) {
 				try {
-					queue.deleteQueue(true);
+					queue.deleteQueue();
 				} catch (SQSException ex) {
 					ex.printStackTrace();
+					logger.info("request id : "+ex.getRequestId());
 				}
 			}
 		}
@@ -94,5 +96,11 @@ public class TestQueueService {
 			logger.error("Queue deletion failed (this is not exptected) !!");
 		}
 		*/
+		} catch (SQSException ex) {
+			logger.info("message : "+ex.getMessage());
+			logger.info("request id : "+ex.getRequestId());
+			ex.printStackTrace();
+			logger.info("first error : "+ex.getErrors().get(0).toString());
+		}
 	}
 }

@@ -198,7 +198,7 @@
 	<xs:complexType>
 	  <xs:sequence>
 		<xs:element ref="tns:Error" maxOccurs="unbounded"/>
-		<xs:element name="RequestId" type="xs:string"/>
+		<xs:element name="RequestID" type="xs:string"/>
 	  </xs:sequence>
 	</xs:complexType>
   </xs:element>
