@@ -1,5 +1,5 @@
-typica 1.4
-21-August-2008
+typica 1.4.1
+03-September-2008
 
 http://code.google.com/p/typica
 
@@ -17,6 +17,33 @@ In subversion, the test directory contains some java test files. Sample code is 
 ant test.main -Dclass=TestQueueService -Dargs=testQueue
 
 Change history for this release;
+------------------------------------------------------------------------
+r176 | dkavanagh | 2008-09-04 07:24:00 -0400 (Thu, 04 Sep 2008) | 2 lines
+
+fixed javadoc for EBS code
+------------------------------------------------------------------------
+r175 | dkavanagh | 2008-09-03 21:32:29 -0400 (Wed, 03 Sep 2008) | 2 lines
+
+fix for base64 encoded sdb results
+------------------------------------------------------------------------
+r174 | jerome.bernard | 2008-09-03 09:51:42 -0400 (Wed, 03 Sep 2008) | 1 line
+
+Use UTF-8 encoding by default and platform encoding otherwise. UTF-8 encoding is similar to ASCII when the characters are available in the ASCII alphabet.
+------------------------------------------------------------------------
+r173 | dkavanagh | 2008-08-28 19:29:43 -0400 (Thu, 28 Aug 2008) | 5 lines
+
+fixed up schemas for DevPay and SQS error results removed some old releases
+build now has target for uploading javadoc to S3. Needs jets3t and awstasks jars to run
+------------------------------------------------------------------------
+r172 | dkavanagh | 2008-08-26 17:38:57 -0400 (Tue, 26 Aug 2008) | 2 lines
+
+massive change to exceptions. More details provided via AWSException and error list for certain services that support it. Also, simplified catch blocks in all API methods for all services.
+------------------------------------------------------------------------
+r171 | dkavanagh | 2008-08-26 09:53:11 -0400 (Tue, 26 Aug 2008) | 2 lines
+
+updated SimpleDB code to support QueryWithAttributes, fixed Item.getAttributes(..)
+------------------------------------------------------------------------
+These changes were in the 1.4 release;
 ------------------------------------------------------------------------
 r168 | dkavanagh | 2008-08-21 07:20:27 -0400 (Thu, 21 Aug 2008) | 2 lines
 
