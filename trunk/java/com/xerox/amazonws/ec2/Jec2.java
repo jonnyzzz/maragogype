@@ -1411,9 +1411,13 @@ public class Jec2 extends AWSQueryConnection {
 	}
 
 	/**
-	 * Allocates an address for this account.
+	 * Creates an EBS volume either by size, or from a snapshot. The zone must be the same as
+	 * that of the instance you wish to attach it to.
 	 *
-	 * @return the new address allocated
+	 * @param size the size of the volume in gigabytes
+	 * @param snapshotId the snapshot from which to create the new volume
+	 * @param zoneName the availability zone for the new volume
+	 * @return information about the volume
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public VolumeInfo createVolume(String size, String snapshotId, String zoneName) throws EC2Exception {
@@ -1436,9 +1440,9 @@ public class Jec2 extends AWSQueryConnection {
 	}
 
 	/**
-	 * Releases an address
+	 * Deletes the EBS volume.
 	 *
-	 * @param volumeId the ip address to release
+	 * @param volumeId the id of the volume to be deleted
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public void deleteVolume(String volumeId) throws EC2Exception {
@@ -1457,14 +1461,14 @@ public class Jec2 extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets a list of running instances.
+	 * Gets a list of EBS volumes for this account.
 	 * <p>
-	 * If the array of instance IDs is empty then a list of all instances owned
+	 * If the array of volume IDs is empty then a list of all volumes owned
 	 * by the caller will be returned. Otherwise the list will contain
-	 * information for the requested instances only.
+	 * information for the requested volumes only.
 	 * 
-	 * @param volumeIds An array of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
-	 * @return A list of {@link com.xerox.amazonws.ec2.ReservationDescription} instances.
+	 * @param volumeIds An array of volumes ({@link com.xerox.amazonws.ec2.VolumeInfo}.
+	 * @return A list of {@link com.xerox.amazonws.ec2.VolumeInfo} volumes.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<VolumeInfo> describeVolumes(String[] volumeIds) throws EC2Exception {
@@ -1472,14 +1476,14 @@ public class Jec2 extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets a list of running instances.
+	 * Gets a list of EBS volumes for this account.
 	 * <p>
-	 * If the list of instance IDs is empty then a list of all instances owned
+	 * If the list of volume IDs is empty then a list of all volumes owned
 	 * by the caller will be returned. Otherwise the list will contain
-	 * information for the requested instances only.
+	 * information for the requested volumes only.
 	 * 
-	 * @param volumeIds A list of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
-	 * @return A list of {@link com.xerox.amazonws.ec2.ReservationDescription} instances.
+	 * @param volumeIds A list of volumes ({@link com.xerox.amazonws.ec2.VolumeInfo}.
+	 * @return A list of {@link com.xerox.amazonws.ec2.VolumeInfo} volumes.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<VolumeInfo> describeVolumes(List<String> volumeIds) throws EC2Exception {
@@ -1519,9 +1523,12 @@ public class Jec2 extends AWSQueryConnection {
 	}
 
 	/**
-	 * Allocates an address for this account.
+	 * Attaches an EBS volume to an instance.
 	 *
-	 * @return the new address allocated
+	 * @param volumeId the id of the volume
+	 * @param instanceId the id of the instance
+	 * @param device the device name for the attached volume
+	 * @return the information about this attachment
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public AttachmentInfo attachVolume(String volumeId, String instanceId, String device) throws EC2Exception {
@@ -1542,9 +1549,13 @@ public class Jec2 extends AWSQueryConnection {
 	}
 
 	/**
-	 * Allocates an address for this account.
+	 * Detaches an EBS volume from an instance.
 	 *
-	 * @return the new address allocated
+	 * @param volumeId the id of the volume
+	 * @param instanceId the id of the instance
+	 * @param device the device name for the attached volume
+	 * @param force if true, forces the detachment, only use if normal detachment fails
+	 * @return the information about this attachment
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public AttachmentInfo detachVolume(String volumeId, String instanceId, String device, boolean force) throws EC2Exception {
@@ -1566,9 +1577,10 @@ public class Jec2 extends AWSQueryConnection {
 	}
 
 	/**
-	 * Allocates an address for this account.
+	 * Creates a snapshot of the EBS Volume.
 	 *
-	 * @return the new address allocated
+	 * @param volumeId the id of the volume
+	 * @return information about the snapshot
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public SnapshotInfo createSnapshot(String volumeId) throws EC2Exception {
@@ -1588,9 +1600,9 @@ public class Jec2 extends AWSQueryConnection {
 	}
 
 	/**
-	 * Releases an address
+	 * Deletes the snapshot.
 	 *
-	 * @param snapshotId the ip address to release
+	 * @param snapshotId the id of the snapshot
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public void deleteSnapshot(String snapshotId) throws EC2Exception {
@@ -1609,14 +1621,14 @@ public class Jec2 extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets a list of running instances.
+	 * Gets a list of EBS snapshots for this account.
 	 * <p>
-	 * If the array of instance IDs is empty then a list of all instances owned
+	 * If the array of snapshot IDs is empty then a list of all snapshots owned
 	 * by the caller will be returned. Otherwise the list will contain
-	 * information for the requested instances only.
+	 * information for the requested snapshots only.
 	 * 
-	 * @param snapshotIds An array of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
-	 * @return A list of {@link com.xerox.amazonws.ec2.ReservationDescription} instances.
+	 * @param snapshotIds An array of snapshots ({@link com.xerox.amazonws.ec2.SnapshotInfo}.
+	 * @return A list of {@link com.xerox.amazonws.ec2.VolumeInfo} volumes.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<SnapshotInfo> describeSnapshots(String[] snapshotIds) throws EC2Exception {
@@ -1624,14 +1636,14 @@ public class Jec2 extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets a list of running instances.
+	 * Gets a list of EBS snapshots for this account.
 	 * <p>
-	 * If the list of instance IDs is empty then a list of all instances owned
+	 * If the list of snapshot IDs is empty then a list of all snapshots owned
 	 * by the caller will be returned. Otherwise the list will contain
-	 * information for the requested instances only.
+	 * information for the requested snapshots only.
 	 * 
-	 * @param snapshotIds A list of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
-	 * @return A list of {@link com.xerox.amazonws.ec2.ReservationDescription} instances.
+	 * @param snapshotIds A list of snapshots ({@link com.xerox.amazonws.ec2.SnapshotInfo}.
+	 * @return A list of {@link com.xerox.amazonws.ec2.VolumeInfo} volumes.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<SnapshotInfo> describeSnapshots(List<String> snapshotIds) throws EC2Exception {
