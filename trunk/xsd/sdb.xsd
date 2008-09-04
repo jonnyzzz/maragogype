@@ -30,8 +30,24 @@
 	</xs:element>
 	<xs:complexType name="Attribute">
 		<xs:sequence>
-			<xs:element name="Name" type="xs:string"/>
-			<xs:element name="Value" type="xs:string" minOccurs="0"/>
+			<xs:element name="Name">
+				<xs:complexType>
+					<xs:simpleContent>
+						<xs:extension base="xs:string">
+							<xs:attribute name="encoding" use="optional" type="xs:string"/>
+						</xs:extension>
+					</xs:simpleContent>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Value" minOccurs="0">
+				<xs:complexType>
+					<xs:simpleContent>
+						<xs:extension base="xs:string">
+							<xs:attribute name="encoding" use="optional" type="xs:string"/>
+						</xs:extension>
+					</xs:simpleContent>
+				</xs:complexType>
+			</xs:element>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="ReplaceableAttribute">
@@ -43,7 +59,15 @@
 	</xs:complexType>
 	<xs:complexType name="Item">
 		<xs:sequence>
-			<xs:element name="Name" type="xs:string"/>
+			<xs:element name="Name">
+				<xs:complexType>
+					<xs:simpleContent>
+						<xs:extension base="xs:string">
+							<xs:attribute name="encoding" use="optional" type="xs:string"/>
+						</xs:extension>
+					</xs:simpleContent>
+				</xs:complexType>
+			</xs:element>
 			<xs:element name="Attribute" type="tns:Attribute" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
@@ -188,7 +212,15 @@
 	<xs:element name="QueryResult">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element name="ItemName" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element name="ItemName" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:simpleContent>
+							<xs:extension base="xs:string">
+								<xs:attribute name="encoding" use="optional" type="xs:string"/>
+							</xs:extension>
+						</xs:simpleContent>
+					</xs:complexType>
+				</xs:element>
 				<xs:element name="NextToken" type="xs:string" minOccurs="0"/>
 			</xs:sequence>
 		</xs:complexType>

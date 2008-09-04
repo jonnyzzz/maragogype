@@ -26,6 +26,7 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.httpclient.HttpClient;
@@ -39,6 +40,7 @@ import com.xerox.amazonws.typica.sdb.jaxb.Attribute;
 import com.xerox.amazonws.typica.sdb.jaxb.DeleteAttributesResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.GetAttributesResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.PutAttributesResponse;
+import com.xerox.amazonws.typica.sdb.jaxb.QueryResult.ItemName;
 
 /**
  * This class provides an interface with the Amazon SDB service. It provides methods for
@@ -104,7 +106,7 @@ public class Item extends AWSQueryConnection {
 			List<ItemAttribute> ret = new ArrayList<ItemAttribute>();
 			List<Attribute> attrs = response.getGetAttributesResult().getAttributes();
 			for (Attribute attr : attrs) {
-				ret.add(new ItemAttribute(attr.getName(), attr.getValue(), false));
+				ret.add(createAttribute(attr));
 			}
 			return ret;
 		} finally {
@@ -138,7 +140,7 @@ public class Item extends AWSQueryConnection {
 			List<ItemAttribute> ret = new ArrayList<ItemAttribute>();
 			List<Attribute> attrs = response.getGetAttributesResult().getAttributes();
 			for (Attribute attr : attrs) {
-				ret.add(new ItemAttribute(attr.getName(), attr.getValue(), false));
+				ret.add(createAttribute(attr));
 			}
 			return ret;
 		} finally {
@@ -172,12 +174,22 @@ public class Item extends AWSQueryConnection {
 			Map<String, List<String>> ret = new HashMap<String, List<String>>();
 			List<Attribute> attrs = response.getGetAttributesResult().getAttributes();
 			for (Attribute attr : attrs) {
-				List<String> vals = ret.get(attr.getName());
+				String name = attr.getName().getValue();
+				String encoding = attr.getName().getEncoding();
+				if (encoding != null && encoding.equals("base64")) {
+					name = new String(Base64.decodeBase64(name.getBytes()));
+				}
+				List<String> vals = ret.get(name);
 				if (vals == null) {
 					vals = new ArrayList<String>();
-					ret.put(attr.getName(), vals);
+					ret.put(name, vals);
 				}
-				vals.add(attr.getValue());
+				String value = attr.getName().getValue();
+				encoding = attr.getName().getEncoding();
+				if (encoding != null && encoding.equals("base64")) {
+					value = new String(Base64.decodeBase64(value.getBytes()));
+				}
+				vals.add(value);
 			}
 			return ret;
 		} finally {
@@ -263,13 +275,32 @@ public class Item extends AWSQueryConnection {
 		}
 	}
 
-	static List<Item> createList(String [] itemNames, String domainName, String awsAccessId,
+	private ItemAttribute createAttribute(Attribute a) {
+		String name = a.getName().getValue();
+		String encoding = a.getName().getEncoding();
+		if (encoding != null && encoding.equals("base64")) {
+			name = new String(Base64.decodeBase64(name.getBytes()));
+		}
+		String value = a.getValue().getValue();
+		encoding = a.getValue().getEncoding();
+		if (encoding != null && encoding.equals("base64")) {
+			value = new String(Base64.decodeBase64(value.getBytes()));
+		}
+		return new ItemAttribute(name, value, false);
+	}
+
+	static List<Item> createList(ItemName [] itemNames, String domainName, String awsAccessId,
 								String awsSecretKey, boolean isSecure, String server,
 								int signatureVersion, HttpClient hc)
 			throws SDBException {
 		ArrayList<Item> ret = new ArrayList<Item>();
 		for (int i=0; i<itemNames.length; i++) {
-			Item item = new Item(itemNames[i], domainName, awsAccessId, awsSecretKey, isSecure, server);
+			String name = itemNames[i].getValue();
+			String encoding = itemNames[i].getEncoding();
+			if (encoding != null && encoding.equals("base64")) {
+				name = new String(Base64.decodeBase64(name.getBytes()));
+			}
+			Item item = new Item(name, domainName, awsAccessId, awsSecretKey, isSecure, server);
 			item.setSignatureVersion(signatureVersion);
 			item.setHttpClient(hc);
 			ret.add(item);

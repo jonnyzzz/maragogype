@@ -12,6 +12,7 @@ import com.xerox.amazonws.sdb.Domain;
 import com.xerox.amazonws.sdb.Item;
 import com.xerox.amazonws.sdb.ItemAttribute;
 import com.xerox.amazonws.sdb.ListDomainsResult;
+import com.xerox.amazonws.sdb.QueryResult;
 import com.xerox.amazonws.sdb.SimpleDB;
 import com.xerox.amazonws.sdb.SDBException;
 
@@ -23,8 +24,8 @@ public class TestSimpleDB {
 		Properties props = new Properties();
 		props.load(TestSimpleDB.class.getClassLoader().getResourceAsStream("aws.properties"));
 
-		SimpleDB sdb = new SimpleDB(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
-		sdb.setSignatureVersion(0);
+		SimpleDB sdb = new SimpleDB(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"), false, "localhost");
+		//sdb.setSignatureVersion(0);
 
 		logger.info("domains:");
 		String nextToken = "";
@@ -37,12 +38,17 @@ public class TestSimpleDB {
 			nextToken = result.getNextToken();
 		}
 		Domain dom = sdb.createDomain(args[0]);
-		Item i = dom.getItem("ab\u2022cd");
+		QueryResult qr = dom.listItems();
+		List<Item> iList = qr.getItemList();
+		for (Item i : iList) {
+			logger.info("item : "+i.getIdentifier());
+		}
+		Item i = dom.getItem("ab\0u000dcd");
 		List<ItemAttribute> list = new ArrayList<ItemAttribute>();
 		list.add(new ItemAttribute("test1", "value1", false));
-		list.add(new ItemAttribute("test1", "value2", false));
-		list.add(new ItemAttribute("test1", "value3", false));
-		list.add(new ItemAttribute("test1", "value4", false));
+		list.add(new ItemAttribute("t\0u000dst1", "value2", false));
+		list.add(new ItemAttribute("test1", "Jérôme", false));
+		list.add(new ItemAttribute("test1", "\0u000dvalue4&gt;", false));
 		list.add(new ItemAttribute("test1", "value5", false));
 		list.add(new ItemAttribute("test1", "value6", false));
 		list.add(new ItemAttribute("test1", "value7", false));

@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.httpclient.HttpClient;
@@ -41,6 +42,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.typica.sdb.jaxb.QueryResponse;
+import com.xerox.amazonws.typica.sdb.jaxb.QueryResult.ItemName;
 import com.xerox.amazonws.typica.sdb.jaxb.Attribute;
 import com.xerox.amazonws.typica.sdb.jaxb.QueryWithAttributesResponse;
 
@@ -166,7 +168,7 @@ public class Domain extends AWSQueryConnection {
 			QueryResponse response =
 						makeRequestInt(method, "Query", params, QueryResponse.class);
 			return new QueryResult(response.getQueryResult().getNextToken(),
-					Item.createList(response.getQueryResult().getItemNames().toArray(new String[] {}), domainName,
+					Item.createList(response.getQueryResult().getItemNames().toArray(new ItemName[] {}), domainName,
 								getAwsAccessKeyId(), getSecretAccessKey(),
 								isSecure(), getServer(), getSignatureVersion(), getHttpClient()));
 		} finally {
@@ -325,9 +327,14 @@ public class Domain extends AWSQueryConnection {
 			for (com.xerox.amazonws.typica.sdb.jaxb.Item i : response.getQueryWithAttributesResult().getItems()) {
 				List<ItemAttribute> attrs = new ArrayList<ItemAttribute>();
 				for (Attribute a : i.getAttributes()) {
-					attrs.add(new ItemAttribute(a.getName(), a.getValue(), false));
+					attrs.add(createAttribute(a));
 				}
-				results.put(i.getName(), attrs);
+				String iName = i.getName().getValue();
+				String encoding = i.getName().getEncoding();
+				if (encoding != null && encoding.equals("base64")) {
+					iName = new String(Base64.decodeBase64(iName.getBytes()));
+				}
+				results.put(iName, attrs);
 			}
 
 			return new QueryWithAttributesResult(response.getQueryWithAttributesResult().getNextToken(), results);
@@ -364,10 +371,15 @@ public class Domain extends AWSQueryConnection {
 				for (com.xerox.amazonws.typica.sdb.jaxb.Item i : response.getQueryWithAttributesResult().getItems()) {
 					List<ItemAttribute> attrs = new ArrayList<ItemAttribute>();
 					for (Attribute a : i.getAttributes()) {
-						attrs.add(new ItemAttribute(a.getName(), a.getValue(), false));
+						attrs.add(createAttribute(a));
 					}
 					if (listener != null) {
-						listener.itemAvailable(i.getName(), attrs);
+						String iName = i.getName().getValue();
+						String encoding = i.getName().getEncoding();
+						if (encoding != null && encoding.equals("base64")) {
+							iName = new String(Base64.decodeBase64(iName.getBytes()));
+						}
+						listener.itemAvailable(iName, attrs);
 					}
 				}
 				nextToken = response.getQueryWithAttributesResult().getNextToken();
@@ -437,5 +449,19 @@ public class Domain extends AWSQueryConnection {
 		} catch (IOException ex) {
 			throw new SDBException(ex.getMessage(), ex);
 		}
+	}
+
+	private ItemAttribute createAttribute(Attribute a) {
+		String name = a.getName().getValue();
+		String encoding = a.getName().getEncoding();
+		if (encoding != null && encoding.equals("base64")) {
+			name = new String(Base64.decodeBase64(name.getBytes()));
+		}
+		String value = a.getValue().getValue();
+		encoding = a.getValue().getEncoding();
+		if (encoding != null && encoding.equals("base64")) {
+			value = new String(Base64.decodeBase64(value.getBytes()));
+		}
+		return new ItemAttribute(name, value, false);
 	}
 }

@@ -163,7 +163,6 @@ public abstract class AWSConnection {
         // Compute the HMAC on the digest, and set it.
 		byte [] signedBytes = null;
 		synchronized (mac) {
-        	//signedBytes = mac.doFinal(canonicalString.getBytes());
 			try {
 				signedBytes = mac.doFinal(canonicalString.getBytes("UTF-8"));
 			} catch (UnsupportedEncodingException e) {
