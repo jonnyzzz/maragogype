@@ -8,15 +8,19 @@ clean workspace;
   ant clean
 
 update README with feature change and change log (use "svn log --revision N:M" in trunk to get change history)
+	don't include revsion history for commits of release files and tagging.. too much clutter
 
 build release
-  ant dist  - entering version number (i.e. 0.5)
+  ant dist  - entering version number (i.e. 1.5)
 
 add dist file to svn and commit dist and README changes
 
 tag release
-  svn copy https://typica.googlecode.com/svn/trunk/ https://typica.googlecode.com/svn/tags/v0.5 -m "tagging the 0.5 release"
+  svn copy https://typica.googlecode.com/svn/trunk/ https://typica.googlecode.com/svn/tags/v1.5 -m "tagging the 1.5 release"
 
 upload release to google code downloads. feature it, remove feature tag from older release 
+
+publish javadoc
+  and upload
 
 post anouncement in SQS forum, EC2 forum, etc. as appropriate
