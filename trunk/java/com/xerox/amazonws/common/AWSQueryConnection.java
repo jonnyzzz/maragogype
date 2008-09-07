@@ -450,9 +450,7 @@ public class AWSQueryConnection extends AWSConnection {
 			errorMsg = resp.getErrors().getError().getMessage();
 			requestId = resp.getRequestID();
 		}
-		AWSException ex = new AWSException(msgPrefix+errorMsg, requestId);
-		ex.setErrors(errors);
-		return ex;
+		return new AWSException(msgPrefix + errorMsg, requestId, errors);
 	}
 
     /**

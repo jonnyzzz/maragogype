@@ -17,6 +17,7 @@
 
 package com.xerox.amazonws.common;
 
+import com.xerox.amazonws.fps.FPSError;
 import java.util.List;
 
 /**
@@ -27,19 +28,24 @@ import java.util.List;
  */
 public class AWSException extends Exception {
 	private String requestId;
-	private List<AWSError> errors;
+	private List<? extends AWSError> errors;
 
     public AWSException(String s) {
         super(s);
     }
 
-    public AWSException(String s, Exception ex) {
-        super(s, ex);
+    public AWSException(String s, Throwable cause) {
+        super(s, cause);
     }
 
     public AWSException(String s, String requestId) {
+        this(s, requestId, null);
+    }
+
+    public AWSException(String s, String requestId, List<? extends AWSError> errors) {
         super(s);
 		this.requestId = requestId;
+        this.errors = errors;
     }
 
     protected AWSException(AWSException ex) {
@@ -53,12 +59,15 @@ public class AWSException extends Exception {
 		return requestId;
 	}
 
-	public List<AWSError> getErrors() {
+	public List<? extends AWSError> getErrors() {
 		return errors;
 	}
 
-	void setErrors(List<AWSError> errors) {
-		this.errors = errors;
-	}
+    protected static String concatenateErrors(List<FPSError> errors) {
+        StringBuffer buffer = new StringBuffer();
+        for (FPSError error : errors)
+            buffer.append(error.getCode()).append(": ").append(error.getMessage()).append('.');
+        return buffer.toString();
+    }
 }
 

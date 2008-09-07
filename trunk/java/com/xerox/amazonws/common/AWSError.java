@@ -24,10 +24,9 @@ package com.xerox.amazonws.common;
  * @author developer@dotech.com
  */
 public class AWSError {
-	private ErrorType type;
-	private String code;
-	private String message;
-	private String detail;
+	private final ErrorType type;
+	private final String code;
+	private final String message;
 
 	public AWSError(ErrorType type, String code, String message) {
 		this.type = type;
