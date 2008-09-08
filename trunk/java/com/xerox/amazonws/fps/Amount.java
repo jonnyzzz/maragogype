@@ -16,7 +16,7 @@ public class Amount implements Comparable, Serializable {
     }
 
     public Amount(double amount, String currencyCode) {
-        this.amount = new BigDecimal(amount);
+        this.amount = new BigDecimal(Double.toString(amount));
         this.currencyCode = currencyCode;
     }
 
