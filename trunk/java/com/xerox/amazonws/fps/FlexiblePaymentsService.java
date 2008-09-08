@@ -46,7 +46,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.text.Collator;
@@ -61,6 +60,7 @@ import java.text.Collator;
 public class FlexiblePaymentsService extends AWSQueryConnection {
     private final String callerToken;
     private final String recipientToken;
+    private final DescriptorPolicy descriptorPolicy;
     private final String uiPipeline;
     private static Log logger = LogFactory.getLog(FlexiblePaymentsService.class);
 
@@ -71,7 +71,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @param awsSecretKey The secret string used to generate signatures for authentication.
      */
     public FlexiblePaymentsService(String awsAccessId, String awsSecretKey) {
-        this(awsAccessId, awsSecretKey, true, null, null);
+        this(awsAccessId, awsSecretKey, true, null, null, null);
     }
 
 
@@ -82,9 +82,11 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @param awsSecretKey The secret string used to generate signatures for authentication.
      * @param callerToken  the default caller token to be used when not explicitely specified
      * @param recipientToken the default recipient token to be used when not explicitely specified
+     * @param descriptorPolicy the descriptor policy to use as descriptive string on credit card statements
      */
-    public FlexiblePaymentsService(String awsAccessId, String awsSecretKey, String callerToken, String recipientToken) {
-        this(awsAccessId, awsSecretKey, true, callerToken, recipientToken);
+    public FlexiblePaymentsService(String awsAccessId, String awsSecretKey,
+                                   String callerToken, String recipientToken, DescriptorPolicy descriptorPolicy) {
+        this(awsAccessId, awsSecretKey, true, callerToken, recipientToken, descriptorPolicy);
     }
 
     /**
@@ -95,11 +97,12 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @param isSecure     True if the data should be encrypted on the wire on the way to or from FPS.
      * @param callerToken  the default caller token to be used when not explicitely specified
      * @param recipientToken the default recipient token to be used when not explicitely specified
+     * @param descriptorPolicy the descriptor policy to use as descriptive string on credit card statements
      */
     public FlexiblePaymentsService(String awsAccessId, String awsSecretKey, boolean isSecure,
-                                   String callerToken, String recipientToken) {
-        this(awsAccessId, awsSecretKey, isSecure, "fps.amazonaws.com",
-                "https://authorize.payments.amazon.com/cobranded-ui/actions/start", callerToken, recipientToken);
+                                   String callerToken, String recipientToken, DescriptorPolicy descriptorPolicy) {
+        this(awsAccessId, awsSecretKey, isSecure, callerToken, recipientToken, descriptorPolicy,
+                "fps.amazonaws.com", "https://authorize.payments.amazon.com/cobranded-ui/actions/start");
     }
 
     /**
@@ -108,15 +111,18 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @param awsAccessId  The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
      * @param isSecure     True if the data should be encrypted on the wire on the way to or from FPS.
+     * @param callerToken  the default caller token to be used when not explicitely specified
+     * @param recipientToken the default recipient token to be used when not explicitely specified
+     * @param descriptorPolicy the descriptor policy to use as descriptive string on credit card statements
      * @param server       Which host to connect to.  Usually, this will be fps.amazonaws.com.
      *                     You can also use fps.sandbox.amazonaws.com instead if you want to test your code within the Sandbox environment
      * @param uiPipeline   the URL of the UI pipeline
-     * @param callerToken  the default caller token to be used when not explicitely specified
-     * @param recipientToken the default recipient token to be used when not explicitely specified
      */
     public FlexiblePaymentsService(String awsAccessId, String awsSecretKey, boolean isSecure,
-                                   String server, String uiPipeline, String callerToken, String recipientToken) {
-        this(awsAccessId, awsSecretKey, isSecure, server, isSecure ? 443 : 80, uiPipeline, callerToken, recipientToken);
+                                   String callerToken, String recipientToken, DescriptorPolicy descriptorPolicy,
+                                   String server, String uiPipeline) {
+        this(awsAccessId, awsSecretKey, isSecure, callerToken, recipientToken, descriptorPolicy,
+                server, isSecure ? 443 : 80, uiPipeline);
     }
 
     /**
@@ -125,20 +131,22 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @param awsAccessId  The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
      * @param isSecure     True if the data should be encrypted on the wire on the way to or from FPS.
+     * @param callerToken  the default caller token to be used when not explicitely specified
+     * @param recipientToken the default recipient token to be used when not explicitely specified
+     * @param descriptorPolicy the descriptor policy to use as descriptive string on credit card statements
      * @param server       Which host to connect to.  Usually, this will be fps.amazonaws.com.
      *                     You can also use fps.sandbox.amazonaws.com instead if you want to test your code within the Sandbox environment
      * @param port         Which port to use
      * @param uiPipeline   the URL of the UI pipeline
-     * @param callerToken  the default caller token to be used when not explicitely specified
-     * @param recipientToken the default recipient token to be used when not explicitely specified
      */
     public FlexiblePaymentsService(String awsAccessId, String awsSecretKey, boolean isSecure,
-                                   String server, int port, String uiPipeline,
-                                   String callerToken, String recipientToken) {
+                                   String callerToken, String recipientToken, DescriptorPolicy descriptorPolicy,
+                                   String server, int port, String uiPipeline) {
         super(awsAccessId, awsSecretKey, isSecure, server, port);
         this.uiPipeline = uiPipeline;
         this.callerToken = callerToken;
         this.recipientToken = recipientToken;
+        this.descriptorPolicy = descriptorPolicy;
         setVersionHeader(this);
     }
 
@@ -744,14 +752,21 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     public Transaction pay(String senderToken, double amount, String callerReference)
             throws FPSException {
         return pay(recipientToken, senderToken, callerToken, amount, new Date(), ChargeFeeTo.RECIPIENT, callerReference,
-                null, null, null, null, null, null, 0, 0);
+                null, null, null, null, null, null, 0, 0, descriptorPolicy);
+    }
+
+    public Transaction pay(String senderToken, double amount, String callerReference, DescriptorPolicy descriptorPolicy)
+            throws FPSException {
+        return pay(recipientToken, senderToken, callerToken, amount, new Date(), ChargeFeeTo.RECIPIENT, callerReference,
+                null, null, null, null, null, null, 0, 0, descriptorPolicy);
     }
     
     public Transaction pay(String recipientToken, String senderToken, String callerToken, double amount,
                            Date transactionDate, ChargeFeeTo chargeFeeTo,
                            String callerReference, String senderReference, String recipientReference,
                            String senderDescription, String recipientDescription, String callerDescription,
-                           String metadata, double marketplaceFixedFee, int marketplaceVariableFee)
+                           String metadata, double marketplaceFixedFee, int marketplaceVariableFee,
+                           DescriptorPolicy descriptorPolicy)
             throws FPSException {
         if (recipientToken == null)
             throw new IllegalArgumentException("Recipient Token ID can't be null");
@@ -786,8 +801,10 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("MarketplaceFixedFee", Double.toString(marketplaceFixedFee));
         if (marketplaceVariableFee != 0)
             params.put("MarketplaceVariableFee", Integer.toString(marketplaceVariableFee));
-//        if (descriptorPolicy)
-//            params.put("DescriptorPolicy")
+        if (descriptorPolicy != null) {
+            params.put("SoftDescriptorType", descriptorPolicy.getSoftDescriptorType().value());
+            params.put("CSNumberOf", descriptorPolicy.getCSNumberOf().value());
+        }
         GetMethod method = new GetMethod();
         try {
             PayResponse response =
@@ -933,7 +950,35 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                                   String callerReference)
             throws FPSException {
         return settleDebt(settlementToken, callerToken, creditInstrument, amount, new Date(), null, null, callerReference,
-                ChargeFeeTo.RECIPIENT, null, null, null, null);
+                ChargeFeeTo.RECIPIENT, null, null, null, null, descriptorPolicy);
+    }
+
+    /**
+     * The SettleDebt operation takes the settlement amount, credit instrument, and the settlement token among other
+     * parameters. Using this operation you can:
+     * <ul>
+     * <li>
+     * Transfer money from sender's payment instrument specified in the settlement token to the recipient's
+     * account balance. The fee charged is deducted from the settlement amount and deposited into recipient's
+     * account balance.
+     * </li>
+     * <li>
+     * Decrement debt balances by the settlement amount.
+     * </li>
+     * </ul>
+     * @param settlementToken the token ID of the settlement token
+     * @param creditInstrument the credit instrument Id returned by the co-branded UI pipeline
+     * @param amount the amount for the settlement
+     * @param callerReference a unique reference that you specify in your system to identify a transaction
+     * @param descriptorPolicy the descriptor policy to use as descriptive string on credit card statements
+     * @return the transaction
+     * @throws FPSException wraps checked exceptions
+     */
+    public Transaction settleDebt(String settlementToken, String creditInstrument, double amount,
+                                  String callerReference, DescriptorPolicy descriptorPolicy)
+            throws FPSException {
+        return settleDebt(settlementToken, callerToken, creditInstrument, amount, new Date(), null, null, callerReference,
+                ChargeFeeTo.RECIPIENT, null, null, null, null, descriptorPolicy);
     }
 
     /**
@@ -962,6 +1007,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @param recipientDescription a 128-byte field to store transaction description
      * @param callerDescription a 128-byte field to store transaction description
      * @param metadata a 2KB free form field used to store transaction data
+     * @param descriptorPolicy the descriptor policy to use as descriptive string on credit card statements
      * @return the transaction
      * @throws FPSException wraps checked exceptions
      */
@@ -970,7 +1016,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                        Date transactionDate, String senderReference, String recipientReference, String callerReference,
                        ChargeFeeTo chargeFeeTo,
                        String senderDescription, String recipientDescription, String callerDescription,
-                       String metadata)
+                       String metadata, DescriptorPolicy descriptorPolicy)
             throws FPSException {
         if (settlementToken == null)
             throw new IllegalArgumentException("Sender Token ID can't be null");
@@ -998,6 +1044,10 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("CallerDescription", callerDescription);
         if (metadata != null)
             params.put("MetaData", metadata);
+        if (descriptorPolicy != null) {
+            params.put("SoftDescriptorType", descriptorPolicy.getSoftDescriptorType().value());
+            params.put("CSNumberOf", descriptorPolicy.getCSNumberOf().value());
+        }
         GetMethod method = new GetMethod();
         try {
             SettleDebtResponse response =
@@ -1296,7 +1346,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     }
 
     public String extractSingleUseTokenFromCBUI(HttpServletRequest request)
-            throws MalformedURLException, InvalidSignatureException, FPSException {
+            throws MalformedURLException, FPSException {
 		// parse status message
 		String status = request.getParameter("status");
 		String errorMessage = request.getParameter("errorMessage");
