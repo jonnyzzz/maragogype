@@ -42,7 +42,7 @@
         <mkdir dir="${typica.generated}/com/xerox/amazonws/typica/jaxb"/>
 		<echo>compiling the schema files in xsd to java files in ${typica.generated}/com/xerox/amazonws/typica/jaxb</echo>
 		<xjc destdir="${typica.generated}" extension="true" removeOldOutput="yes" package="com.xerox.amazonws.typica.jaxb">
-			<schema dir="xsd" includes="**/*.xsd" excludes="**/sdb.xsd, **/QueueService2.xsd"/>
+			<schema dir="xsd" includes="**/*.xsd" excludes="**/sdb.xsd, **/QueueService2.xsd, **/AmazonFPS.xsd"/>
 			<produces dir="${typica.generated}/com/xerox/amazonws/typica/jaxb" includes="**/"/>
 		</xjc>
         <mkdir dir="${typica.generated}/com/xerox/amazonws/typica/sdb/jaxb"/>
@@ -54,6 +54,11 @@
 		<xjc destdir="${typica.generated}" extension="true" removeOldOutput="yes" package="com.xerox.amazonws.typica.sqs2.jaxb">
 			<schema dir="xsd" includes="**/QueueService2.xsd"/>
 			<produces dir="${typica.generated}/com/xerox/amazonws/typica/sqs2/jaxb" includes="**/"/>
+		</xjc>
+        <mkdir dir="${typica.generated}/com/xerox/amazonws/typica/fps/jaxb"/>
+		<xjc destdir="${typica.generated}" extension="true" removeOldOutput="yes" package="com.xerox.amazonws.typica.fps.jaxb">
+			<schema dir="xsd" includes="**/AmazonFPS.xsd"/>
+			<produces dir="${typica.generated}/com/xerox/amazonws/typica/fps/jaxb" includes="**/"/>
 		</xjc>
 	</target>
 
