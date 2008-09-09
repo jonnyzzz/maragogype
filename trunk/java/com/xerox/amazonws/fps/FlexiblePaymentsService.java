@@ -144,6 +144,10 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                                    String callerToken, String recipientToken, DescriptorPolicy descriptorPolicy,
                                    String server, int port, String uiPipeline) {
         super(awsAccessId, awsSecretKey, isSecure, server, port);
+        if (callerToken != null && callerToken.length() != 64)
+            throw new IllegalArgumentException("The caller token must have a length of 64 bytes!");
+        if (recipientToken != null && recipientToken.length() != 64)
+            throw new IllegalArgumentException("The caller token must have a length of 64 bytes!");
         this.uiPipeline = uiPipeline;
         this.callerToken = callerToken;
         this.recipientToken = recipientToken;
@@ -187,6 +191,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @throws FPSException wraps checked exceptions
      */
     public void cancelToken(String tokenID, String reason) throws FPSException {
+        if (tokenID == null || tokenID.length() != 64)
+            throw new IllegalArgumentException("The token must have a length of 64 bytes");
         Map<String, String> params = new HashMap<String, String>();
         params.put("TokenId", tokenID);
         params.put("ReasonText", reason);
@@ -266,8 +272,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                                    ChargeFeeTo chargeFeeTo,
                                    String senderDescription, String recipientDescription, String callerDescription,
                                    String metadata) throws FPSException {
-        if (callerTokenID == null)
-            throw new IllegalArgumentException("Caller Token ID can't be null");
+        if (callerTokenID == null || callerTokenID.length() != 64)
+            throw new IllegalArgumentException("The token must have a length of 64 bytes");
         Map<String, String> params = new HashMap<String, String>();
         params.put("SenderTokenId", senderTokenID);
         params.put("CallerTokenId", callerTokenID);
@@ -658,6 +664,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         Map<String, String> params = new HashMap<String, String>();
         if (tokenID == null && callerReference == null)
             throw new IllegalArgumentException("Either the token ID or the caller reference must be given!");
+        if (tokenID != null && tokenID.length() != 64)
+            throw new IllegalArgumentException("The token must have a length of 64 bytes");
         if (tokenID != null)
             params.put("TokenId", tokenID);
         if (callerReference != null)
@@ -869,10 +877,12 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                            String metadata, double marketplaceFixedFee, int marketplaceVariableFee,
                            DescriptorPolicy descriptorPolicy)
             throws FPSException {
-        if (recipientToken == null)
-            throw new IllegalArgumentException("Recipient Token ID can't be null");
-        if (senderToken == null)
-            throw new IllegalArgumentException("Sender Token ID can't be null");
+        if (recipientToken != null && recipientToken.length() != 64)
+            throw new IllegalArgumentException("The recipient token must have a length of 64 bytes");
+        if (senderToken != null && senderToken.length() != 64)
+            throw new IllegalArgumentException("The sender token must have a length of 64 bytes");
+        if (callerToken != null && callerToken.length() != 64)
+            throw new IllegalArgumentException("The caller token must have a length of 64 bytes");
         if (logger.isInfoEnabled())
             logger.info("Payment: " + senderToken + " paying " + recipientToken + " for " + amount);
         Map<String, String> params = new HashMap<String, String>();
@@ -965,8 +975,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                        String callerReference, String senderReference, String recipientReference,
                        String senderDescription, String recipientDescription, String callerDescription,
                        String metadata, MarketplaceRefundPolicy policy) throws FPSException {
-        if (callerToken == null)
-            throw new IllegalArgumentException("Caller Token ID can't be null");
+        if (callerToken == null || callerToken.length() != 64)
+            throw new IllegalArgumentException("The caller token must have a length of 64 bytes");
         if (logger.isInfoEnabled())
             logger.info("Refund: " + senderToken + " refunding transaction " + transactionID + " for " + refundAmount);
         Map<String, String> params = new HashMap<String, String>();
@@ -1121,10 +1131,10 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                        String senderDescription, String recipientDescription, String callerDescription,
                        String metadata, DescriptorPolicy descriptorPolicy)
             throws FPSException {
-        if (settlementToken == null)
-            throw new IllegalArgumentException("Sender Token ID can't be null");
-        if (callerToken == null)
-            throw new IllegalArgumentException("Caller Token ID can't be null");
+        if (settlementToken == null || settlementToken.length() != 64)
+            throw new IllegalArgumentException("The settlement token must have a length of 64 bytes");
+        if (callerToken == null || callerToken.length() != 64)
+            throw new IllegalArgumentException("The caller token must have a length of 64 bytes");
         Map<String, String> params = new HashMap<String, String>();
         params.put("SenderTokenId", settlementToken);
         params.put("CallerTokenId", callerToken);
@@ -1219,8 +1229,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                                     String senderDescription, String recipientDescription, String callerDescription,
                                     String metadata)
             throws FPSException {
-        if (callerToken == null)
-            throw new IllegalArgumentException("Caller Token ID can't be null");
+        if (callerToken == null || callerToken.length() != 64)
+            throw new IllegalArgumentException("The caller token must have a length of 64 bytes");
         if (adjustmentAmount <= 0)
             throw new IllegalArgumentException("The adjustment amount should be a positive value");
         if (logger.isInfoEnabled())
