@@ -52,6 +52,7 @@ import java.text.Collator;
 
 /**
  * This class provides an interface with the Amazon FPS service.
+ * TODO: check that all tokens ID parameters have a length of 64 characters.
  *
  * @author J. Bernard
  * @author Elastic Grid, LLC.
@@ -183,18 +184,15 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      *
      * @param tokenID the token to be cancelled
      * @param reason  reason for cancelling the token -- max 64 characters
-     * @return the request ID
      * @throws FPSException wraps checked exceptions
      */
-    public String cancelToken(String tokenID, String reason) throws FPSException {
+    public void cancelToken(String tokenID, String reason) throws FPSException {
         Map<String, String> params = new HashMap<String, String>();
         params.put("TokenId", tokenID);
         params.put("ReasonText", reason);
         GetMethod method = new GetMethod();
         try {
-            CancelTokenResponse response =
-                    makeRequestInt(method, "CancelToken", params, CancelTokenResponse.class);
-            return response.getRequestId();
+            makeRequestInt(method, "CancelToken", params, CancelTokenResponse.class);
         } finally {
             method.releaseConnection();
         }
@@ -308,15 +306,31 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     }
 
     public AccountActivity getAccountActivity(Date startDate) throws FPSException {
-        return getAccountActivity(null, null, 0, startDate, null, null);
+        return getAccountActivity(null, null, 0, startDate, null, null, null);
     }
 
     public AccountActivity getAccountActivity(Date startDate, Date endDate) throws FPSException {
-        return getAccountActivity(null, null, 0, startDate, endDate, null);
+        return getAccountActivity(null, null, 0, startDate, endDate, null, null);
     }
-    
+
+    /**
+     * Retrieve transactions from an account for a given time period.
+     *
+     * @param filter operation type filter -- use null if this filter shouldn't be used
+     * @param paymentMethod payment method filter -- use null if this filter shouldn't be used
+     * @param maxBatchSize maximum number of transactions to be returned<br/>
+     *                     {@link AccountActivity} is {@link Iterable} over each page of the paginated results from
+     *                     the underneath FPS operation.
+     * @param startDate will filter transactions beginning from that date
+     * @param endDate will filter transactions ending up to that date
+     * @param role role filter -- use null if this filter shouldn't be used
+     * @param transactionStatus transaction status filter -- use null if this filter shouldn't be used 
+     * @return the account activity matching the filters
+     * @throws FPSException wraps checked exceptions
+     */
     public AccountActivity getAccountActivity(FPSOperation filter, PaymentMethod paymentMethod, int maxBatchSize,
-                                              Date startDate, Date endDate, Transaction.Status transactionStatus)
+                                              Date startDate, Date endDate,
+                                              TransactionalRoleFilter role, Transaction.Status transactionStatus)
             throws FPSException {
         if (startDate == null)
             throw new IllegalArgumentException("The start date should not be null!");
@@ -330,6 +344,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         params.put("StartDate", DataUtils.encodeDate(startDate));
         if (endDate != null)
             params.put("EndDate", DataUtils.encodeDate(endDate));
+        if (role != null)
+            params.put("Role", role.value());
         if (transactionStatus != null)
             params.put("Status", transactionStatus.value());
         GetMethod method = new GetMethod();
@@ -374,6 +390,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
 
     /**
      * Retrieve all credit instruments associated with an account.
+     *
      * @return the list of credit instruments IDs associated with the account
      * @throws FPSException wraps checked exceptions
      */
@@ -383,6 +400,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
 
     /**
      * Retrieve all credit instruments associated with an account.
+     *
      * @return the list of credit instruments balances associated with the account
      * @throws FPSException wraps checked exceptions
      */
@@ -392,6 +410,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
 
     /**
      * Retrieve all credit instruments associated with an account.
+     *
      * @param instrumentStatus filter instruments by status
      * @return the list of credit instruments IDs associated with the account
      * @throws FPSException wraps checked exceptions
@@ -412,6 +431,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
 
     /**
      * Retrieve all credit instruments associated with an account.
+     *
      * @param instrumentStatus filter instruments by status
      * @return the list of credit instruments balances associated with the account
      * @throws FPSException wraps checked exceptions
@@ -426,7 +446,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
 
     /**
      * Retrieve the balance of a credit instrument.
-     * Note: nly on the instruments for which you are the sender or the recipient can be queried
+     * Note: only on the instruments for which you are the sender or the recipient can be queried
+     *
      * @param creditInstrumentId the credit instrument Id for which debt balance is queried
      * @return the balance
      * @throws FPSException wraps checked exceptions
@@ -452,7 +473,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
 
     /**
      * Retrieve balances of all credit instruments owned by the sender.
-     * Note: nly on the instruments for which you are the sender or the recipient can be queried
+     * Note: only on the instruments for which you are the sender or the recipient can be queried
+     *
      * @return the aggregated balance
      * @throws FPSException wraps checked exceptions
      */
@@ -475,7 +497,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     }
 
     /**
-     * Install tokens (payment instructions) on your own accounts.
+     * Retrieve the details of a payment instruction.
      *
      * @param tokenID token for which the payment instruction is to be retrieved
      * @return a 64-character alphanumeric string that represents the installed payment instruction
@@ -517,22 +539,59 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      }
      **/
 
+    /**
+     * Fetch all the tokens installed on your (caller) account.
+     *
+     * @return the list of tokens
+     * @throws FPSException wraps checked exceptions
+     */
     public List<Token> getAllTokens() throws FPSException {
         return getTokens(null, null, null);
     }
 
-    public List<Token> getTokensByFriendlyName(String friendlyName) throws FPSException {
-        return getTokens(friendlyName, null, null);
+    /**
+     * Fetch the tokens installed on your (caller) account, filtered by friendly name.
+     *
+     * @param tokenFriendlyName filter by friendly name
+     * @return the list of tokens
+     * @throws FPSException wraps checked exceptions
+     */
+    public List<Token> getTokensByFriendlyName(String tokenFriendlyName) throws FPSException {
+        return getTokens(tokenFriendlyName, null, null);
     }
 
-    public List<Token> getTokensByFriendlyName(Token.Status tokenStatus) throws FPSException {
+    /**
+     * Fetch the tokens installed on your (caller) account, filtered by status.
+     *
+     * @param tokenStatus filter by token status
+     * @return the list of tokens
+     * @throws FPSException wraps checked exceptions
+     */
+    public List<Token> getTokensByStatus(Token.Status tokenStatus) throws FPSException {
         return getTokens(null, tokenStatus, null);
     }
 
-    public List<Token> getTokensByCallerReference(String callerRefence) throws FPSException {
-        return getTokens(null, null, callerRefence);
+    /**
+     * Fetch the tokens installed on your (caller) account, filtered by caller reference.
+     *
+     * @param callerReference filter by caller reference
+     * @return the list of tokens
+     * @throws FPSException wraps checked exceptions
+     */
+    public List<Token> getTokensByCallerReference(String callerReference) throws FPSException {
+        return getTokens(null, null, callerReference);
     }
 
+    /**
+     * Fetch the tokens installed on your (caller) account, based on the filtering parameters.
+     * A null parameter means to NOT filter on that parameter.
+     *
+     * @param tokenFriendlyName filter by friendly name
+     * @param tokenStatus filter by token status
+     * @param callerReference filter by caller reference
+     * @return the list of tokens
+     * @throws FPSException wraps checked exceptions
+     */
     public List<Token> getTokens(String tokenFriendlyName, Token.Status tokenStatus, String callerReference) throws FPSException {
         Map<String, String> params = new HashMap<String, String>();
         if (tokenFriendlyName != null)
@@ -566,7 +625,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     }
 
     /**
-     * Fetch the details of a particular token you installed using the Amazon FPS co-branded UI pipeline
+     * Fetch the details of a particular token.
      *
      * @param tokenID the token Id of the specific token installed on the callers account
      * @return the token
@@ -577,7 +636,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     }
 
     /**
-     * Fetch the details of a particular token you installed using the Amazon FPS co-branded UI pipeline
+     * Fetch the details of a particular token.
      *
      * @param callerReference the caller reference that was passed at the time of the token installation
      * @return the token
@@ -588,7 +647,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     }
 
     /**
-     * Fetch the details of a particular token you installed using the Amazon FPS co-branded UI pipeline
+     * Fetch the details of a particular token.
      *
      * @param tokenID the token Id of the specific token installed on the callers account
      * @param callerReference the caller reference that was passed at the time of the token installation
@@ -636,6 +695,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
 
     /**
      * Fetch details of a transaction referred by the <tt>transactionId</tt>.
+     *
      * @param transactionID a transaction Id for the query
      * @return the transaction
      * @throws FPSException wraps checked exceptions
@@ -749,18 +809,59 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         }
     }
 
+    /**
+     * Initiate a transaction to move funds from the sender to the recipient.
+     *
+     * @param senderToken            sender token
+     * @param amount                 amount to be charged to the sender
+     * @param callerReference        a unique reference that you specify in your system to identify a transaction
+     * @return                       the transaction
+     * @throws FPSException wraps checked exceptions
+     */
     public Transaction pay(String senderToken, double amount, String callerReference)
             throws FPSException {
         return pay(recipientToken, senderToken, callerToken, amount, new Date(), ChargeFeeTo.RECIPIENT, callerReference,
                 null, null, null, null, null, null, 0, 0, descriptorPolicy);
     }
 
+    /**
+     * Initiate a transaction to move funds from the sender to the recipient.
+     *
+     * @param senderToken            sender token
+     * @param amount                 amount to be charged to the sender
+     * @param callerReference        a unique reference that you specify in your system to identify a transaction
+     * @param descriptorPolicy       the soft descriptor type and the customer service number to pass to the payment processor
+     * @return                       the transaction
+     * @throws FPSException wraps checked exceptions
+     */
     public Transaction pay(String senderToken, double amount, String callerReference, DescriptorPolicy descriptorPolicy)
             throws FPSException {
         return pay(recipientToken, senderToken, callerToken, amount, new Date(), ChargeFeeTo.RECIPIENT, callerReference,
                 null, null, null, null, null, null, 0, 0, descriptorPolicy);
     }
-    
+
+    /**
+     * Initiate a transaction to move funds from the sender to the recipient.
+     *
+     * @param recipientToken         recipient token
+     * @param senderToken            sender token
+     * @param callerToken            caller token
+     * @param amount                 amount to be charged to the sender
+     * @param transactionDate        the date specified by the caller and stored with the transaction
+     * @param chargeFeeTo            the participant paying the fee for the transaction
+     * @param callerReference        a unique reference that you specify in your system to identify a transaction
+     * @param senderReference        any reference that the caller might use to identify the sender in the transaction
+     * @param recipientReference     any reference that the caller might use to identify the recipient in the transaction
+     * @param senderDescription      128-byte field to store transaction description
+     * @param recipientDescription   128-byte field to store transaction description
+     * @param callerDescription      128-byte field to store transaction description
+     * @param metadata               a 2KB free-form field used to store transaction data
+     * @param marketplaceFixedFee    the fee charged by the marketplace developer as a fixed amount of the transaction
+     * @param marketplaceVariableFee the fee charged by the marketplace developer as a variable amount of the transaction
+     * @param descriptorPolicy       the soft descriptor type and the customer service number to pass to the payment processor
+     * @return                       the transaction
+     * @throws FPSException wraps checked exceptions
+     */
     public Transaction pay(String recipientToken, String senderToken, String callerToken, double amount,
                            Date transactionDate, ChargeFeeTo chargeFeeTo,
                            String callerReference, String senderReference, String recipientReference,
@@ -823,6 +924,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
 
     /**
      * Refund a successfully completed payment transaction.
+     *
      * @param senderToken token of the original recipient who is now the sender in the refund
      * @param transactionID the transaction that is to be refunded
      * @param callerReference a unique reference that identifies this refund
@@ -836,9 +938,10 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
 
     /**
      * Refund a successfully completed payment transaction.
+     *
      * @param callerToken the caller token
      * @param senderToken token of the original recipient who is now the sender in the refund
-     * @param transactionID the transaction that is to be refunded<br/>
+     * @param transactionID the transaction that is to be refunded<
      * @param refundAmount the amount to be refunded<br/>
      *                     If this value is not specified, then the remaining funds from the original transaction
      *                     is refunded.
@@ -1188,17 +1291,54 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         }
     }
 
+    /**
+     * Generate a signed URL for the CBUI pipeline.
+     *
+     * @param callerReference
+     * @param returnURL
+     * @param amount
+     * @param reason
+     * @return the signed URL
+     * @throws FPSException
+     * @throws MalformedURLException
+     */
     public String acquireSingleUseToken(String callerReference, String returnURL, Amount amount, String reason)
             throws FPSException, MalformedURLException {
         return acquireSingleUseToken(callerReference, returnURL, amount, false, null, null, reason);
     }
 
+    /**
+     * Generate a signed URL for the CBUI pipeline.
+     *
+     * @param callerReference
+     * @param returnURL
+     * @param amount
+     * @param paymentMethod
+     * @param reason
+     * @return the signed URL
+     * @throws FPSException
+     * @throws MalformedURLException
+     */
     public String acquireSingleUseToken(String callerReference, String returnURL, Amount amount,
                                         PaymentMethod paymentMethod, String reason)
             throws FPSException, MalformedURLException {
         return acquireSingleUseToken(callerReference, returnURL, amount, false, paymentMethod, null, reason);
     }
 
+    /**
+     * Generate a signed URL for the CBUI pipeline.
+     * 
+     * @param callerReference
+     * @param returnURL
+     * @param amount
+     * @param reserve
+     * @param paymentMethod
+     * @param recipientToken
+     * @param reason
+     * @return the signed URL
+     * @throws FPSException
+     * @throws MalformedURLException
+     */
     public String acquireSingleUseToken(String callerReference, String returnURL, Amount amount, boolean reserve,
                                         PaymentMethod paymentMethod, String recipientToken, String reason)
             throws FPSException, MalformedURLException {
@@ -1225,6 +1365,19 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     }
     */
 
+    /**
+     * Generate a signed URL for the CBUI pipeline.
+     *
+     * @param callerReference
+     * @param returnURL
+     * @param amount
+     * @param recurringInterval
+     * @param recurringGranularity
+     * @param reason
+     * @return the signed URL
+     * @throws MalformedURLException
+     * @throws FPSException
+     */
     public String acquireRecurringToken(String callerReference, String returnURL, Amount amount,
                                         int recurringInterval, RecurringGranularity recurringGranularity,
                                         String reason)
@@ -1233,6 +1386,23 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                 null, null, null, null, reason);
     }
 
+    /**
+     * Generate a signed URL for the CBUI pipeline.
+     *
+     * @param callerReference
+     * @param returnURL
+     * @param amount
+     * @param recurringInterval
+     * @param recurringGranularity
+     * @param validityStart
+     * @param validityExpiry
+     * @param paymentMethod
+     * @param recipientToken
+     * @param reason
+     * @return the signed URL
+     * @throws FPSException
+     * @throws MalformedURLException
+     */
     public String acquireRecurringToken(String callerReference, String returnURL, Amount amount,
                                         int recurringInterval, RecurringGranularity recurringGranularity,
                                         Date validityStart, Date validityExpiry,
@@ -1281,6 +1451,19 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     }
     */
 
+    /**
+     * Generate a signed URL for the CBUI pipeline.
+     *
+     * @param callerReferenceSender
+     * @param callerReferenceSettlement
+     * @param returnURL
+     * @param creditLimit
+     * @param globalAmountLimit
+     * @param paymentReason
+     * @return the signed URL
+     * @throws FPSException
+     * @throws MalformedURLException
+     */
     public String acquirePostPaidToken(String callerReferenceSender, String callerReferenceSettlement,
                                        String returnURL, Amount creditLimit, Amount globalAmountLimit,
                                        String paymentReason)
@@ -1289,6 +1472,20 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                 returnURL, creditLimit, globalAmountLimit, null, paymentReason);
     }
 
+    /**
+     * Generate a signed URL for the CBUI pipeline.
+     *
+     * @param callerReferenceSender
+     * @param callerReferenceSettlement
+     * @param returnURL
+     * @param creditLimit
+     * @param globalAmountLimit
+     * @param paymentMethod
+     * @param paymentReason
+     * @return the signed URL
+     * @throws FPSException
+     * @throws MalformedURLException
+     */
     public String acquirePostPaidToken(String callerReferenceSender, String callerReferenceSettlement,
                                        String returnURL, Amount creditLimit, Amount globalAmountLimit,
                                        PaymentMethod paymentMethod, String paymentReason)
@@ -1297,6 +1494,22 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                 returnURL, creditLimit, globalAmountLimit, paymentMethod, paymentReason);
     }
 
+    /**
+     * Generate a signed URL for the CBUI pipeline.
+     *
+     * @param callerReferenceSender
+     * @param callerReferenceSettlement
+     * @param validityStart
+     * @param validityExpiry
+     * @param returnURL
+     * @param creditLimit
+     * @param globalAmountLimit
+     * @param paymentMethod
+     * @param paymentReason
+     * @return the signed URL
+     * @throws FPSException
+     * @throws MalformedURLException
+     */
     public String acquirePostPaidToken(String callerReferenceSender, String callerReferenceSettlement,
                                        Date validityStart, Date validityExpiry,
                                        String returnURL, Amount creditLimit, Amount globalAmountLimit,
@@ -1319,6 +1532,15 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         return generateUIPipelineURL("SetupPostpaid", returnURL, parameters);
     }
 
+    /**
+     * Generate a signed URL for the CBUI pipeline.
+     *
+     * @param pipelineName the name of the pipeline
+     * @param returnURL the URL where the user should be redirected at the end of the pipeline
+     * @param params all CBUI parameters
+     * @return the signed URL
+     * @throws MalformedURLException
+     */
     public String generateUIPipelineURL(String pipelineName, String returnURL, Map<String, String> params) throws MalformedURLException {
         // build the map of parameters
         SortedMap<String, String> parameters = new TreeMap<String, String>(params);
@@ -1345,6 +1567,14 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         return url.toString();
     }
 
+    /**
+     * Extract the single use token from the CBUI pipeline return.
+     *
+     * @param request the HTTP request
+     * @return the single use token ID
+     * @throws MalformedURLException
+     * @throws FPSException
+     */
     public String extractSingleUseTokenFromCBUI(HttpServletRequest request)
             throws MalformedURLException, FPSException {
 		// parse status message
@@ -1381,6 +1611,14 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     }
     */
 
+    /**
+     * Extract the recurring token from the CBUI pipeline return.
+     *
+     * @param request the HTTP request
+     * @return the recurring token ID
+     * @throws MalformedURLException
+     * @throws FPSException
+     */
     public String extractRecurringTokenFromCBUI(HttpServletRequest request)
             throws MalformedURLException, InvalidSignatureException {
         // ensure first that the request is valid
@@ -1418,6 +1656,14 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     }
     */
 
+    /**
+     * Extract the post paid token from the CBUI pipeline return.
+     *
+     * @param request the HTTP request
+     * @return the post paid token ID
+     * @throws MalformedURLException
+     * @throws FPSException
+     */
     public PostPaidInstrument extractPostPaidTokenFromCBUI(HttpServletRequest request)
             throws MalformedURLException, FPSException {
         // ensure first that the request is valid
@@ -1445,15 +1691,14 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         if (signature == null)
             return false;
         List<String> parameters = new ArrayList(request.getParameterMap().keySet());
-	Collator stringCollator = Collator.getInstance();
-	stringCollator.setStrength(Collator.PRIMARY);
-	Collections.sort(parameters, stringCollator);
+        Collator stringCollator = Collator.getInstance();
+        stringCollator.setStrength(Collator.PRIMARY);
+        Collections.sort(parameters, stringCollator);
         parameters.remove("awsSignature");
         // build the URL to sign in order to ensure this is a valid signature we received
         StringBuffer url = new StringBuffer(request.getRequestURL());
         boolean first = true;
         for (String parameter : parameters) {
-            System.out.println("Adding parameter " + parameter + " to signature computation");
             if (first) {
                 url.append('?');
                 first = false;
@@ -1466,9 +1711,11 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         URL rawURL = new URL(url.toString());
         StringBuilder toBeSigned = new StringBuilder(rawURL.getPath()).append('?').append(rawURL.getQuery());
         String ourSignature = urlencode(encode(getSecretAccessKey(), toBeSigned.toString(), false));
-	ourSignature = ourSignature.replaceAll("%2B", "+");
-	System.out.println("AWS sig: " + signature);
-	System.out.println("Our sig: " + ourSignature);
+        ourSignature = ourSignature.replaceAll("%2B", "+");
+        if (logger.isDebugEnabled()) {
+            logger.debug("AWS sig: " + signature);
+            logger.debug("Our sig: " + ourSignature);
+        }
         return ourSignature.equals(signature);
     }
 
