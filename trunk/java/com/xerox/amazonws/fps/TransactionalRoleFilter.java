@@ -5,7 +5,7 @@ package com.xerox.amazonws.fps;
  * @author Elastic Grid, LLC.
  * @author jerome.bernard@elastic-grid.com
  */
-enum TransactionalRoleFilter {
+public enum TransactionalRoleFilter {
     SENDER("Sender"),
     CALLER("Caller"),
     RECIPIENT("Recipient");
