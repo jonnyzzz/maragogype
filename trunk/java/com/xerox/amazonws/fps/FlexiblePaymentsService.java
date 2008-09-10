@@ -26,6 +26,8 @@ import com.xerox.amazonws.typica.fps.jaxb.ServiceErrors;
 import com.xerox.amazonws.typica.fps.jaxb.SettleDebtResponse;
 import com.xerox.amazonws.typica.fps.jaxb.TransactionResponse;
 import com.xerox.amazonws.typica.fps.jaxb.WriteOffDebtResponse;
+import com.xerox.amazonws.typica.fps.jaxb.ReserveResponse;
+import com.xerox.amazonws.typica.fps.jaxb.SettleResponse;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -52,7 +54,6 @@ import java.text.Collator;
 
 /**
  * This class provides an interface with the Amazon FPS service.
- * TODO: check that all tokens ID parameters have a length of 64 characters.
  *
  * @author J. Bernard
  * @author Elastic Grid, LLC.
@@ -826,7 +827,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @return                       the transaction
      * @throws FPSException wraps checked exceptions
      */
-    public Transaction pay(String senderToken, double amount, String callerReference)
+    public Transaction pay(String senderToken, Amount amount, String callerReference)
             throws FPSException {
         return pay(recipientToken, senderToken, callerToken, amount, new Date(), ChargeFeeTo.RECIPIENT, callerReference,
                 null, null, null, null, null, null, 0, 0, descriptorPolicy);
@@ -842,7 +843,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @return                       the transaction
      * @throws FPSException wraps checked exceptions
      */
-    public Transaction pay(String senderToken, double amount, String callerReference, DescriptorPolicy descriptorPolicy)
+    public Transaction pay(String senderToken, Amount amount, String callerReference, DescriptorPolicy descriptorPolicy)
             throws FPSException {
         return pay(recipientToken, senderToken, callerToken, amount, new Date(), ChargeFeeTo.RECIPIENT, callerReference,
                 null, null, null, null, null, null, 0, 0, descriptorPolicy);
@@ -870,7 +871,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @return                       the transaction
      * @throws FPSException wraps checked exceptions
      */
-    public Transaction pay(String recipientToken, String senderToken, String callerToken, double amount,
+    public Transaction pay(String recipientToken, String senderToken, String callerToken, Amount amount,
                            Date transactionDate, ChargeFeeTo chargeFeeTo,
                            String callerReference, String senderReference, String recipientReference,
                            String senderDescription, String recipientDescription, String callerDescription,
@@ -890,8 +891,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("RecipientTokenId", recipientToken);
         params.put("SenderTokenId", senderToken);
         params.put("CallerTokenId", callerToken);
-        params.put("TransactionAmount.Amount", Double.toString(amount));
-        params.put("TransactionAmount.CurrencyCode", "USD");
+        params.put("TransactionAmount.Amount", Double.toString(amount.getAmount().doubleValue()));
+        params.put("TransactionAmount.CurrencyCode", amount.getCurrencyCode());
         if (transactionDate != null)
             params.put("TransactionDate", DataUtils.encodeDate(transactionDate));
         params.put("ChargeFeeTo", chargeFeeTo.value());
@@ -1021,11 +1022,127 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         }
     }
 
-    /** TODO: reserve
-     public void reserve() throws FPSException {
+    /**
+     * This operation is part of the Reserve and Settle operations that allow payment transactions when the
+     * authorization and settlement have a time difference. The transaction is not complete until the Settle
+     * operation is executed successfully. A reserve authorization is only valid for 7 days.
+     * Currently, you can't cancel a reserve.
+     *
+     * @param senderToken            sender token
+     * @param amount                 amount to be reserved on the sender account/credit card
+     * @param callerReference        a unique reference that you specify in your system to identify a transaction
+     * @return                       the transaction
+     * @throws FPSException wraps checked exceptions
+     */
+    public Transaction reserve(String senderToken, Amount amount, String callerReference)
+            throws FPSException {
+        return reserve(recipientToken, senderToken, callerToken, amount, new Date(), ChargeFeeTo.RECIPIENT, callerReference,
+                null, null, null, null, null, null, 0, 0, descriptorPolicy);
+    }
 
-     }
-     **/
+    /**
+     * This operation is part of the Reserve and Settle operations that allow payment transactions when the
+     * authorization and settlement have a time difference. The transaction is not complete until the Settle
+     * operation is executed successfully. A reserve authorization is only valid for 7 days.
+     * Currently, you can't cancel a reserve.
+     *
+     * @param senderToken            sender token
+     * @param amount                 amount to be reserved on the sender account/credit card
+     * @param callerReference        a unique reference that you specify in your system to identify a transaction
+     * @param descriptorPolicy       the soft descriptor type and the customer service number to pass to the payment processor
+     * @return                       the transaction
+     * @throws FPSException wraps checked exceptions
+     */
+    public Transaction reserve(String senderToken, Amount amount, String callerReference, DescriptorPolicy descriptorPolicy)
+            throws FPSException {
+        return reserve(recipientToken, senderToken, callerToken, amount, new Date(), ChargeFeeTo.RECIPIENT, callerReference,
+                null, null, null, null, null, null, 0, 0, descriptorPolicy);
+    }
+
+    /**
+     * This operation is part of the Reserve and Settle operations that allow payment transactions when the
+     * authorization and settlement have a time difference. The transaction is not complete until the Settle
+     * operation is executed successfully. A reserve authorization is only valid for 7 days.
+     * Currently, you can't cancel a reserve.
+     *
+     * @param recipientToken         recipient token
+     * @param senderToken            sender token
+     * @param callerToken            caller token
+     * @param amount                 amount to be reserved on the sender account/credit card
+     * @param transactionDate        the date specified by the caller and stored with the transaction
+     * @param chargeFeeTo            the participant paying the fee for the transaction
+     * @param callerReference        a unique reference that you specify in your system to identify a transaction
+     * @param senderReference        any reference that the caller might use to identify the sender in the transaction
+     * @param recipientReference     any reference that the caller might use to identify the recipient in the transaction
+     * @param senderDescription      128-byte field to store transaction description
+     * @param recipientDescription   128-byte field to store transaction description
+     * @param callerDescription      128-byte field to store transaction description
+     * @param metadata               a 2KB free-form field used to store transaction data
+     * @param marketplaceFixedFee    the fee charged by the marketplace developer as a fixed amount of the transaction
+     * @param marketplaceVariableFee the fee charged by the marketplace developer as a variable amount of the transaction
+     * @param descriptorPolicy       the soft descriptor type and the customer service number to pass to the payment processor
+     * @return                       the transaction
+     * @throws FPSException wraps checked exceptions
+     */
+    public Transaction reserve(String recipientToken, String senderToken, String callerToken, Amount amount,
+                           Date transactionDate, ChargeFeeTo chargeFeeTo,
+                           String callerReference, String senderReference, String recipientReference,
+                           String senderDescription, String recipientDescription, String callerDescription,
+                           String metadata, double marketplaceFixedFee, int marketplaceVariableFee,
+                           DescriptorPolicy descriptorPolicy)
+            throws FPSException {
+        if (recipientToken == null || recipientToken.length() != 64)
+            throw new IllegalArgumentException("The recipient token must have a length of 64 bytes");
+        if (senderToken == null || senderToken.length() != 64)
+            throw new IllegalArgumentException("The sender token must have a length of 64 bytes");
+        if (callerToken == null || callerToken.length() != 64)
+            throw new IllegalArgumentException("The caller token must have a length of 64 bytes");
+        if (logger.isInfoEnabled())
+            logger.info("Reserve: " + recipientToken + " reserving " + senderToken  + " for " + amount);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("RecipientTokenId", recipientToken);
+        params.put("SenderTokenId", senderToken);
+        params.put("CallerTokenId", callerToken);
+        params.put("TransactionAmount.Amount", Double.toString(amount.getAmount().doubleValue()));
+        params.put("TransactionAmount.CurrencyCode", amount.getCurrencyCode());
+        if (transactionDate != null)
+            params.put("TransactionDate", DataUtils.encodeDate(transactionDate));
+        params.put("ChargeFeeTo", chargeFeeTo.value());
+        params.put("CallerReference", callerReference);
+        if (senderReference != null)
+            params.put("SenderReference", senderReference);
+        if (recipientReference != null)
+            params.put("RecipientReference", recipientReference);
+        if (senderDescription != null)
+            params.put("SenderDescription", senderDescription);
+        if (recipientDescription != null)
+            params.put("RecipientDescription", recipientDescription);
+        if (callerDescription != null)
+            params.put("CallerDescription", callerDescription);
+        if (metadata != null)
+            params.put("MetaData", metadata);
+        if (marketplaceFixedFee != 0)
+            params.put("MarketplaceFixedFee", Double.toString(marketplaceFixedFee));
+        if (marketplaceVariableFee != 0)
+            params.put("MarketplaceVariableFee", Integer.toString(marketplaceVariableFee));
+        if (descriptorPolicy != null) {
+            params.put("SoftDescriptorType", descriptorPolicy.getSoftDescriptorType().value());
+            params.put("CSNumberOf", descriptorPolicy.getCSNumberOf().value());
+        }
+        GetMethod method = new GetMethod();
+        try {
+            ReserveResponse response = makeRequestInt(method, "Reserve", params, ReserveResponse.class);
+            TransactionResponse transactionResponse = response.getTransactionResponse();
+            return new Transaction(
+                    transactionResponse.getTransactionId(),
+                    Transaction.Status.fromValue(transactionResponse.getStatus().value()),
+                    transactionResponse.getStatusDetail()
+                    // todo: transactionResponse.getNewSenderTokenUsage()
+            );
+        } finally {
+            method.releaseConnection();
+        }
+    }
 
     /** TODO: retryTransaction
      public void retryTransaction() throws FPSException {
@@ -1033,11 +1150,52 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      }
      **/
 
-    /** TODO: settle
-     public void settle() throws FPSException {
+    /**
+     * Settles fully or partially the amount that is reserved using the {@link #reserve} operation
+     *
+     * @param reserveTransactionID   the transaction ID of the reserve transaction that has to be settled
+     * @param amount                 amount to be settled
+     * @return                       the transaction
+     * @throws FPSException wraps checked exceptions
+     */
+    public Transaction settle(String reserveTransactionID, Amount amount) throws FPSException {
+        return settle(reserveTransactionID, amount, null);
+    }
 
-     }
-     **/
+    /**
+     * Settles fully or partially the amount that is reserved using the {@link #reserve} operation
+     *
+     * @param reserveTransactionID   the transaction ID of the reserve transaction that has to be settled
+     * @param amount                 amount to be settled
+     * @param transactionDate        the date of the transaction
+     * @return                       the transaction
+     * @throws FPSException wraps checked exceptions
+     */
+    public Transaction settle(String reserveTransactionID, Amount amount, Date transactionDate) throws FPSException {
+        if (reserveTransactionID == null || reserveTransactionID.length() == 0 || reserveTransactionID.length() > 35)
+            throw new IllegalArgumentException("The reserve transaction ID must not be null/empty and has a max size of 35 bytes");
+        if (logger.isInfoEnabled())
+            logger.info("Settle: " + reserveTransactionID + " for " + amount);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("ReserveTransactionId", reserveTransactionID);
+        params.put("TransactionAmount.Amount", Double.toString(amount.getAmount().doubleValue()));
+        params.put("TransactionAmount.CurrencyCode", amount.getCurrencyCode());
+        if (transactionDate != null)
+            params.put("TransactionDate", DataUtils.encodeDate(transactionDate));
+        GetMethod method = new GetMethod();
+        try {
+            SettleResponse response = makeRequestInt(method, "Settle", params, SettleResponse.class);
+            TransactionResponse transactionResponse = response.getTransactionResponse();
+            return new Transaction(
+                    transactionResponse.getTransactionId(),
+                    Transaction.Status.fromValue(transactionResponse.getStatus().value()),
+                    transactionResponse.getStatusDetail()
+                    // todo: transactionResponse.getNewSenderTokenUsage()
+            );
+        } finally {
+            method.releaseConnection();
+        }
+    }
 
     /**
      * The SettleDebt operation takes the settlement amount, credit instrument, and the settlement token among other
@@ -1059,7 +1217,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @return the transaction
      * @throws FPSException wraps checked exceptions
      */
-    public Transaction settleDebt(String settlementToken, String creditInstrument, double amount,
+    public Transaction settleDebt(String settlementToken, String creditInstrument, Amount amount,
                                   String callerReference)
             throws FPSException {
         return settleDebt(settlementToken, callerToken, creditInstrument, amount, new Date(), null, null, callerReference,
@@ -1087,7 +1245,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @return the transaction
      * @throws FPSException wraps checked exceptions
      */
-    public Transaction settleDebt(String settlementToken, String creditInstrument, double amount,
+    public Transaction settleDebt(String settlementToken, String creditInstrument, Amount amount,
                                   String callerReference, DescriptorPolicy descriptorPolicy)
             throws FPSException {
         return settleDebt(settlementToken, callerToken, creditInstrument, amount, new Date(), null, null, callerReference,
@@ -1125,7 +1283,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @throws FPSException wraps checked exceptions
      */
     public Transaction settleDebt(String settlementToken, String callerToken,
-                       String creditInstrument, double amount,
+                       String creditInstrument, Amount amount,
                        Date transactionDate, String senderReference, String recipientReference, String callerReference,
                        ChargeFeeTo chargeFeeTo,
                        String senderDescription, String recipientDescription, String callerDescription,
@@ -1139,8 +1297,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         params.put("SenderTokenId", settlementToken);
         params.put("CallerTokenId", callerToken);
         params.put("CreditInstrumentId", creditInstrument);
-        params.put("SettlementAmount.Amount", Double.toString(amount));
-        params.put("SettlementAmount.CurrencyCode", "USD");
+        params.put("SettlementAmount.Amount", Double.toString(amount.getAmount().doubleValue()));
+        params.put("SettlementAmount.CurrencyCode", amount.getCurrencyCode());
         if (transactionDate != null)
             params.put("TransactionDate", DataUtils.encodeDate(transactionDate));
         if (senderReference != null)
