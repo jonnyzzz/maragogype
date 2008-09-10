@@ -145,13 +145,13 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                                    String callerToken, String recipientToken, DescriptorPolicy descriptorPolicy,
                                    String server, int port, String uiPipeline) {
         super(awsAccessId, awsSecretKey, isSecure, server, port);
-        if (callerToken != null && callerToken.length() != 64)
-            throw new IllegalArgumentException("The caller token must have a length of 64 bytes!");
-        if (recipientToken != null && recipientToken.length() != 64)
-            throw new IllegalArgumentException("The caller token must have a length of 64 bytes!");
+        if (callerToken != null && !"".equals(callerToken) && callerToken.length() != 64)
+            throw new IllegalArgumentException("The caller token must have a length of 64 bytes! Invalid value: " + callerToken);
+        if (recipientToken != null && !"".equals(recipientToken) && recipientToken.length() != 64)
+            throw new IllegalArgumentException("The caller token must have a length of 64 bytes! Invalid value: " + recipientToken);
         this.uiPipeline = uiPipeline;
-        this.callerToken = callerToken;
-        this.recipientToken = recipientToken;
+        this.callerToken = "".equals(callerToken) ? null : callerToken;
+        this.recipientToken = "".equals(recipientToken) ? null : recipientToken;
         this.descriptorPolicy = descriptorPolicy;
         setVersionHeader(this);
     }
