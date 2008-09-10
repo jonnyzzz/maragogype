@@ -1470,9 +1470,9 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @throws FPSException
      * @throws MalformedURLException
      */
-    public String acquireSingleUseToken(String callerReference, String returnURL, Amount amount, String reason)
+    public String acquireSingleUseToken(String callerReference, Amount amount, String returnURL, String reason)
             throws FPSException, MalformedURLException {
-        return acquireSingleUseToken(callerReference, returnURL, amount, false, null, null, reason);
+        return acquireSingleUseToken(callerReference, amount, false, null, null, returnURL, reason);
     }
 
     /**
@@ -1487,10 +1487,10 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @throws FPSException
      * @throws MalformedURLException
      */
-    public String acquireSingleUseToken(String callerReference, String returnURL, Amount amount,
-                                        PaymentMethod paymentMethod, String reason)
+    public String acquireSingleUseToken(String callerReference, Amount amount, PaymentMethod paymentMethod,
+                                        String returnURL, String reason)
             throws FPSException, MalformedURLException {
-        return acquireSingleUseToken(callerReference, returnURL, amount, false, paymentMethod, null, reason);
+        return acquireSingleUseToken(callerReference, amount, false, paymentMethod, null, returnURL, reason);
     }
 
     /**
@@ -1507,8 +1507,9 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @throws FPSException
      * @throws MalformedURLException
      */
-    public String acquireSingleUseToken(String callerReference, String returnURL, Amount amount, boolean reserve,
-                                        PaymentMethod paymentMethod, String recipientToken, String reason)
+    public String acquireSingleUseToken(String callerReference, Amount amount, boolean reserve,
+                                        PaymentMethod paymentMethod, String recipientToken,
+                                        String returnURL, String reason)
             throws FPSException, MalformedURLException {
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put("callerReference", callerReference);
@@ -1546,12 +1547,12 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @throws MalformedURLException
      * @throws FPSException
      */
-    public String acquireRecurringToken(String callerReference, String returnURL, Amount amount,
+    public String acquireRecurringToken(String callerReference, Amount amount,
                                         int recurringInterval, RecurringGranularity recurringGranularity,
-                                        String reason)
+                                        String returnURL, String reason)
             throws MalformedURLException, FPSException {
-        return acquireRecurringToken(callerReference, returnURL, amount, recurringInterval, recurringGranularity,
-                null, null, null, null, reason);
+        return acquireRecurringToken(callerReference, amount, recurringInterval, recurringGranularity,
+                null, null, null, null, returnURL, reason);
     }
 
     /**
@@ -1571,10 +1572,11 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @throws FPSException
      * @throws MalformedURLException
      */
-    public String acquireRecurringToken(String callerReference, String returnURL, Amount amount,
+    public String acquireRecurringToken(String callerReference, Amount amount,
                                         int recurringInterval, RecurringGranularity recurringGranularity,
                                         Date validityStart, Date validityExpiry,
-                                        PaymentMethod paymentMethod, String recipientToken, String reason)
+                                        PaymentMethod paymentMethod, String recipientToken,
+                                        String returnURL, String reason)
             throws FPSException, MalformedURLException {
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put("callerReference", callerReference);
@@ -1595,13 +1597,27 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         return generateUIPipelineURL("Recurring", returnURL, parameters);
     }
 
-    /** TODO: acquireEditToken
-    public String acquireEditToken(String callerReference, String returnURL, Amount amount,
-                                        PaymentMethod paymentMethod, String recipientToken, String paymentReason)
+    /**
+     * Generate a signed URL for the CBUI pipeline.
+     *
+     * @param callerReference
+     * @param tokenID
+     * @param paymentMethod
+     * @param returnURL
+     * @return the signed URL
+     * @throws FPSException
+     * @throws MalformedURLException
+     */
+    public String acquireEditToken(String callerReference, String tokenID, PaymentMethod paymentMethod,
+                                   String returnURL)
             throws FPSException, MalformedURLException {
-
+        Map<String, String> parameters = new HashMap<String, String>();
+        parameters.put("callerReference", callerReference);
+        parameters.put("tokenID", tokenID);
+        if (paymentMethod != null)
+            parameters.put("paymentMethod", paymentMethod.value());
+        return generateUIPipelineURL("EditToken", returnURL, parameters);
     }
-    */
 
     /** TODO: acquireRecipientToken
     public String acquireRecipientToken(String callerReference, String returnURL, Amount amount,
@@ -1761,8 +1777,10 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
 			throw new FPSException(requestID, status, errorMessage);
 		else if ("NM".equals(status))
 			throw new FPSException(requestID, status, errorMessage);
-		System.out.println("Status: " + status);
-		System.out.println("Error Message: " + errorMessage);
+		if (logger.isDebugEnabled()) {
+            logger.debug("Status: " + status);
+		    logger.debug("Error Message: " + errorMessage);
+        }
         // ensure first that the request is valid
         if (!isSignatureValid(request))
             throw new InvalidSignatureException(request.getParameter("awsSignature"), request.getRequestURI());
@@ -1795,16 +1813,43 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         return request.getParameter("tokenID");
     }
 
-    /*
-    // todo: extractEditTokenFromCBUI
+    /**
+     * Extract the edit token from the CBUI pipeline return.
+     *
+     * @param request the HTTP request
+     * @return the edit token ID
+     * @throws MalformedURLException
+     * @throws FPSException
+     */
     public String extractEditTokenFromCBUI(HttpServletRequest request)
-            throws MalformedURLException, InvalidSignatureException {
+            throws MalformedURLException, FPSException {
+		// parse status message
+		String status = request.getParameter("status");
+		String errorMessage = request.getParameter("errorMessage");
+		String requestID = request.getParameter("RequestId");
+		if ("SE".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("A".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("CE".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("PE".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("NP".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("NM".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		if (logger.isDebugEnabled()) {
+            logger.debug("Status: " + status);
+		    logger.debug("Error Message: " + errorMessage);
+        }
         // ensure first that the request is valid
         if (!isSignatureValid(request))
-            throw new InvalidSignatureException(request.getParameter("awsSignature"));
+            throw new InvalidSignatureException(request.getParameter("awsSignature"), request.getRequestURI());
         return request.getParameter("tokenID");
     }
 
+    /*
     // todo: extractRecipientTokenFromCBUI
     public String extractRecipientTokenFromCBUI(HttpServletRequest request)
             throws MalformedURLException, InvalidSignatureException {
