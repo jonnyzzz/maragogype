@@ -352,7 +352,7 @@ public class MessageQueue extends AWSQueryConnection {
 		} catch (AWSException ex) {
 			throw new SQSException(ex);
 		} catch (JAXBException ex) {
-			throw new SQSException("Problem setting the visibility timeout.", ex);
+			throw new SQSException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
 			throw new SQSException(ex.getMessage(), ex);
 		} catch (IOException ex) {
