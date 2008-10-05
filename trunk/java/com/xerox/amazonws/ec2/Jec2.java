@@ -341,9 +341,11 @@ public class Jec2 extends AWSQueryConnection {
 						codes.add(code.getProductCode());
 					}
 				}
-				result.add(new ImageDescription(item.getImageId(), item
-						.getImageLocation(), item.getImageOwnerId(), item
-						.getImageState(), item.isIsPublic(), codes));
+				result.add(new ImageDescription(item.getImageId(),
+						item.getImageLocation(), item.getImageOwnerId(),
+						item.getImageState(), item.isIsPublic(), codes,
+						item.getArchitecture(), item.getImageType(),
+						item.getKernelId(), item.getRamdiskId()));
 			}
 			return result;
 		} finally {
