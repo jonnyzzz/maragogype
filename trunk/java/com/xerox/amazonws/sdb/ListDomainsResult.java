@@ -22,8 +22,8 @@ import java.util.List;
 public class ListDomainsResult extends SDBResult {
 	private List<Domain> domains;
 
-	ListDomainsResult(String moreToken, List<Domain> domains) {
-		super(moreToken);
+	ListDomainsResult(String moreToken, String boxUsage, List<Domain> domains) {
+		super(moreToken, boxUsage);
 		this.domains = domains;
 	}
 

@@ -19,12 +19,22 @@ package com.xerox.amazonws.sdb;
 
 public abstract class SDBResult {
 	private String nextToken;
+	private String boxUsage;
 
 	SDBResult(String nextToken) {
 		this.nextToken = nextToken;
 	}
 
+	SDBResult(String nextToken, String boxUsage) {
+		this.nextToken = nextToken;
+		this.boxUsage = boxUsage;
+	}
+
 	public String getNextToken() {
 		return nextToken;
+	}
+
+	public String getBoxUsage() {
+		return boxUsage;
 	}
 }

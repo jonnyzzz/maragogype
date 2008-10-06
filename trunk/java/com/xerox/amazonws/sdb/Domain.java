@@ -168,7 +168,7 @@ public class Domain extends AWSQueryConnection {
 		try {
 			QueryResponse response =
 						makeRequestInt(method, "Query", params, QueryResponse.class);
-			return new QueryResult(response.getQueryResult().getNextToken(),
+			return new QueryResult(response.getQueryResult().getNextToken(), response.getResponseMetadata().getBoxUsage(),
 					Item.createList(response.getQueryResult().getItemNames().toArray(new ItemName[] {}), domainName,
 								getAwsAccessKeyId(), getSecretAccessKey(),
 								isSecure(), getServer(), getSignatureVersion(), getHttpClient()));
@@ -338,7 +338,10 @@ public class Domain extends AWSQueryConnection {
 				results.put(iName, attrs);
 			}
 
-			return new QueryWithAttributesResult(response.getQueryWithAttributesResult().getNextToken(), results);
+			return new QueryWithAttributesResult(
+						response.getQueryWithAttributesResult().getNextToken(),
+						response.getResponseMetadata().getBoxUsage(),
+						results);
 		} finally {
 			method.releaseConnection();
 		}
