@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -303,7 +304,7 @@ public class Domain extends AWSQueryConnection {
 	 */
 	public QueryWithAttributesResult listItemsWithAttributes(String queryString,
 				List<String> attributes, String nextToken, int maxResults) throws SDBException {
-		Map<String, String> params = new HashMap<String, String>();
+		Map<String, String> params = new LinkedHashMap<String, String>();
 		params.put("DomainName", domainName);
 		int idx = 1;
 		if (attributes != null) {
