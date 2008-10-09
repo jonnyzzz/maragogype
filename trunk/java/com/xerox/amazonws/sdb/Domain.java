@@ -304,7 +304,7 @@ public class Domain extends AWSQueryConnection {
 	 */
 	public QueryWithAttributesResult listItemsWithAttributes(String queryString,
 				List<String> attributes, String nextToken, int maxResults) throws SDBException {
-		Map<String, String> params = new LinkedHashMap<String, String>();
+		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", domainName);
 		int idx = 1;
 		if (attributes != null) {
@@ -324,7 +324,7 @@ public class Domain extends AWSQueryConnection {
 		try {
 			QueryWithAttributesResponse response =
 						makeRequestInt(method, "QueryWithAttributes", params, QueryWithAttributesResponse.class);
-			Map<String, List<ItemAttribute>> results = new Hashtable<String, List<ItemAttribute>>();
+			Map<String, List<ItemAttribute>> results = new LinkedHashMap<String, List<ItemAttribute>>();
 			for (com.xerox.amazonws.typica.sdb.jaxb.Item i : response.getQueryWithAttributesResult().getItems()) {
 				List<ItemAttribute> attrs = new ArrayList<ItemAttribute>();
 				for (Attribute a : i.getAttributes()) {
