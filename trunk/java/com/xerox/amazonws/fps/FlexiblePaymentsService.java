@@ -28,6 +28,7 @@ import com.xerox.amazonws.typica.fps.jaxb.TransactionResponse;
 import com.xerox.amazonws.typica.fps.jaxb.WriteOffDebtResponse;
 import com.xerox.amazonws.typica.fps.jaxb.ReserveResponse;
 import com.xerox.amazonws.typica.fps.jaxb.SettleResponse;
+import com.xerox.amazonws.typica.fps.jaxb.RetryTransactionResponse;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -242,7 +243,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                 null, null, callerReference,
                 ChargeFeeTo.RECIPIENT,
                 null, null, null,
-                null
+                null, null, null
         );
     }
 
@@ -264,6 +265,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @param recipientDescription 128-byte field to store transaction description
      * @param callerDescription    128-byte field to store transaction description
      * @param metadata             a 2KB free-form field used to store transaction data
+     * @param descriptorPolicy       the soft descriptor type and the customer service number to pass to the payment processor
+     * @param tempDeclinePolicy      the temporary decline policy and the retry time out (in minutes)
      * @return the completed transaction
      * @throws FPSException wraps checked exceptions
      */
@@ -272,7 +275,9 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                                    String senderReference, String recipientReference, String callerReference,
                                    ChargeFeeTo chargeFeeTo,
                                    String senderDescription, String recipientDescription, String callerDescription,
-                                   String metadata) throws FPSException {
+                                   String metadata,
+                                   DescriptorPolicy descriptorPolicy, TemporaryDeclinePolicy tempDeclinePolicy)
+            throws FPSException {
         if (callerTokenID == null || callerTokenID.length() != 64)
             throw new IllegalArgumentException("The token must have a length of 64 bytes");
         Map<String, String> params = new HashMap<String, String>();
@@ -296,6 +301,14 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("CallerDescription", callerDescription);
         if (metadata != null)
             params.put("MetaData", metadata);
+        if (descriptorPolicy != null) {
+            params.put("SoftDescriptorType", descriptorPolicy.getSoftDescriptorType().value());
+            params.put("CSNumberOf", descriptorPolicy.getCSNumberOf().value());
+        }
+        if (tempDeclinePolicy != null) {
+            params.put("TemporaryDeclinePolicy", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
+            params.put("ImplicitRetryTimeoutInMins", Integer.toString(tempDeclinePolicy.getImplicitRetryTimeoutInMins()));
+        }
         GetMethod method = new GetMethod();
         try {
             FundPrepaidResponse response =
@@ -878,6 +891,43 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                            String metadata, double marketplaceFixedFee, int marketplaceVariableFee,
                            DescriptorPolicy descriptorPolicy)
             throws FPSException {
+        return pay(recipientToken, senderToken, callerToken, amount, transactionDate, chargeFeeTo,
+                callerReference, senderReference, recipientReference,
+                senderDescription, recipientDescription, callerDescription,
+                metadata, marketplaceFixedFee, marketplaceVariableFee,
+                descriptorPolicy, null);
+    }
+
+    /**
+     * Initiate a transaction to move funds from the sender to the recipient.
+     *
+     * @param recipientToken         recipient token
+     * @param senderToken            sender token
+     * @param callerToken            caller token
+     * @param amount                 amount to be charged to the sender
+     * @param transactionDate        the date specified by the caller and stored with the transaction
+     * @param chargeFeeTo            the participant paying the fee for the transaction
+     * @param callerReference        a unique reference that you specify in your system to identify a transaction
+     * @param senderReference        any reference that the caller might use to identify the sender in the transaction
+     * @param recipientReference     any reference that the caller might use to identify the recipient in the transaction
+     * @param senderDescription      128-byte field to store transaction description
+     * @param recipientDescription   128-byte field to store transaction description
+     * @param callerDescription      128-byte field to store transaction description
+     * @param metadata               a 2KB free-form field used to store transaction data
+     * @param marketplaceFixedFee    the fee charged by the marketplace developer as a fixed amount of the transaction
+     * @param marketplaceVariableFee the fee charged by the marketplace developer as a variable amount of the transaction
+     * @param descriptorPolicy       the soft descriptor type and the customer service number to pass to the payment processor
+     * @param tempDeclinePolicy      the temporary decline policy and the retry time out (in minutes)
+     * @return                       the transaction
+     * @throws FPSException wraps checked exceptions
+     */
+    public Transaction pay(String recipientToken, String senderToken, String callerToken, Amount amount,
+                           Date transactionDate, ChargeFeeTo chargeFeeTo,
+                           String callerReference, String senderReference, String recipientReference,
+                           String senderDescription, String recipientDescription, String callerDescription,
+                           String metadata, double marketplaceFixedFee, int marketplaceVariableFee,
+                           DescriptorPolicy descriptorPolicy, TemporaryDeclinePolicy tempDeclinePolicy)
+            throws FPSException {
         if (recipientToken != null && recipientToken.length() != 64)
             throw new IllegalArgumentException("The recipient token must have a length of 64 bytes");
         if (senderToken != null && senderToken.length() != 64)
@@ -916,6 +966,10 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         if (descriptorPolicy != null) {
             params.put("SoftDescriptorType", descriptorPolicy.getSoftDescriptorType().value());
             params.put("CSNumberOf", descriptorPolicy.getCSNumberOf().value());
+        }
+        if (tempDeclinePolicy != null) {
+            params.put("TemporaryDeclinePolicy", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
+            params.put("ImplicitRetryTimeoutInMins", Integer.toString(tempDeclinePolicy.getImplicitRetryTimeoutInMins()));
         }
         GetMethod method = new GetMethod();
         try {
@@ -1091,6 +1145,46 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                            String metadata, double marketplaceFixedFee, int marketplaceVariableFee,
                            DescriptorPolicy descriptorPolicy)
             throws FPSException {
+        return reserve(recipientToken, senderToken, callerToken, amount, transactionDate, chargeFeeTo,
+                callerReference, senderReference, recipientReference,
+                senderDescription, recipientDescription, callerDescription,
+                metadata, marketplaceFixedFee, marketplaceVariableFee,
+                descriptorPolicy, null);
+    }
+
+    /**
+     * This operation is part of the Reserve and Settle operations that allow payment transactions when the
+     * authorization and settlement have a time difference. The transaction is not complete until the Settle
+     * operation is executed successfully. A reserve authorization is only valid for 7 days.
+     * Currently, you can't cancel a reserve.
+     *
+     * @param recipientToken         recipient token
+     * @param senderToken            sender token
+     * @param callerToken            caller token
+     * @param amount                 amount to be reserved on the sender account/credit card
+     * @param transactionDate        the date specified by the caller and stored with the transaction
+     * @param chargeFeeTo            the participant paying the fee for the transaction
+     * @param callerReference        a unique reference that you specify in your system to identify a transaction
+     * @param senderReference        any reference that the caller might use to identify the sender in the transaction
+     * @param recipientReference     any reference that the caller might use to identify the recipient in the transaction
+     * @param senderDescription      128-byte field to store transaction description
+     * @param recipientDescription   128-byte field to store transaction description
+     * @param callerDescription      128-byte field to store transaction description
+     * @param metadata               a 2KB free-form field used to store transaction data
+     * @param marketplaceFixedFee    the fee charged by the marketplace developer as a fixed amount of the transaction
+     * @param marketplaceVariableFee the fee charged by the marketplace developer as a variable amount of the transaction
+     * @param descriptorPolicy       the soft descriptor type and the customer service number to pass to the payment processor
+     * @param tempDeclinePolicy      the temporary decline policy and the retry time out (in minutes)
+     * @return                       the transaction
+     * @throws FPSException wraps checked exceptions
+     */
+    public Transaction reserve(String recipientToken, String senderToken, String callerToken, Amount amount,
+                           Date transactionDate, ChargeFeeTo chargeFeeTo,
+                           String callerReference, String senderReference, String recipientReference,
+                           String senderDescription, String recipientDescription, String callerDescription,
+                           String metadata, double marketplaceFixedFee, int marketplaceVariableFee,
+                           DescriptorPolicy descriptorPolicy, TemporaryDeclinePolicy tempDeclinePolicy)
+            throws FPSException {
         if (recipientToken == null || recipientToken.length() != 64)
             throw new IllegalArgumentException("The recipient token must have a length of 64 bytes");
         if (senderToken == null || senderToken.length() != 64)
@@ -1129,6 +1223,10 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("SoftDescriptorType", descriptorPolicy.getSoftDescriptorType().value());
             params.put("CSNumberOf", descriptorPolicy.getCSNumberOf().value());
         }
+        if (tempDeclinePolicy != null) {
+            params.put("TemporaryDeclinePolicy", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
+            params.put("ImplicitRetryTimeoutInMins", Integer.toString(tempDeclinePolicy.getImplicitRetryTimeoutInMins()));
+        }
         GetMethod method = new GetMethod();
         try {
             ReserveResponse response = makeRequestInt(method, "Reserve", params, ReserveResponse.class);
@@ -1144,11 +1242,35 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         }
     }
 
-    /** TODO: retryTransaction
-     public void retryTransaction() throws FPSException {
-
+    /**
+     * Submits a transaction for processing.
+     * If a transaction was temporarily declined, the transaction can be processed again using the original transaction ID.
+     * 
+     * @param transactionID the transaction to retry
+     * @return              the transaction
+     * @throws FPSException wraps checked exceptions
+     */
+     public Transaction retryTransaction(String transactionID) throws FPSException {
+        if (transactionID == null || transactionID.length() == 0 || transactionID.length() > 35)
+            throw new IllegalArgumentException("The transaction ID must not be null/empty and has a max size of 35 bytes");
+        if (logger.isInfoEnabled())
+            logger.info("Retry tranasction: " + transactionID);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("OriginalTransactionId", transactionID);
+        GetMethod method = new GetMethod();
+        try {
+            RetryTransactionResponse response = makeRequestInt(method, "RetryTransaction", params, RetryTransactionResponse.class);
+            TransactionResponse transactionResponse = response.getTransactionResponse();
+            return new Transaction(
+                    transactionResponse.getTransactionId(),
+                    Transaction.Status.fromValue(transactionResponse.getStatus().value()),
+                    transactionResponse.getStatusDetail()
+                    // todo: transactionResponse.getNewSenderTokenUsage()
+            );
+        } finally {
+            method.releaseConnection();
+        }
      }
-     **/
 
     /**
      * Settles fully or partially the amount that is reserved using the {@link #reserve} operation
@@ -1289,6 +1411,50 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                        String senderDescription, String recipientDescription, String callerDescription,
                        String metadata, DescriptorPolicy descriptorPolicy)
             throws FPSException {
+        return settleDebt(settlementToken, callerToken, creditInstrument, amount,
+                transactionDate, senderReference, recipientReference, callerReference,
+                chargeFeeTo, senderDescription, recipientDescription, callerDescription,
+                metadata, descriptorPolicy, null);
+    }
+
+    /**
+     * The SettleDebt operation takes the settlement amount, credit instrument, and the settlement token among other
+     * parameters. Using this operation you can:
+     * <ul>
+     * <li>
+     * Transfer money from sender's payment instrument specified in the settlement token to the recipient's
+     * account balance. The fee charged is deducted from the settlement amount and deposited into recipient's
+     * account balance.
+     * </li>
+     * <li>
+     * Decrement debt balances by the settlement amount.
+     * </li>
+     * </ul>
+     * @param settlementToken        the token ID of the settlement token
+     * @param callerToken            the callers token
+     * @param creditInstrument       the credit instrument Id returned by the co-branded UI pipeline
+     * @param amount                 the amount for the settlement
+     * @param transactionDate        the date of the callers transaction
+     * @param senderReference        the unique value that will be used as a reference for the sender in this transaction
+     * @param recipientReference     the unique value that will be used as a reference for the recipient in this transaction
+     * @param callerReference        a unique reference that you specify in your system to identify a transaction
+     * @param chargeFeeTo            the participant paying the fee for the transaction
+     * @param senderDescription      a 128-byte field to store transaction description
+     * @param recipientDescription   a 128-byte field to store transaction description
+     * @param callerDescription      a 128-byte field to store transaction description
+     * @param metadata               a 2KB free form field used to store transaction data
+     * @param descriptorPolicy       the descriptor policy to use as descriptive string on credit card statements
+     * @param tempDeclinePolicy      the temporary decline policy and the retry time out (in minutes)
+     * @return the transaction
+     * @throws FPSException wraps checked exceptions
+     */
+    public Transaction settleDebt(String settlementToken, String callerToken,
+                       String creditInstrument, Amount amount,
+                       Date transactionDate, String senderReference, String recipientReference, String callerReference,
+                       ChargeFeeTo chargeFeeTo,
+                       String senderDescription, String recipientDescription, String callerDescription,
+                       String metadata, DescriptorPolicy descriptorPolicy, TemporaryDeclinePolicy tempDeclinePolicy)
+            throws FPSException {
         if (settlementToken == null || settlementToken.length() != 64)
             throw new IllegalArgumentException("The settlement token must have a length of 64 bytes");
         if (callerToken == null || callerToken.length() != 64)
@@ -1318,6 +1484,10 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         if (descriptorPolicy != null) {
             params.put("SoftDescriptorType", descriptorPolicy.getSoftDescriptorType().value());
             params.put("CSNumberOf", descriptorPolicy.getCSNumberOf().value());
+        }
+        if (tempDeclinePolicy != null) {
+            params.put("TemporaryDeclinePolicy", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
+            params.put("ImplicitRetryTimeoutInMins", Integer.toString(tempDeclinePolicy.getImplicitRetryTimeoutInMins()));
         }
         GetMethod method = new GetMethod();
         try {

@@ -310,6 +310,21 @@
     </xs:sequence>
   </xs:complexType>
 
+  <xs:simpleType name="TemporaryDeclinePolicyType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ExplicitRetry"/>
+      <xs:enumeration value="ImplicitRetry"/>
+      <xs:enumeration value="Failure"/>
+    </xs:restriction>
+  </xs:simpleType>	
+
+  <xs:complexType name="TemporaryDeclinePolicy">
+    <xs:sequence>
+      <xs:element name="TemporaryDeclinePolicyType" type="tns:TemporaryDeclinePolicyType" />
+      <xs:element name="ImplicitRetryTimeoutInMins" type="xs:integer" minOccurs="0" />
+   </xs:sequence>
+  </xs:complexType>
+
   <!--    all the top level request elements-->
   <xs:element name="GetTokenUsageRequest">
     <xs:complexType>
@@ -360,6 +375,7 @@
         <xs:element minOccurs="0" name="RecipientDescription" type="xs:string"/>
         <xs:element minOccurs="0" name="CallerDescription" type="xs:string"/>
         <xs:element minOccurs="0" name="MetaData" type="xs:string"/>
+        <xs:element minOccurs="0" name="TemporaryDeclinePolicy" type="tns:TemporaryDeclinePolicy"/>
         <xs:element minOccurs="0" name="DescriptorPolicy" type="tns:DescriptorPolicy"/>
       </xs:sequence>
     </xs:complexType>
@@ -397,6 +413,7 @@
         <xs:element minOccurs="0" name="RecipientDescription" type="xs:string"/>
         <xs:element minOccurs="0" name="CallerDescription" type="xs:string"/>
         <xs:element minOccurs="0" name="MetaData" type="xs:string"/>
+        <xs:element minOccurs="0" name="TemporaryDeclinePolicy" type="tns:TemporaryDeclinePolicy"/>
         <xs:element minOccurs="0" name="DescriptorPolicy" type="tns:DescriptorPolicy"/>
       </xs:sequence>
     </xs:complexType>
@@ -485,6 +502,7 @@
         <xs:element minOccurs="0" name="MetaData" type="xs:string"/>
 	<xs:element minOccurs="0" name="MarketplaceFixedFee" type="tns:Amount"/>
         <xs:element minOccurs="0" name="MarketplaceVariableFee" type="xs:decimal"/>
+        <xs:element minOccurs="0" name="TemporaryDeclinePolicy" type="tns:TemporaryDeclinePolicy"/>
         <xs:element minOccurs="0" name="DescriptorPolicy" type="tns:DescriptorPolicy"/>
       </xs:sequence>
     </xs:complexType>
@@ -850,6 +868,7 @@
         <xs:element minOccurs="0" name="MetaData" type="xs:string"/>
 	<xs:element minOccurs="0" name="MarketplaceFixedFee" type="tns:Amount"/>
         <xs:element minOccurs="0" name="MarketplaceVariableFee" type="xs:decimal"/>
+	<xs:element minOccurs="0" name="TemporaryDeclinePolicy" type="tns:TemporaryDeclinePolicy"/>
         <xs:element minOccurs="0" name="DescriptorPolicy" type="tns:DescriptorPolicy"/>
       </xs:sequence>
     </xs:complexType>

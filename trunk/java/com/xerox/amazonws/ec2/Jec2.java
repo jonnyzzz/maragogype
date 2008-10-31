@@ -681,36 +681,29 @@ public class Jec2 extends AWSQueryConnection {
 					makeRequestInt(method, "DescribeInstances", params, DescribeInstancesResponse.class);
 			List<ReservationDescription> result = new ArrayList<ReservationDescription>();
 			ReservationSetType res_set = response.getReservationSet();
-			Iterator reservations_iter = res_set.getItems().iterator();
-			while (reservations_iter.hasNext()) {
-				RunInstancesResponse item = (RunInstancesResponse) reservations_iter.next();
-				ReservationDescription res = new ReservationDescription(item
-													.getOwnerId(), item.getReservationId());
-				GroupSetType grp_set = item.getGroupSet();
-				Iterator groups_iter = grp_set.getItems().iterator();
-				while (groups_iter.hasNext()) {
-					GroupItemType rsp_item = (GroupItemType) groups_iter.next();
-					res.addGroup(rsp_item.getGroupId());
-				}
-				RunningInstancesSetType set = item.getInstancesSet();
-				Iterator instances_iter = set.getItems().iterator();
-				while (instances_iter.hasNext()) {
-					RunningInstancesItemType rsp_item = (RunningInstancesItemType) instances_iter
-														.next();
-					res.addInstance(rsp_item.getImageId(),
-									rsp_item.getInstanceId(),
-									rsp_item.getPrivateDnsName(),
-									rsp_item.getDnsName(),
-									rsp_item.getInstanceState(),
-									rsp_item.getReason(),
-									rsp_item.getKeyName(),
-									rsp_item.getLaunchTime().toGregorianCalendar(),
-									InstanceType.getTypeFromString(rsp_item.getInstanceType()),
-									rsp_item.getPlacement().getAvailabilityZone(),
-									rsp_item.getKernelId(), rsp_item.getRamdiskId());
-				}
-				result.add(res);
-			}
+            for (RunInstancesResponse item : res_set.getItems()) {
+                ReservationDescription res = new ReservationDescription(item
+                        .getOwnerId(), item.getReservationId());
+                GroupSetType grp_set = item.getGroupSet();
+                for (GroupItemType rsp_item : grp_set.getItems()) {
+                    res.addGroup(rsp_item.getGroupId());
+                }
+                RunningInstancesSetType set = item.getInstancesSet();
+                for (RunningInstancesItemType rsp_item : set.getItems()) {
+                    res.addInstance(rsp_item.getImageId(),
+                            rsp_item.getInstanceId(),
+                            rsp_item.getPrivateDnsName(),
+                            rsp_item.getDnsName(),
+                            rsp_item.getInstanceState(),
+                            rsp_item.getReason(),
+                            rsp_item.getKeyName(),
+                            rsp_item.getLaunchTime().toGregorianCalendar(),
+                            InstanceType.getTypeFromString(rsp_item.getInstanceType()),
+                            rsp_item.getPlacement().getAvailabilityZone(),
+                            rsp_item.getKernelId(), rsp_item.getRamdiskId());
+                }
+                result.add(res);
+            }
 			return result;
 		} finally {
 			method.releaseConnection();
