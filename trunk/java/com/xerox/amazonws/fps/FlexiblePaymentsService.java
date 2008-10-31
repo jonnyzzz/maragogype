@@ -64,47 +64,52 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     private final String callerToken;
     private final String recipientToken;
     private final DescriptorPolicy descriptorPolicy;
+    private final TemporaryDeclinePolicy tempDeclinePolicy;
     private final String uiPipeline;
     private static Log logger = LogFactory.getLog(FlexiblePaymentsService.class);
 
     /**
      * Initializes the FPS service with your AWS login information.
      *
-     * @param awsAccessId  The your user key into AWS
-     * @param awsSecretKey The secret string used to generate signatures for authentication.
+     * @param awsAccessId           the your user key into AWS
+     * @param awsSecretKey          the secret string used to generate signatures for authentication.
      */
     public FlexiblePaymentsService(String awsAccessId, String awsSecretKey) {
-        this(awsAccessId, awsSecretKey, true, null, null, null);
+        this(awsAccessId, awsSecretKey, true, null, null, null, null);
     }
 
 
     /**
      * Initializes the FPS service with your AWS login information.
      *
-     * @param awsAccessId  The your user key into AWS
-     * @param awsSecretKey The secret string used to generate signatures for authentication.
-     * @param callerToken  the default caller token to be used when not explicitely specified
-     * @param recipientToken the default recipient token to be used when not explicitely specified
-     * @param descriptorPolicy the descriptor policy to use as descriptive string on credit card statements
+     * @param awsAccessId           the your user key into AWS
+     * @param awsSecretKey          the secret string used to generate signatures for authentication.
+     * @param callerToken           the default caller token to be used when not explicitely specified
+     * @param recipientToken        the default recipient token to be used when not explicitely specified
+     * @param descriptorPolicy      the descriptor policy to use as descriptive string on credit card statements
+     * @param tempDeclinePolicy     the temporary decline policy and the retry time out (in minutes)
      */
     public FlexiblePaymentsService(String awsAccessId, String awsSecretKey,
-                                   String callerToken, String recipientToken, DescriptorPolicy descriptorPolicy) {
-        this(awsAccessId, awsSecretKey, true, callerToken, recipientToken, descriptorPolicy);
+                                   String callerToken, String recipientToken,
+                                   DescriptorPolicy descriptorPolicy, TemporaryDeclinePolicy tempDeclinePolicy) {
+        this(awsAccessId, awsSecretKey, true, callerToken, recipientToken, descriptorPolicy, tempDeclinePolicy);
     }
 
     /**
      * Initializes the FPS service with your AWS login information.
      *
-     * @param awsAccessId  The your user key into AWS
-     * @param awsSecretKey The secret string used to generate signatures for authentication.
-     * @param isSecure     True if the data should be encrypted on the wire on the way to or from FPS.
-     * @param callerToken  the default caller token to be used when not explicitely specified
-     * @param recipientToken the default recipient token to be used when not explicitely specified
-     * @param descriptorPolicy the descriptor policy to use as descriptive string on credit card statements
+     * @param awsAccessId           the your user key into AWS
+     * @param awsSecretKey          the secret string used to generate signatures for authentication.
+     * @param isSecure              true if the data should be encrypted on the wire on the way to or from FPS.
+     * @param callerToken           the default caller token to be used when not explicitely specified
+     * @param recipientToken        the default recipient token to be used when not explicitely specified
+     * @param descriptorPolicy      the descriptor policy to use as descriptive string on credit card statements
+     * @param tempDeclinePolicy     the temporary decline policy and the retry time out (in minutes)
      */
     public FlexiblePaymentsService(String awsAccessId, String awsSecretKey, boolean isSecure,
-                                   String callerToken, String recipientToken, DescriptorPolicy descriptorPolicy) {
-        this(awsAccessId, awsSecretKey, isSecure, callerToken, recipientToken, descriptorPolicy,
+                                   String callerToken, String recipientToken,
+                                   DescriptorPolicy descriptorPolicy, TemporaryDeclinePolicy tempDeclinePolicy) {
+        this(awsAccessId, awsSecretKey, isSecure, callerToken, recipientToken, descriptorPolicy, tempDeclinePolicy,
                 "fps.amazonaws.com", "https://authorize.payments.amazon.com/cobranded-ui/actions/start");
     }
 
@@ -117,33 +122,37 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @param callerToken  the default caller token to be used when not explicitely specified
      * @param recipientToken the default recipient token to be used when not explicitely specified
      * @param descriptorPolicy the descriptor policy to use as descriptive string on credit card statements
+     * @param tempDeclinePolicy     the temporary decline policy and the retry time out (in minutes)
      * @param server       Which host to connect to.  Usually, this will be fps.amazonaws.com.
      *                     You can also use fps.sandbox.amazonaws.com instead if you want to test your code within the Sandbox environment
      * @param uiPipeline   the URL of the UI pipeline
      */
     public FlexiblePaymentsService(String awsAccessId, String awsSecretKey, boolean isSecure,
-                                   String callerToken, String recipientToken, DescriptorPolicy descriptorPolicy,
+                                   String callerToken, String recipientToken,
+                                   DescriptorPolicy descriptorPolicy, TemporaryDeclinePolicy tempDeclinePolicy,
                                    String server, String uiPipeline) {
-        this(awsAccessId, awsSecretKey, isSecure, callerToken, recipientToken, descriptorPolicy,
+        this(awsAccessId, awsSecretKey, isSecure, callerToken, recipientToken, descriptorPolicy, tempDeclinePolicy,
                 server, isSecure ? 443 : 80, uiPipeline);
     }
 
     /**
      * Initializes the FPS service with your AWS login information.
      *
-     * @param awsAccessId  The your user key into AWS
-     * @param awsSecretKey The secret string used to generate signatures for authentication.
-     * @param isSecure     True if the data should be encrypted on the wire on the way to or from FPS.
-     * @param callerToken  the default caller token to be used when not explicitely specified
-     * @param recipientToken the default recipient token to be used when not explicitely specified
-     * @param descriptorPolicy the descriptor policy to use as descriptive string on credit card statements
-     * @param server       Which host to connect to.  Usually, this will be fps.amazonaws.com.
-     *                     You can also use fps.sandbox.amazonaws.com instead if you want to test your code within the Sandbox environment
-     * @param port         Which port to use
-     * @param uiPipeline   the URL of the UI pipeline
+     * @param awsAccessId           the your user key into AWS
+     * @param awsSecretKey          the secret string used to generate signatures for authentication.
+     * @param isSecure              true if the data should be encrypted on the wire on the way to or from FPS.
+     * @param callerToken           the default caller token to be used when not explicitely specified
+     * @param recipientToken        the default recipient token to be used when not explicitely specified
+     * @param descriptorPolicy      the descriptor policy to use as descriptive string on credit card statements
+     * @param tempDeclinePolicy     the temporary decline policy and the retry time out (in minutes)
+     * @param server                which host to connect to.  Usually, this will be fps.amazonaws.com.
+     *                              You can also use fps.sandbox.amazonaws.com instead if you want to test your code within the Sandbox environment
+     * @param port                  which port to use
+     * @param uiPipeline            the URL of the UI pipeline
      */
     public FlexiblePaymentsService(String awsAccessId, String awsSecretKey, boolean isSecure,
-                                   String callerToken, String recipientToken, DescriptorPolicy descriptorPolicy,
+                                   String callerToken, String recipientToken,
+                                   DescriptorPolicy descriptorPolicy, TemporaryDeclinePolicy tempDeclinePolicy,
                                    String server, int port, String uiPipeline) {
         super(awsAccessId, awsSecretKey, isSecure, server, port);
         if (callerToken != null && !"".equals(callerToken) && callerToken.length() != 64)
@@ -154,6 +163,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         this.callerToken = "".equals(callerToken) ? null : callerToken;
         this.recipientToken = "".equals(recipientToken) ? null : recipientToken;
         this.descriptorPolicy = descriptorPolicy;
+        this.tempDeclinePolicy = tempDeclinePolicy;
         setVersionHeader(this);
     }
 
@@ -243,7 +253,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                 null, null, callerReference,
                 ChargeFeeTo.RECIPIENT,
                 null, null, null,
-                null, null, null
+                null, descriptorPolicy, tempDeclinePolicy
         );
     }
 
@@ -895,7 +905,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                 callerReference, senderReference, recipientReference,
                 senderDescription, recipientDescription, callerDescription,
                 metadata, marketplaceFixedFee, marketplaceVariableFee,
-                descriptorPolicy, null);
+                descriptorPolicy, tempDeclinePolicy);
     }
 
     /**
@@ -1091,66 +1101,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     public Transaction reserve(String senderToken, Amount amount, String callerReference)
             throws FPSException {
         return reserve(recipientToken, senderToken, callerToken, amount, new Date(), ChargeFeeTo.RECIPIENT, callerReference,
-                null, null, null, null, null, null, 0, 0, descriptorPolicy);
-    }
-
-    /**
-     * This operation is part of the Reserve and Settle operations that allow payment transactions when the
-     * authorization and settlement have a time difference. The transaction is not complete until the Settle
-     * operation is executed successfully. A reserve authorization is only valid for 7 days.
-     * Currently, you can't cancel a reserve.
-     *
-     * @param senderToken            sender token
-     * @param amount                 amount to be reserved on the sender account/credit card
-     * @param callerReference        a unique reference that you specify in your system to identify a transaction
-     * @param descriptorPolicy       the soft descriptor type and the customer service number to pass to the payment processor
-     * @return                       the transaction
-     * @throws FPSException wraps checked exceptions
-     */
-    public Transaction reserve(String senderToken, Amount amount, String callerReference, DescriptorPolicy descriptorPolicy)
-            throws FPSException {
-        return reserve(recipientToken, senderToken, callerToken, amount, new Date(), ChargeFeeTo.RECIPIENT, callerReference,
-                null, null, null, null, null, null, 0, 0, descriptorPolicy);
-    }
-
-    /**
-     * This operation is part of the Reserve and Settle operations that allow payment transactions when the
-     * authorization and settlement have a time difference. The transaction is not complete until the Settle
-     * operation is executed successfully. A reserve authorization is only valid for 7 days.
-     * Currently, you can't cancel a reserve.
-     *
-     * @param recipientToken         recipient token
-     * @param senderToken            sender token
-     * @param callerToken            caller token
-     * @param amount                 amount to be reserved on the sender account/credit card
-     * @param transactionDate        the date specified by the caller and stored with the transaction
-     * @param chargeFeeTo            the participant paying the fee for the transaction
-     * @param callerReference        a unique reference that you specify in your system to identify a transaction
-     * @param senderReference        any reference that the caller might use to identify the sender in the transaction
-     * @param recipientReference     any reference that the caller might use to identify the recipient in the transaction
-     * @param senderDescription      128-byte field to store transaction description
-     * @param recipientDescription   128-byte field to store transaction description
-     * @param callerDescription      128-byte field to store transaction description
-     * @param metadata               a 2KB free-form field used to store transaction data
-     * @param marketplaceFixedFee    the fee charged by the marketplace developer as a fixed amount of the transaction
-     * @param marketplaceVariableFee the fee charged by the marketplace developer as a variable amount of the transaction
-     * @param descriptorPolicy       the soft descriptor type and the customer service number to pass to the payment processor
-     * @return                       the transaction
-     * @throws FPSException wraps checked exceptions
-     */
-    public Transaction reserve(String recipientToken, String senderToken, String callerToken, Amount amount,
-                           Date transactionDate, ChargeFeeTo chargeFeeTo,
-                           String callerReference, String senderReference, String recipientReference,
-                           String senderDescription, String recipientDescription, String callerDescription,
-                           String metadata, double marketplaceFixedFee, int marketplaceVariableFee,
-                           DescriptorPolicy descriptorPolicy)
-            throws FPSException {
-        return reserve(recipientToken, senderToken, callerToken, amount, transactionDate, chargeFeeTo,
-                callerReference, senderReference, recipientReference,
-                senderDescription, recipientDescription, callerDescription,
-                metadata, marketplaceFixedFee, marketplaceVariableFee,
-                descriptorPolicy, null);
-    }
+                null, null, null, null, null, null, 0, 0, descriptorPolicy, tempDeclinePolicy);
+    }    
 
     /**
      * This operation is part of the Reserve and Settle operations that allow payment transactions when the
@@ -1343,78 +1295,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                                   String callerReference)
             throws FPSException {
         return settleDebt(settlementToken, callerToken, creditInstrument, amount, new Date(), null, null, callerReference,
-                ChargeFeeTo.RECIPIENT, null, null, null, null, descriptorPolicy);
-    }
-
-    /**
-     * The SettleDebt operation takes the settlement amount, credit instrument, and the settlement token among other
-     * parameters. Using this operation you can:
-     * <ul>
-     * <li>
-     * Transfer money from sender's payment instrument specified in the settlement token to the recipient's
-     * account balance. The fee charged is deducted from the settlement amount and deposited into recipient's
-     * account balance.
-     * </li>
-     * <li>
-     * Decrement debt balances by the settlement amount.
-     * </li>
-     * </ul>
-     * @param settlementToken the token ID of the settlement token
-     * @param creditInstrument the credit instrument Id returned by the co-branded UI pipeline
-     * @param amount the amount for the settlement
-     * @param callerReference a unique reference that you specify in your system to identify a transaction
-     * @param descriptorPolicy the descriptor policy to use as descriptive string on credit card statements
-     * @return the transaction
-     * @throws FPSException wraps checked exceptions
-     */
-    public Transaction settleDebt(String settlementToken, String creditInstrument, Amount amount,
-                                  String callerReference, DescriptorPolicy descriptorPolicy)
-            throws FPSException {
-        return settleDebt(settlementToken, callerToken, creditInstrument, amount, new Date(), null, null, callerReference,
-                ChargeFeeTo.RECIPIENT, null, null, null, null, descriptorPolicy);
-    }
-
-    /**
-     * The SettleDebt operation takes the settlement amount, credit instrument, and the settlement token among other
-     * parameters. Using this operation you can:
-     * <ul>
-     * <li>
-     * Transfer money from sender's payment instrument specified in the settlement token to the recipient's
-     * account balance. The fee charged is deducted from the settlement amount and deposited into recipient's
-     * account balance.
-     * </li>
-     * <li>
-     * Decrement debt balances by the settlement amount.
-     * </li>
-     * </ul>
-     * @param settlementToken the token ID of the settlement token
-     * @param callerToken the callers token
-     * @param creditInstrument the credit instrument Id returned by the co-branded UI pipeline
-     * @param amount the amount for the settlement
-     * @param transactionDate the date of the callers transaction
-     * @param senderReference the unique value that will be used as a reference for the sender in this transaction
-     * @param recipientReference the unique value that will be used as a reference for the recipient in this transaction
-     * @param callerReference a unique reference that you specify in your system to identify a transaction
-     * @param chargeFeeTo the participant paying the fee for the transaction
-     * @param senderDescription a 128-byte field to store transaction description
-     * @param recipientDescription a 128-byte field to store transaction description
-     * @param callerDescription a 128-byte field to store transaction description
-     * @param metadata a 2KB free form field used to store transaction data
-     * @param descriptorPolicy the descriptor policy to use as descriptive string on credit card statements
-     * @return the transaction
-     * @throws FPSException wraps checked exceptions
-     */
-    public Transaction settleDebt(String settlementToken, String callerToken,
-                       String creditInstrument, Amount amount,
-                       Date transactionDate, String senderReference, String recipientReference, String callerReference,
-                       ChargeFeeTo chargeFeeTo,
-                       String senderDescription, String recipientDescription, String callerDescription,
-                       String metadata, DescriptorPolicy descriptorPolicy)
-            throws FPSException {
-        return settleDebt(settlementToken, callerToken, creditInstrument, amount,
-                transactionDate, senderReference, recipientReference, callerReference,
-                chargeFeeTo, senderDescription, recipientDescription, callerDescription,
-                metadata, descriptorPolicy, null);
+                ChargeFeeTo.RECIPIENT, null, null, null, null, descriptorPolicy, tempDeclinePolicy);
     }
 
     /**
