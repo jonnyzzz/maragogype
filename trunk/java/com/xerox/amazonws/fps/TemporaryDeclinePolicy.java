@@ -24,7 +24,7 @@ public class TemporaryDeclinePolicy implements Serializable {
         return implicitRetryTimeoutInMins;
     }
 
-    enum TemporaryDeclinePolicyType implements Serializable {
+    public enum TemporaryDeclinePolicyType implements Serializable {
         EXPLICIT_RETRY("ExplicitRetry"),
         IMPLICIT_RETRY("ImplicitRetry"),
         FAILURE("Failure");

@@ -24,7 +24,7 @@ public class DescriptorPolicy implements Serializable {
         return csNumberOf;
     }
 
-    enum SoftDescriptorType implements Serializable {
+    public enum SoftDescriptorType implements Serializable {
         DYNAMIC("Dynamic"),
         STATIC("Static");
 
@@ -48,7 +48,7 @@ public class DescriptorPolicy implements Serializable {
         }
     }
 
-    enum CSNumberOf implements Serializable {
+    public enum CSNumberOf implements Serializable {
         CALLER("Caller"),
         RECIPIENT("Recipient");
 
