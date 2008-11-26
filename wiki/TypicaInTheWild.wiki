@@ -1,6 +1,11 @@
 #labels Featured
 Typica sees a steady stream of downloads for every release, which is extremely gratifying. I've asked for typica users to share how typica is being used. To that end, this page will highlight projects that are using typica to interface with AWS.
 
+[http://www.eclipse.org/projects/project_summary.php?projectid=technology.g-eclipse g-Eclipse] - a framework that allows users and developers to access Computing Grids and Cloud Computing resources in a unified way
+
+  http://www.eclipse.org/geclipse/resources/screenshots/20081109_launchEC2instancedialog_small.png
+
+
 [http://www.service-cloud.com/node/11 Cloud Studio] - a visual tool designed to make the development of applications for Amazon Elastic Compute Cloud (EC2) more convenient
 
   http://www.service-cloud.com/studio/snapshots/studio_general_sm.jpg
