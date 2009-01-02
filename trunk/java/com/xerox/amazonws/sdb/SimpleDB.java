@@ -226,6 +226,7 @@ public class SimpleDB extends AWSQueryConnection {
 			ListDomainsResponse response =
 						makeRequestInt(method, "ListDomains", params, ListDomainsResponse.class);
 			return new ListDomainsResult(response.getListDomainsResult().getNextToken(),
+							response.getResponseMetadata().getRequestId(),
 							response.getResponseMetadata().getBoxUsage(),
 							Domain.createList(response.getListDomainsResult().getDomainNames().toArray(new String[] {}),
 								getAwsAccessKeyId(), getSecretAccessKey(),

@@ -20,6 +20,11 @@ package com.xerox.amazonws.sdb;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.xerox.amazonws.common.AWSError;
+
 /**
  * This class handles threaded attribute fetching from SimpleDB.
  *
@@ -27,6 +32,8 @@ import java.util.Map;
  * @author developer@dotech.com
  */
 class AttrWorker implements Runnable {
+    private static Log logger = LogFactory.getLog(AttrWorker.class);
+
 	private Item item;
 	private Counter running;
 	private Map<String, List<ItemAttribute>> results;
@@ -51,7 +58,10 @@ class AttrWorker implements Runnable {
 				}
 				done = true;
 			} catch (SDBException sdbex) {
-				System.err.println("some sdb error, retrying... "+sdbex.getMessage());
+				AWSError err = sdbex.getErrors().get(0);
+				if (err.getCode().equals("NoSuchDomain")) {
+//					throw sdbex;
+				}
 			}
 			finally {
 				synchronized (running) {

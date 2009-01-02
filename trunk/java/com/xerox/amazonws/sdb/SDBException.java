@@ -26,7 +26,6 @@ import com.xerox.amazonws.common.AWSException;
  * @author developer@dotech.com
  */
 public class SDBException extends AWSException {
-
     public SDBException(String s) {
         super(s);
     }

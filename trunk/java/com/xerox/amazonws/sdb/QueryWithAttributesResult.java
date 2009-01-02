@@ -23,8 +23,8 @@ import java.util.Map;
 public class QueryWithAttributesResult extends SDBResult {
 	private Map<String, List<ItemAttribute>> items;
 
-	QueryWithAttributesResult(String nextToken, String boxUsage, Map<String, List<ItemAttribute>> items) {
-		super(nextToken, boxUsage);
+	QueryWithAttributesResult(String nextToken, String requestId, String boxUsage, Map<String, List<ItemAttribute>> items) {
+		super(nextToken, requestId, boxUsage);
 		this.items = items;
 	}
 

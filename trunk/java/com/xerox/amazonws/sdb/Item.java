@@ -205,7 +205,7 @@ public class Item extends AWSQueryConnection {
 	 * @param attributes list of attributes to add
 	 * @throws SDBException wraps checked exceptions
 	 */
-	public void putAttributes(List<ItemAttribute> attributes) throws SDBException {
+	public SDBResult putAttributes(List<ItemAttribute> attributes) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", domainName);
 		params.put("ItemName", identifier);
@@ -223,8 +223,11 @@ public class Item extends AWSQueryConnection {
 		}
 		GetMethod method = new GetMethod();
 		try {
-			//PutAttributesResponse response =
-			makeRequestInt(method, "PutAttributes", params, PutAttributesResponse.class);
+			PutAttributesResponse response =
+				makeRequestInt(method, "PutAttributes", params, PutAttributesResponse.class);
+			return new SDBResult(null, 
+						response.getResponseMetadata().getRequestId(),
+						response.getResponseMetadata().getBoxUsage());
 		} finally {
 			method.releaseConnection();
 		}
@@ -236,7 +239,7 @@ public class Item extends AWSQueryConnection {
 	 * @param attributes the names of the attributes to be deleted
 	 * @throws SDBException wraps checked exceptions
 	 */
-	public void deleteAttributes(List<ItemAttribute> attributes) throws SDBException {
+	public SDBResult deleteAttributes(List<ItemAttribute> attributes) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", domainName);
 		params.put("ItemName", identifier);
@@ -253,8 +256,11 @@ public class Item extends AWSQueryConnection {
 		}
 		GetMethod method = new GetMethod();
 		try {
-			//DeleteAttributesResponse response =
-			makeRequestInt(method, "DeleteAttributes", params, DeleteAttributesResponse.class);
+			DeleteAttributesResponse response =
+				makeRequestInt(method, "DeleteAttributes", params, DeleteAttributesResponse.class);
+			return new SDBResult(null, 
+						response.getResponseMetadata().getRequestId(),
+						response.getResponseMetadata().getBoxUsage());
 		} finally {
 			method.releaseConnection();
 		}

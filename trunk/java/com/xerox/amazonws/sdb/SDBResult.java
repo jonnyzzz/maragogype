@@ -17,21 +17,27 @@
 
 package com.xerox.amazonws.sdb;
 
-public abstract class SDBResult {
+public class SDBResult {
 	private String nextToken;
+	private String requestId;
 	private String boxUsage;
 
 	SDBResult(String nextToken) {
 		this.nextToken = nextToken;
 	}
 
-	SDBResult(String nextToken, String boxUsage) {
+	SDBResult(String nextToken, String requestId, String boxUsage) {
 		this.nextToken = nextToken;
+		this.requestId = requestId;
 		this.boxUsage = boxUsage;
 	}
 
 	public String getNextToken() {
 		return nextToken;
+	}
+
+	public String getRequestId() {
+		return requestId;
 	}
 
 	public String getBoxUsage() {
