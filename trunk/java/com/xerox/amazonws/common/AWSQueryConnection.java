@@ -447,8 +447,13 @@ public class AWSQueryConnection extends AWSConnection {
 		}
 		else {
 			Response resp = JAXBuddy.deserializeXMLStream(Response.class, bais);
+			String errorCode = resp.getErrors().getError().getCode();
 			errorMsg = resp.getErrors().getError().getMessage();
 			requestId = resp.getRequestID();
+			if (errorCode != null && !errorCode.trim().equals("")) {
+				errors = new ArrayList<AWSError>();
+				errors.add(new AWSError(AWSError.ErrorType.SENDER, errorCode, errorMsg));
+			}
 		}
 		return new AWSException(msgPrefix + errorMsg, requestId, errors);
 	}
