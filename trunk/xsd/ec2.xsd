@@ -1,12 +1,12 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	 xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-	 xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-	 xmlns:tns="http://ec2.amazonaws.com/doc/2008-05-05/"
-	 targetNamespace="http://ec2.amazonaws.com/doc/2008-05-05/"    
-	 jaxb:extensionBindingPrefixes="xjc"
-	 jaxb:version="2.0"
-	 elementFormDefault="qualified">
+		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	 	   xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+	 	   xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+		   xmlns:tns="http://ec2.amazonaws.com/doc/2008-12-01/"
+		   targetNamespace="http://ec2.amazonaws.com/doc/2008-12-01/"    
+		   jaxb:extensionBindingPrefixes="xjc"
+		   jaxb:version="2.0"
+		   elementFormDefault="qualified">
   
   <xs:annotation>
 	<xs:documentation xml:lang="en">
@@ -33,6 +33,7 @@
   <xs:element name="RegisterImageResponse" type="tns:RegisterImageResponseType"/>
   <xs:complexType name="RegisterImageResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="imageId" type="xs:string"/>
 	</xs:sequence>
   </xs:complexType>
@@ -53,6 +54,7 @@
 
   <xs:complexType name="DeregisterImageResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="return" type="xs:boolean"/>
 	</xs:sequence>
   </xs:complexType>
@@ -73,6 +75,7 @@
   
   <xs:complexType name="CreateKeyPairResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="keyName" type="xs:string"/>
 	  <xs:element name="keyFingerprint" type="xs:string"/>
 	  <xs:element name="keyMaterial" type="xs:string"/>
@@ -95,6 +98,7 @@
   
   <xs:complexType name="DeleteKeyPairResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="return" type="xs:boolean"/>
 	</xs:sequence>
   </xs:complexType>
@@ -127,6 +131,7 @@
   
   <xs:complexType name="DescribeKeyPairsResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="keySet" type="tns:DescribeKeyPairsResponseInfoType"/>
 	</xs:sequence>
   </xs:complexType>
@@ -207,7 +212,18 @@
 
   <!-- RunInstances response definitions -->
 
-  <xs:element name="RunInstancesResponse" type="tns:ReservationInfoType"/>
+  <xs:element name="RunInstancesResponse" type="tns:RunInstancesResponseType"/>
+  
+  <xs:complexType name="RunInstancesResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
+	  <xs:element name="reservationId" type="xs:string"/>
+	  <xs:element name="ownerId" type="xs:string"/>
+	  <xs:element name="groupSet" type="tns:GroupSetType"/>
+	  <xs:element name="instancesSet" type="tns:RunningInstancesSetType"/>
+	  <xs:element name="requesterId" type="xs:string" minOccurs="0"/>
+	</xs:sequence>
+  </xs:complexType>
 
   <xs:complexType name="ReservationInfoType">
 	<xs:sequence>
@@ -215,6 +231,7 @@
 	  <xs:element name="ownerId" type="xs:string"/>
 	  <xs:element name="groupSet" type="tns:GroupSetType"/>
 	  <xs:element name="instancesSet" type="tns:RunningInstancesSetType"/>
+	  <xs:element name="requesterId" type="xs:string" minOccurs="0"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -237,13 +254,14 @@
 	  <xs:element name="productCodes" type="tns:ProductCodesSetType" minOccurs="0" maxOccurs="1" />
 	  <xs:element name="instanceType" type="xs:string"/>
 	  <xs:element name="launchTime" type="xs:dateTime" />
-	  <xs:element name="placement" type="tns:PlacementResponseType" />
+	  <xs:element name="placement" type="tns:PlacementResponseType" minOccurs="0"/>
 	  <xs:element name="kernelId" type="xs:string" minOccurs="0"/>
 	  <xs:element name="ramdiskId" type="xs:string" minOccurs="0"/>
+	  <xs:element name="platform" type="xs:string" minOccurs="0"/>
 	</xs:sequence>
   </xs:complexType>
 
-  <xs:complexType name="PlacementResponseType"> 
+  <xs:complexType name="PlacementResponseType">
 	<xs:sequence> 
 	  <xs:element name="availabilityZone" type="xs:string" /> 
 	</xs:sequence> 
@@ -265,6 +283,7 @@
 
   <xs:complexType name="GetConsoleOutputResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="instanceId" type="xs:string" />
 	  <xs:element name="timestamp" type="xs:dateTime" />
 	  <xs:element name="output" type="xs:string" />
@@ -299,6 +318,7 @@
 
   <xs:complexType name="TerminateInstancesResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="instancesSet" type="tns:TerminateInstancesResponseInfoType"/>
 	</xs:sequence>
   </xs:complexType>
@@ -344,6 +364,7 @@
 
   <xs:complexType name="RebootInstancesResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="return" type="xs:boolean"/>
 	</xs:sequence>
   </xs:complexType>
@@ -376,6 +397,7 @@
   
   <xs:complexType name="DescribeInstancesResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="reservationSet" type="tns:ReservationSetType"/>
 	</xs:sequence>
   </xs:complexType>
@@ -440,6 +462,7 @@
   
   <xs:complexType name="DescribeImagesResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="imagesSet" type="tns:DescribeImagesResponseInfoType"/>
 	</xs:sequence>
   </xs:complexType>
@@ -462,6 +485,7 @@
 	  <xs:element name="imageType" type="xs:string"  minOccurs="0"/>
 	  <xs:element name="kernelId" type="xs:string"  minOccurs="0"/>
 	  <xs:element name="ramdiskId" type="xs:string"  minOccurs="0"/>
+	  <xs:element name="platform" type="xs:string"  minOccurs="0"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -484,6 +508,7 @@
 
   <xs:complexType name="CreateSecurityGroupResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="return" type="xs:boolean"/>
 	</xs:sequence>
   </xs:complexType>
@@ -506,6 +531,7 @@
 
   <xs:complexType name="DeleteSecurityGroupResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="return" type="xs:boolean"/>
 	</xs:sequence>
   </xs:complexType>
@@ -541,6 +567,7 @@
 
   <xs:complexType name="DescribeSecurityGroupsResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="securityGroupInfo" type="tns:SecurityGroupSetType"/>
 	</xs:sequence>
   </xs:complexType>
@@ -636,6 +663,7 @@
 
   <xs:complexType name="AuthorizeSecurityGroupIngressResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="return" type="xs:boolean"/>
 	</xs:sequence>
   </xs:complexType>
@@ -671,6 +699,7 @@
 
   <xs:complexType name="RevokeSecurityGroupIngressResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="return" type="xs:boolean"/>
 	</xs:sequence>
   </xs:complexType>
@@ -738,6 +767,7 @@
 			  
   <xs:complexType name="ModifyImageAttributeResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="return" type="xs:boolean"/>
 	</xs:sequence>
   </xs:complexType>
@@ -770,6 +800,7 @@
 
   <xs:complexType name="ResetImageAttributeResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="return" type="xs:boolean" />
 	</xs:sequence>
   </xs:complexType>
@@ -803,6 +834,7 @@
 			  
   <xs:complexType name="DescribeImageAttributeResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="imageId" type="xs:string" />
 	  <xs:choice>
 		<xs:element name="launchPermission" type="tns:LaunchPermissionListType"/>
@@ -857,6 +889,7 @@
   
   <xs:complexType name="ConfirmProductInstanceResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="return" type="xs:boolean" />
 	  <xs:element name="ownerId" type="xs:string" minOccurs="0" />
 	</xs:sequence>
@@ -892,6 +925,7 @@
 
   <xs:complexType name="DescribeAvailabilityZonesResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="availabilityZoneInfo" type="tns:AvailabilityZoneSetType"/>
 	</xs:sequence>
   </xs:complexType>
@@ -906,6 +940,7 @@
 	<xs:sequence>
 	  <xs:element name="zoneName" type="xs:string"/>
 	  <xs:element name="zoneState" type="xs:string"/>
+	  <xs:element name="regionName" type="xs:string"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -919,6 +954,7 @@
   <xs:element name='AllocateAddressResponse' type='tns:AllocateAddressResponseType'/>
   <xs:complexType name='AllocateAddressResponseType'>
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name='publicIp' type='xs:string'/>
 	</xs:sequence>
   </xs:complexType>
@@ -937,6 +973,7 @@
   <xs:element name='ReleaseAddressResponse' type='tns:ReleaseAddressResponseType'/>
   <xs:complexType name='ReleaseAddressResponseType'>
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name='return' type='xs:boolean'/>
 	</xs:sequence>
   </xs:complexType>
@@ -968,6 +1005,7 @@
   <xs:element name='DescribeAddressesResponse' type='tns:DescribeAddressesResponseType'/>
   <xs:complexType name='DescribeAddressesResponseType'>
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name='addressesSet' type='tns:DescribeAddressesResponseInfoType'/>
 	</xs:sequence>
   </xs:complexType>
@@ -1000,6 +1038,7 @@
   <xs:element name='AssociateAddressResponse' type='tns:AssociateAddressResponseType'/>
   <xs:complexType name='AssociateAddressResponseType'>
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name='return' type='xs:boolean'/>
 	</xs:sequence>
   </xs:complexType>
@@ -1018,6 +1057,7 @@
   <xs:element name='DisassociateAddressResponse' type='tns:DisassociateAddressResponseType'/>
   <xs:complexType name='DisassociateAddressResponseType'>
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name='return' type='xs:boolean'/>
 	</xs:sequence>
   </xs:complexType>
@@ -1040,6 +1080,7 @@
   
   <xs:complexType name="CreateVolumeResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="volumeId" type="xs:string"/>
 	  <xs:element name="size" type="xs:string"/>
 	  <xs:element name="snapshotId" type="xs:string"/>
@@ -1065,6 +1106,7 @@
   
   <xs:complexType name="DeleteVolumeResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="return" type="xs:boolean"/>
 	</xs:sequence>
   </xs:complexType>
@@ -1099,6 +1141,7 @@
   
   <xs:complexType name="DescribeVolumesResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="volumeSet" type="tns:DescribeVolumesSetResponseType"/>
 	</xs:sequence>
   </xs:complexType>
@@ -1155,6 +1198,7 @@
   
   <xs:complexType name="AttachVolumeResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="volumeId" type="xs:string"/>
 	  <xs:element name="instanceId" type="xs:string"/>
 	  <xs:element name="device" type="xs:string"/>
@@ -1182,6 +1226,7 @@
   
   <xs:complexType name="DetachVolumeResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="volumeId" type="xs:string"/>
 	  <xs:element name="instanceId" type="xs:string"/>
 	  <xs:element name="device" type="xs:string"/>
@@ -1206,6 +1251,7 @@
   
   <xs:complexType name="CreateSnapshotResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="snapshotId" type="xs:string"/>
 	  <xs:element name="volumeId" type="xs:string"/>
 	  <xs:element name="status" type="xs:string"/>
@@ -1230,6 +1276,7 @@
   
   <xs:complexType name="DeleteSnapshotResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="return" type="xs:boolean"/>
 	</xs:sequence>
   </xs:complexType>
@@ -1264,6 +1311,7 @@
   
   <xs:complexType name="DescribeSnapshotsResponseType">
 	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
 	  <xs:element name="snapshotSet" type="tns:DescribeSnapshotsSetResponseType"/>
 	</xs:sequence>
   </xs:complexType>
@@ -1281,6 +1329,172 @@
 	  <xs:element name="status" type="xs:string"/>
 	  <xs:element name="startTime" type="xs:dateTime"/>
 	  <xs:element name="progress" type="xs:string"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- BundleInstance request definitions -->
+  
+  <xs:element name="BundleInstance" type="tns:BundleInstanceType"/>
+
+  <xs:complexType name="BundleInstanceType">
+	<xs:sequence>
+	  <xs:element name="instanceId" type="xs:string"/>
+	  <xs:element name="storage" type="tns:BundleInstanceTaskStorageType"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="BundleInstanceTaskStorageType">
+	<xs:sequence>
+	  <xs:element name="S3" type="tns:BundleInstanceS3StorageType"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="BundleInstanceS3StorageType">
+	<xs:sequence>
+	  <xs:element name="bucket" type="xs:string"/>
+	  <xs:element name="prefix" type="xs:string"/>
+	  <xs:element name="awsAccessKeyId" type="xs:string" minOccurs="0" />
+	  <xs:element name="uploadPolicy" type="xs:string" minOccurs="0" />
+	  <xs:element name="uploadPolicySignature" type="xs:string" minOccurs="0" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- BundleInstance response definitions -->
+
+  <xs:element name="BundleInstanceResponse" type="tns:BundleInstanceResponseType"/>
+  
+  <xs:complexType name="BundleInstanceResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
+	  <xs:element name="bundleInstanceTask" type="tns:BundleInstanceTaskType"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="BundleInstanceTaskType">
+	<xs:sequence>
+	  <xs:element name="instanceId" type="xs:string"/>
+	  <xs:element name="bundleId" type="xs:string"/>
+	  <xs:element name="state" type="xs:string"/>
+	  <xs:element name="startTime" type="xs:dateTime"/>
+	  <xs:element name="updateTime" type="xs:dateTime"/>
+	  <xs:element name="storage" type="tns:BundleInstanceTaskStorageType"/>
+	  <xs:element name="progress" type="xs:string" minOccurs="0"/>
+	  <xs:element name="error" type="tns:BundleInstanceTaskErrorType" minOccurs="0"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="BundleInstanceTaskErrorType">
+	<xs:sequence>
+	  <xs:element name="code" type="xs:string"/>
+	  <xs:element name="message" type="xs:string"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- DescribeBundleTasks request definitions -->
+
+  <xs:element name="DescribeBundleTasks" type="tns:DescribeBundleTasksType"/>
+
+  <xs:complexType name="DescribeBundleTasksType">
+	<xs:sequence>
+	  <xs:element name="bundlesSet" type="tns:DescribeBundleTasksInfoType"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeBundleTasksInfoType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:DescribeBundleTasksItemType" minOccurs="0" maxOccurs="unbounded"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeBundleTasksItemType">
+	<xs:sequence>
+	  <xs:element name="bundleId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- DescribeBundleTasks response definitions -->
+
+  <xs:element name="DescribeBundleTasksResponse" type="tns:DescribeBundleTasksResponseType"/>
+  
+  <xs:complexType name="DescribeBundleTasksResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
+	  <xs:element name="bundleInstanceTasksSet" type="tns:BundleInstanceTasksSetType"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="BundleInstanceTasksSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:BundleInstanceTaskType" minOccurs="0" maxOccurs="unbounded"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- CancelBundleTask request definitions -->
+  
+  <xs:element name="CancelBundleTask" type="tns:CancelBundleTaskType"/>
+
+  <xs:complexType name="CancelBundleTaskType">
+	<xs:sequence>
+	  <xs:element name="bundleId" type="xs:string"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- CancelBundleTask response definitions -->
+
+  <xs:element name="CancelBundleTaskResponse" type="tns:CancelBundleTaskResponseType"/>
+  
+  <xs:complexType name="CancelBundleTaskResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
+	  <xs:element name="bundleInstanceTask" type="tns:BundleInstanceTaskType"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- DescribeRegions Definitions -->
+
+  <xs:element name="DescribeRegions" 
+			  type="tns:DescribeRegionsType" />
+
+  <xs:complexType name="DescribeRegionsType">
+	<xs:sequence>
+	  <xs:element name="regionSet" type="tns:DescribeRegionsSetType"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeRegionsSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:DescribeRegionsSetItemType" minOccurs="0" maxOccurs="unbounded"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeRegionsSetItemType">
+	<xs:sequence>
+	  <xs:element name="regionName" type="xs:string"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- DescribeRegions Response definitions -->
+
+  <xs:element name="DescribeRegionsResponse" 
+			  type="tns:DescribeRegionsResponseType"/>
+
+  <xs:complexType name="DescribeRegionsResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
+	  <xs:element name="regionInfo" type="tns:RegionSetType"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="RegionSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:RegionItemType" minOccurs="0" maxOccurs="unbounded"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="RegionItemType">
+	<xs:sequence>
+	  <xs:element name="regionName" type="xs:string"/>
+	  <xs:element name="regionEndpoint" type="xs:string"/>
 	</xs:sequence>
   </xs:complexType>
 

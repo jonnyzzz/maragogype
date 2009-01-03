@@ -58,6 +58,9 @@ import com.xerox.amazonws.typica.jaxb.AvailabilityZoneSetType;
 import com.xerox.amazonws.typica.jaxb.AuthorizeSecurityGroupIngressResponse;
 import com.xerox.amazonws.typica.jaxb.BlockDeviceMappingType;
 import com.xerox.amazonws.typica.jaxb.BlockDeviceMappingItemType;
+import com.xerox.amazonws.typica.jaxb.BundleInstanceResponse;
+import com.xerox.amazonws.typica.jaxb.BundleInstanceTaskType;
+import com.xerox.amazonws.typica.jaxb.CancelBundleTaskResponse;
 import com.xerox.amazonws.typica.jaxb.CreateKeyPairResponse;
 import com.xerox.amazonws.typica.jaxb.CreateSnapshotResponse;
 import com.xerox.amazonws.typica.jaxb.CreateVolumeResponse;
@@ -72,6 +75,8 @@ import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponseInfoType;
 import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponseItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeAvailabilityZonesResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeBundleTasksResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeBundleTasksItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeImageAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseInfoType;
@@ -86,6 +91,7 @@ import com.xerox.amazonws.typica.jaxb.DescribeVolumesSetItemResponseType;
 import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponseInfoType;
 import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponseItemType;
+import com.xerox.amazonws.typica.jaxb.DescribeRegionsResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeSecurityGroupsResponse;
 import com.xerox.amazonws.typica.jaxb.DetachVolumeResponse;
 import com.xerox.amazonws.typica.jaxb.DisassociateAddressResponse;
@@ -107,10 +113,13 @@ import com.xerox.amazonws.typica.jaxb.ProductCodeItemType;
 import com.xerox.amazonws.typica.jaxb.ProductCodesSetType;
 import com.xerox.amazonws.typica.jaxb.ProductCodesSetItemType;
 import com.xerox.amazonws.typica.jaxb.RebootInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.RegionItemType;
+import com.xerox.amazonws.typica.jaxb.RegionSetType;
 import com.xerox.amazonws.typica.jaxb.RegisterImageResponse;
 import com.xerox.amazonws.typica.jaxb.ReleaseAddressResponse;
 import com.xerox.amazonws.typica.jaxb.RevokeSecurityGroupIngressResponse;
 import com.xerox.amazonws.typica.jaxb.ReservationSetType;
+import com.xerox.amazonws.typica.jaxb.ReservationInfoType;
 import com.xerox.amazonws.typica.jaxb.ResetImageAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.RunningInstancesItemType;
 import com.xerox.amazonws.typica.jaxb.RunningInstancesSetType;
@@ -180,7 +189,7 @@ public class Jec2 extends AWSQueryConnection {
     {
 		super(awsAccessId, awsSecretKey, isSecure, server, port);
 		ArrayList vals = new ArrayList();
-		vals.add("2008-05-05");
+		vals.add("2008-12-01");
 		super.headers.put("Version", vals);
     }
 
@@ -190,6 +199,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param imageLocation An AMI path within S3.
 	 * @return A unique AMI ID that can be used to create and manage instances of this AMI.
 	 * @throws EC2Exception wraps checked exceptions
+	 * TODO: need to return request id
 	 */
 	public String registerImage(String imageLocation) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
@@ -209,6 +219,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * 
 	 * @param imageId An AMI ID as returned by {@link #registerImage(String)}.
 	 * @throws EC2Exception wraps checked exceptions
+	 * TODO: need to return request id
 	 */
 	public void deregisterImage(String imageId) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
@@ -564,7 +575,8 @@ public class Jec2 extends AWSQueryConnection {
 		try {
 			RunInstancesResponse response =
 					makeRequestInt(method, "RunInstances", params, RunInstancesResponse.class);
-			ReservationDescription res = new ReservationDescription(response.getOwnerId(),
+			ReservationDescription res = new ReservationDescription(response.getRequestId(),
+															response.getOwnerId(),
 															response.getReservationId());
 			GroupSetType grp_set = response.getGroupSet();
 			Iterator groups_iter = grp_set.getItems().iterator();
@@ -587,7 +599,8 @@ public class Jec2 extends AWSQueryConnection {
 								rsp_item.getLaunchTime().toGregorianCalendar(),
 								InstanceType.getTypeFromString(rsp_item.getInstanceType()),
 								rsp_item.getPlacement().getAvailabilityZone(),
-								rsp_item.getKernelId(), rsp_item.getRamdiskId());
+								rsp_item.getKernelId(), rsp_item.getRamdiskId(),
+								rsp_item.getPlatform());
 			}
 			return res;
 		} finally {
@@ -613,6 +626,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param instanceIds A list of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
 	 * @return A list of {@link TerminatingInstanceDescription} instances.
 	 * @throws EC2Exception wraps checked exceptions
+	 * TODO: need to return request id
 	 */
 	public List<TerminatingInstanceDescription> terminateInstances(List<String> instanceIds)
 			throws EC2Exception {
@@ -681,9 +695,10 @@ public class Jec2 extends AWSQueryConnection {
 					makeRequestInt(method, "DescribeInstances", params, DescribeInstancesResponse.class);
 			List<ReservationDescription> result = new ArrayList<ReservationDescription>();
 			ReservationSetType res_set = response.getReservationSet();
-            for (RunInstancesResponse item : res_set.getItems()) {
-                ReservationDescription res = new ReservationDescription(item
-                        .getOwnerId(), item.getReservationId());
+            for (ReservationInfoType item : res_set.getItems()) {
+                ReservationDescription res = new ReservationDescription(response.getRequestId(),
+								item.getOwnerId(),
+								item.getReservationId());
                 GroupSetType grp_set = item.getGroupSet();
                 for (GroupItemType rsp_item : grp_set.getItems()) {
                     res.addGroup(rsp_item.getGroupId());
@@ -700,7 +715,8 @@ public class Jec2 extends AWSQueryConnection {
                             rsp_item.getLaunchTime().toGregorianCalendar(),
                             InstanceType.getTypeFromString(rsp_item.getInstanceType()),
                             rsp_item.getPlacement().getAvailabilityZone(),
-                            rsp_item.getKernelId(), rsp_item.getRamdiskId());
+                            rsp_item.getKernelId(), rsp_item.getRamdiskId(),
+							rsp_item.getPlatform());
                 }
                 result.add(res);
             }
@@ -715,6 +731,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * 
 	 * @param instanceIds A list of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
 	 * @throws EC2Exception wraps checked exceptions
+	 * TODO: need to return request id
 	 */
 	public void rebootInstances(String [] instanceIds) throws EC2Exception {
 		this.rebootInstances(Arrays.asList(instanceIds));
@@ -725,6 +742,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * 
 	 * @param instanceIds A list of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
 	 * @throws EC2Exception wraps checked exceptions
+	 * TODO: need to return request id
 	 */
 	public void rebootInstances(List<String> instanceIds) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
@@ -757,7 +775,7 @@ public class Jec2 extends AWSQueryConnection {
 		try {
 			GetConsoleOutputResponse response =
 					makeRequestInt(method, "GetConsoleOutput", params, GetConsoleOutputResponse.class);
-			return new ConsoleOutput(response.getInstanceId(),
+			return new ConsoleOutput(response.getRequestId(), response.getInstanceId(),
 				response.getTimestamp().toGregorianCalendar(),
 				new String(Base64.decodeBase64(response.getOutput().getBytes())));
 		} finally {
@@ -997,6 +1015,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param keyName Name of the keypair.
 	 * @return A keypair description ({@link KeyPairInfo}).
 	 * @throws EC2Exception wraps checked exceptions
+	 * TODO: need to return request id
 	 */
 	public KeyPairInfo createKeyPair(String keyName) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
@@ -1030,6 +1049,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param keyIds A list of keypairs.
 	 * @return A list of keypair descriptions ({@link KeyPairInfo}).
 	 * @throws EC2Exception wraps checked exceptions
+	 * TODO: need to return request id
 	 */
 	public List<KeyPairInfo> describeKeyPairs(List<String> keyIds)
 			throws EC2Exception {
@@ -1059,6 +1079,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * 
 	 * @param keyName Name of the keypair.
 	 * @throws EC2Exception wraps checked exceptions
+	 * TODO: need to return request id
 	 */
 	public void deleteKeyPair(String keyName) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
@@ -1662,6 +1683,100 @@ public class Jec2 extends AWSQueryConnection {
 				result.add(vol);
 			}
 			return result;
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Returns a list of regions
+	 *
+	 * @param regions a list of regions to limit the results, or null
+	 * @return a list of regions and endpoints
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<RegionInfo> describeRegions(List<String> regions) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		if (regions != null && regions.size() > 0)  {
+			for (int i=0 ; i<regions.size(); i++) {
+				params.put("Region."+(i+1), regions.get(i));
+			}
+		}
+		GetMethod method = new GetMethod();
+		try {
+			DescribeRegionsResponse response =
+					makeRequestInt(method, "DescribeRegions", params, DescribeRegionsResponse.class);
+			List<RegionInfo> ret = new ArrayList<RegionInfo>();
+			RegionSetType set = response.getRegionInfo();
+			Iterator set_iter = set.getItems().iterator();
+			while (set_iter.hasNext()) {
+				RegionItemType item = (RegionItemType) set_iter.next();
+				ret.add(new RegionInfo(item.getRegionName(), item.getRegionEndpoint()));
+			}
+			return ret;
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	public BundleInstanceInfo bundleInstance(String instanceId, String accessId, String bucketName, String prefix, UploadPolicy policy) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("instanceId", instanceId);
+		params.put("Storage.S3.AWSAccessKeyId", accessId);
+		params.put("Storage.S3.Bucket", bucketName);
+		params.put("Storage.S3.Prefix", prefix);
+		String jsonPolicy = policy.getPolicyString();
+		logger.debug("JSON upload policy = "+jsonPolicy);
+		params.put("Storage.S3.AWSAccessKeyId", jsonPolicy);
+		params.put("Storage.S3.AWSAccessKeyId", encode(getSecretAccessKey(), jsonPolicy, true));
+		GetMethod method = new GetMethod();
+		try {
+			BundleInstanceResponse response =
+					makeRequestInt(method, "BundleInstance", params, BundleInstanceResponse.class);
+			BundleInstanceTaskType task = response.getBundleInstanceTask();
+			return new BundleInstanceInfo(response.getRequestId(), task.getInstanceId(), task.getBundleId(),
+							task.getState(), task.getStartTime().toGregorianCalendar(),
+							task.getUpdateTime().toGregorianCalendar(), task.getStorage(),
+							task.getProgress(), task.getError());
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	public BundleInstanceInfo cancelBundleInstance(String bundleId) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("BundleId", bundleId);
+		GetMethod method = new GetMethod();
+		try {
+			CancelBundleTaskResponse response =
+					makeRequestInt(method, "CancelBundleTask", params, CancelBundleTaskResponse.class);
+			BundleInstanceTaskType task = response.getBundleInstanceTask();
+			return new BundleInstanceInfo(response.getRequestId(), task.getInstanceId(), task.getBundleId(),
+							task.getState(), task.getStartTime().toGregorianCalendar(),
+							task.getUpdateTime().toGregorianCalendar(), task.getStorage(),
+							task.getProgress(), task.getError());
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	public List<BundleInstanceInfo> describeBundleTasks(String bundleId) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		if (bundleId != null) {
+			params.put("BundleId", bundleId);
+		}
+		GetMethod method = new GetMethod();
+		try {
+			DescribeBundleTasksResponse response =
+					makeRequestInt(method, "DescribeBundleTasks", params, DescribeBundleTasksResponse.class);
+			List<BundleInstanceInfo> ret = new ArrayList<BundleInstanceInfo>();
+			Iterator task_iter = response.getBundleInstanceTasksSet().getItems().iterator();
+			while (task_iter.hasNext()) {
+				DescribeBundleTasksItemType task = (DescribeBundleTasksItemType) task_iter.next();
+				ret.add(new BundleInstanceInfo(response.getRequestId(), null, task.getBundleId(), null,
+							null, null, null, null, null));
+			}
+			return ret;
 		} finally {
 			method.releaseConnection();
 		}

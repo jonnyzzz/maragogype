@@ -298,7 +298,7 @@ public class AWSQueryConnection extends AWSConnection {
 		}
 
 		// calculate signature
-        String encoded = urlencode(encode(getSecretAccessKey(), resource.toString(), false));
+        String encoded = encode(getSecretAccessKey(), resource.toString(), true);
 
 		// build param string, encoding values and adding request signature
 		resource = new StringBuilder();

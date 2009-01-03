@@ -24,6 +24,7 @@ import com.xerox.amazonws.ec2.LaunchConfiguration;
 import com.xerox.amazonws.ec2.LaunchPermissionAttribute;
 import com.xerox.amazonws.ec2.ProductCodesAttribute;
 import com.xerox.amazonws.ec2.ProductInstanceInfo;
+import com.xerox.amazonws.ec2.RegionInfo;
 import com.xerox.amazonws.ec2.ReservationDescription;
 import com.xerox.amazonws.ec2.ReservationDescription.Instance;
 
@@ -91,7 +92,7 @@ public class TestJec2 {
 //		ec2.disassociateAddress(publicIp);
 //		ec2.releaseAddress(publicIp);
 
-		ec2.terminateInstances(new String [] {runInst.getInstances().get(0).getInstanceId()});
+//		ec2.terminateInstances(new String [] {runInst.getInstances().get(0).getInstanceId()});
 
 		// confirm product instance
 /*
@@ -209,6 +210,10 @@ public class TestJec2 {
 			logger.info("image : "+res.getImageId()+", "+item.getValue());
 		}
 */
+		List<RegionInfo> rInfo = ec2.describeRegions(null);
+		for (RegionInfo r : rInfo) {
+			logger.info("region : "+r.getName()+" url : "+r.getUrl());
+		}
 	}
 }
 

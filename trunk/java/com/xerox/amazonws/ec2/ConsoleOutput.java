@@ -25,11 +25,12 @@ import java.util.Calendar;
  * {@link com.xerox.amazonws.ec2.Jec2#getConsoleOutput(String instanceId)}
  */
 public class ConsoleOutput {
+	private String requestId;
 	private String instanceId;
 	private Calendar timestamp;
 	private String output;                     // naked (i.e. not escaped, not BASE64)
 
-	public ConsoleOutput(String instanceId,
+	public ConsoleOutput(String requestId, String instanceId,
 						java.util.Calendar timestamp,
 						String output) {
 		this.instanceId = instanceId;
@@ -50,7 +51,7 @@ public class ConsoleOutput {
 	}
 
 	public String toString() {
-		return "ConsoleOutput[instanceID=" + instanceId +
+		return "ConsoleOutput[requestId=" + requestId + " instanceId=" + instanceId +
 			", timestamp=" + timestamp + ", output=" + output + "]";
 	}
 }

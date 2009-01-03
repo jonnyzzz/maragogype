@@ -32,14 +32,20 @@ import com.xerox.amazonws.typica.jaxb.InstanceStateType;
  * {@link com.xerox.amazonws.ec2.Jec2#describeInstances(String[])}.
  */
 public class ReservationDescription {
+	private String requestId;
 	private String owner;
 	private String resId;
 	private List<Instance> instances = new ArrayList<Instance>();
 	private List<String> groups = new ArrayList<String>();
 
-	public ReservationDescription(String owner, String resId) {
+	public ReservationDescription(String requestId, String owner, String resId) {
+		this.requestId = requestId;
 		this.owner = owner;
 		this.resId = resId;
+	}
+
+	public String getRequestId() {
+		return requestId;
 	}
 
 	public String getOwner() {
@@ -53,10 +59,10 @@ public class ReservationDescription {
 	public Instance addInstance(String imageId, String instanceId,
 			String privateDnsName, String dnsName, InstanceStateType state,
 			String reason, String keyName, Calendar launchTime, InstanceType instanceType,
-			String availabilityZone, String kernelId, String ramdiskId) {
+			String availabilityZone, String kernelId, String ramdiskId, String platform) {
 		Instance instance = new Instance(imageId, instanceId, privateDnsName,
 				dnsName, state.getName(), state.getCode(), reason, keyName,
-				instanceType, launchTime, availabilityZone, kernelId, ramdiskId);
+				instanceType, launchTime, availabilityZone, kernelId, ramdiskId, platform);
 		instances.add(instance);
 		return instance;
 	}
@@ -90,6 +96,8 @@ public class ReservationDescription {
 		private String availabilityZone;
 		private String kernelId;
 		private String ramdiskId;
+		private String platform;
+
 		/**
 		 * An EC2 instance may be in one of four states:
 		 * <ol>
@@ -108,7 +116,7 @@ public class ReservationDescription {
 		public Instance(String imageId, String instanceId, String privateDnsName,
 				String dnsName, String stateName, int stateCode, String reason,
 				String keyName, InstanceType instanceType, Calendar launchTime,
-				String availabilityZone, String kernelId, String ramdiskId) {
+				String availabilityZone, String kernelId, String ramdiskId, String platform) {
 			this.imageId = imageId;
 			this.instanceId = instanceId;
 			this.privateDnsName = privateDnsName;
@@ -122,6 +130,7 @@ public class ReservationDescription {
 			this.availabilityZone = availabilityZone;
 			this.kernelId = kernelId;
 			this.ramdiskId = ramdiskId;
+			this.platform = platform;
 		}
 
 		public String getImageId() {
@@ -190,6 +199,10 @@ public class ReservationDescription {
 
 		public String getRamdiskId() {
 			return ramdiskId;
+		}
+
+		public String getPlatform() {
+			return platform;
 		}
 
 		public String toString() {
