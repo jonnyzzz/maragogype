@@ -46,9 +46,13 @@ public class BundleInstanceInfo {
 		this.state = state;
 		this.startTime = startTime;
 		this.updateTime = updateTime;
-		this.storage = new StorageInfo(storage);
+		if (storage != null) {
+			this.storage = new StorageInfo(storage);
+		}
 		this.progress = progress;
-		this.error = "("+error.getCode()+")"+error.getMessage();
+		if (error != null) {
+			this.error = "("+error.getCode()+")"+error.getMessage();
+		}
 	}
 
 	public String getRequestId() {

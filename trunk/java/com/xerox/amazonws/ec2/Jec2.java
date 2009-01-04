@@ -1721,14 +1721,13 @@ public class Jec2 extends AWSQueryConnection {
 
 	public BundleInstanceInfo bundleInstance(String instanceId, String accessId, String bucketName, String prefix, UploadPolicy policy) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("instanceId", instanceId);
+		params.put("InstanceId", instanceId);
 		params.put("Storage.S3.AWSAccessKeyId", accessId);
 		params.put("Storage.S3.Bucket", bucketName);
 		params.put("Storage.S3.Prefix", prefix);
 		String jsonPolicy = policy.getPolicyString();
-		logger.debug("JSON upload policy = "+jsonPolicy);
-		params.put("Storage.S3.AWSAccessKeyId", jsonPolicy);
-		params.put("Storage.S3.AWSAccessKeyId", encode(getSecretAccessKey(), jsonPolicy, true));
+		params.put("Storage.S3.UploadPolicy", jsonPolicy);
+		params.put("Storage.S3.UploadPolicySignature", encode(getSecretAccessKey(), jsonPolicy, false));
 		GetMethod method = new GetMethod();
 		try {
 			BundleInstanceResponse response =
@@ -1772,9 +1771,11 @@ public class Jec2 extends AWSQueryConnection {
 			List<BundleInstanceInfo> ret = new ArrayList<BundleInstanceInfo>();
 			Iterator task_iter = response.getBundleInstanceTasksSet().getItems().iterator();
 			while (task_iter.hasNext()) {
-				DescribeBundleTasksItemType task = (DescribeBundleTasksItemType) task_iter.next();
-				ret.add(new BundleInstanceInfo(response.getRequestId(), null, task.getBundleId(), null,
-							null, null, null, null, null));
+				BundleInstanceTaskType task = (BundleInstanceTaskType) task_iter.next();
+				ret.add(new BundleInstanceInfo(response.getRequestId(), task.getInstanceId(), task.getBundleId(),
+							task.getState(), task.getStartTime().toGregorianCalendar(),
+							task.getUpdateTime().toGregorianCalendar(), task.getStorage(),
+							task.getProgress(), task.getError()));
 			}
 			return ret;
 		} finally {

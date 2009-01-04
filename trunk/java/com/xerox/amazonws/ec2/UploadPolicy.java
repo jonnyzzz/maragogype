@@ -23,8 +23,12 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class UploadPolicy {
+    private static Log logger = LogFactory.getLog(UploadPolicy.class);
+
 	private int minutesToExpiration;
 	private String bucket;
 	private String acl;
@@ -63,13 +67,14 @@ public class UploadPolicy {
 
 		json.append("{\"bucket\": \"");
 		json.append(bucket);
-		json.append("\"},");
+		json.append("\"},\n");
 
 		json.append("{\"acl\": \"");
 		json.append(acl);
-		json.append("\"},");
+		json.append("\"},\n");
 
 		json.append("]\n}");
+		logger.debug("JSON policy string = "+json.toString());
 		return new String(Base64.encodeBase64(json.toString().getBytes()));
 	}
 
