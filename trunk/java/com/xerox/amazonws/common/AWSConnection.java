@@ -54,6 +54,7 @@ public abstract class AWSConnection {
     private boolean isSecure;
     private String server;
     private int port;
+	private int sigVersion = 2;
 	protected Map <String, List<String>> headers;
 	// used for caching last used Mac obj.. to save time 99.99% of the time
 	private static Mac mac;
@@ -113,6 +114,28 @@ public abstract class AWSConnection {
 		return this.port;
 	}
 
+	/**
+	 * This method returns the signature version
+	 *
+	 * @return the version
+	 */
+	public int getSignatureVersion() {
+		return sigVersion;
+	}
+
+	/**
+	 * This method sets the signature version used to sign requests (0, 1 or 2).
+	 * NOTE: This value defaults to 2, so passing 1 is the most likely use case.
+	 *
+	 * @param version signature version
+	 */
+	public void setSignatureVersion(int version) {
+		if (version != 0 && version != 1 && version != 2) {
+			throw new IllegalArgumentException("Only signature versions 0, 1 and 2 supported");
+		}
+		sigVersion = version;
+	}
+
     /**
      * Create a new URL object for a given resource.
      * @param resource The resource name (bucketName + "/" + key).
@@ -131,20 +154,20 @@ public abstract class AWSConnection {
      * @throws InvalidKeyException If the key is invalid.
      */
     protected String encode(String awsSecretKey, String canonicalString,
-                                boolean urlencode)
-    {
+                                boolean urlencode) {
+
         // The following HMAC/SHA1 code for the signature is taken from the
         // AWS Platform's implementation of RFC2104 (amazon.webservices.common.Signature)
         //
         // Acquire an HMAC/SHA1 from the raw key bytes.
         SecretKeySpec signingKey =
-            new SecretKeySpec(awsSecretKey.getBytes(), "HmacSHA1");
+            new SecretKeySpec(awsSecretKey.getBytes(), getAlgorithm());
 
         // Acquire the MAC instance and initialize with the signing key.
 		synchronized (macSync) {
 			if (mac == null || !lastSecretKey.equals(awsSecretKey)) {
 				try {
-					mac = Mac.getInstance("HmacSHA1");
+					mac = Mac.getInstance(getAlgorithm());
 				} catch (NoSuchAlgorithmException e) {
 					// should not happen
 					throw new RuntimeException("Could not find sha1 algorithm", e);
@@ -177,6 +200,10 @@ public abstract class AWSConnection {
             return b64;
         }
     }
+
+	protected String getAlgorithm() {
+		return (sigVersion==2)?"HmacSHA256":"HmacSHA1";
+	}
 
     protected String urlencode(String unencoded) {
         try {

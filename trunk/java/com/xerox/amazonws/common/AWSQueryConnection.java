@@ -77,7 +77,6 @@ public class AWSQueryConnection extends AWSConnection {
 	// this is the number of automatic retries
 	private int maxRetries = 5;
 	private String userAgent = "typica/";
-	private int sigVersion = 1;
 	private HttpClient hc = null;
 	private int maxConnections = 100;
 	private String proxyHost = null;
@@ -142,15 +141,6 @@ public class AWSQueryConnection extends AWSConnection {
 	 */
 	public void setMaxRetries(int retries) {
 		maxRetries = retries;
-	}
-
-	/**
-	 * This method returns the signature version
-	 *
-	 * @return the version
-	 */
-	public int getSignatureVersion() {
-		return sigVersion;
 	}
 
 	/**
@@ -229,19 +219,6 @@ public class AWSQueryConnection extends AWSConnection {
 		return headers;
 	}
 
-	/**
-	 * This method sets the signature version used to sign requests (0 or 1).
-	 * NOTE: This value defaults to 1, so passing 0 is the most likely use case.
-	 *
-	 * @param version signature version
-	 */
-	public void setSignatureVersion(int version) {
-		if (version != 0 && version != 1) {
-			throw new IllegalArgumentException("Only signature versions 0 and 1 supported");
-		}
-		sigVersion = version;
-	}
-
 	protected HttpClient getHttpClient() {
 		if (hc == null) {
 			configureHttpClient();
@@ -268,8 +245,11 @@ public class AWSQueryConnection extends AWSConnection {
 		Map<String, String> qParams = new HashMap<String, String>(params);
 		qParams.put("Action", action);
 		qParams.put("AWSAccessKeyId", getAwsAccessKeyId());
-		qParams.put("SignatureVersion", ""+sigVersion);
+		qParams.put("SignatureVersion", ""+getSignatureVersion());
 		qParams.put("Timestamp", httpDate());
+		if (getSignatureVersion() == 2) {
+			qParams.put("SignatureMethod", getAlgorithm());
+		}
         if (headers != null) {
             for (Iterator<String> i = headers.keySet().iterator(); i.hasNext(); ) {
                 String key = i.next();
@@ -280,15 +260,36 @@ public class AWSQueryConnection extends AWSConnection {
         }
 		// sort params by key
 		ArrayList<String> keys = new ArrayList<String>(qParams.keySet());
-		Collator stringCollator = Collator.getInstance();
-		stringCollator.setStrength(Collator.PRIMARY);
-		Collections.sort(keys, stringCollator);
+		if (getSignatureVersion() == 2) {
+			Collections.sort(keys);
+		}
+		else {
+			Collator stringCollator = Collator.getInstance();
+			stringCollator.setStrength(Collator.PRIMARY);
+			Collections.sort(keys, stringCollator);
+		}
 
 		// build param string
 		StringBuilder resource = new StringBuilder();
-		if (sigVersion == 0) {	// ensure Action, Timestamp come first!
+		if (getSignatureVersion() == 0) {	// ensure Action, Timestamp come first!
 			resource.append(qParams.get("Action"));
 			resource.append(qParams.get("Timestamp"));
+		}
+		else if (getSignatureVersion() == 2) {
+			resource.append(method.getName());
+			resource.append("\n");
+			resource.append(getServer().toLowerCase());
+			resource.append("\n/\n");
+			boolean first = true;
+			for (String key : keys) {
+				if (!first) {
+					resource.append("&");
+				}
+				else { first = false; }
+				resource.append(key);
+				resource.append("=");
+				resource.append(urlencode(qParams.get(key)));
+			}
 		}
 		else {
 			for (String key : keys) {
@@ -316,7 +317,7 @@ public class AWSQueryConnection extends AWSConnection {
         URL url = makeURL(resource.toString());
 		method.setURI(new URI(url.toString(), true));
 		method.setRequestHeader(new Header("User-Agent", userAgent));
-		if (sigVersion == 0) {
+		if (getSignatureVersion() == 0) {
 			method.setRequestHeader(new Header("Content-Type", "application/x-www-form-urlencoded; charset=utf-8"));
 		}
 		Object response = null;
