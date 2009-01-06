@@ -17,33 +17,30 @@
 
 package com.xerox.amazonws.sdb;
 
-import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class DomainMetadataResult extends SDBResult {
-	private Calendar timeStamp;
 	private int itemCount;
 	private int attributeValueCount;
 	private int attributeNameCount;
 	private long itemNamesSizeBytes;
 	private long attributeValuesSizeBytes;
 	private long attributeNamesSizeBytes;
+	private Date timestamp;
 
-	DomainMetadataResult(String requestId, String boxUsage, Calendar timeStamp,
+	DomainMetadataResult(String requestId, String boxUsage,
 			int itemCount, int attributeValueCount, int attributeNameCount,
-			long itemNamesSizeBytes, long attributeValuesSizeBytes, long attributeNamesSizeBytes) {
+			long itemNamesSizeBytes, long attributeValuesSizeBytes, long attributeNamesSizeBytes,
+			Date timestamp) {
 		super(null, requestId, boxUsage);
-		this.timeStamp = timeStamp;
 		this.itemCount = itemCount;
 		this.attributeValueCount = attributeValueCount;
 		this.attributeNameCount = attributeNameCount;
 		this.itemNamesSizeBytes = itemNamesSizeBytes;
 		this.attributeValuesSizeBytes = attributeValuesSizeBytes;
 		this.attributeNamesSizeBytes = attributeNamesSizeBytes;
-	}
-
-	public Calendar getTimeStamp() {
-		return timeStamp;
+		this.timestamp = timestamp;
 	}
 
 	public int getItemCount() {
@@ -69,4 +66,9 @@ public class DomainMetadataResult extends SDBResult {
 	public long getAttributeNamesSizeBytes() {
 		return attributeNamesSizeBytes;
 	}
+
+	public Date getTimestamp() {
+		return timestamp;
+	}
+
 }

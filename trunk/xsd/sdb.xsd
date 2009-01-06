@@ -117,6 +117,36 @@
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
+
+	<xs:element name="DomainMetadata">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="DomainName" type="xs:string"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="DomainMetadataResponse">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="tns:DomainMetadataResult"/>
+				<xs:element ref="tns:ResponseMetadata"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="DomainMetadataResult">
+		<xs:complexType>
+			<xs:sequence>
+			  <xs:element name="ItemCount" type="xs:string"/>
+			  <xs:element name="ItemNamesSizeBytes" type="xs:string"/>
+			  <xs:element name="AttributeNameCount" type="xs:string"/>
+			  <xs:element name="AttributeNamesSizeBytes" type="xs:string"/>
+			  <xs:element name="AttributeValueCount" type="xs:string"/>
+			  <xs:element name="AttributeValuesSizeBytes" type="xs:string"/>
+			  <xs:element name="Timestamp" type="xs:string"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
 	<xs:element name="DeleteDomain">
 		<xs:complexType>
 			<xs:sequence>
@@ -225,6 +255,32 @@
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
+	
+	<xs:element name="Select">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="SelectExpression" type="xs:string" minOccurs="0"/>
+				<xs:element name="NextToken" type="xs:string" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="SelectResponse">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="tns:SelectResult"/>
+				<xs:element ref="tns:ResponseMetadata"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="SelectResult">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Item" type="tns:Item" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element name="NextToken" type="xs:string" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
 	<xs:element name="QueryWithAttributes">
 		<xs:complexType>
 			<xs:sequence>

@@ -20,6 +20,7 @@ package com.xerox.amazonws.sdb;
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedHashMap;
@@ -42,6 +43,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
+import com.xerox.amazonws.typica.sdb.jaxb.DomainMetadataResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.QueryResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.QueryResult.ItemName;
 import com.xerox.amazonws.typica.sdb.jaxb.Attribute;
@@ -406,6 +408,33 @@ public class Domain extends AWSQueryConnection {
 	 */
 	public void deleteItem(String identifier) throws SDBException {
 		getItem(identifier).deleteAttributes(null);
+	}
+
+	/**
+	 * Returns information about the domain.
+	 *
+     * @return the object containing metadata about this domain
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public DomainMetadataResult getMetadata() throws SDBException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("DomainName", domainName);
+		GetMethod method = new GetMethod();
+		try {
+			DomainMetadataResponse response =
+						makeRequestInt(method, "DomainMetadata", params, DomainMetadataResponse.class);
+			return new DomainMetadataResult(response.getResponseMetadata().getRequestId(),
+						response.getResponseMetadata().getBoxUsage(),
+						Integer.parseInt(response.getDomainMetadataResult().getItemCount()),
+						Integer.parseInt(response.getDomainMetadataResult().getAttributeValueCount()),
+						Integer.parseInt(response.getDomainMetadataResult().getAttributeNameCount()),
+						Long.parseLong(response.getDomainMetadataResult().getItemNamesSizeBytes()),
+						Long.parseLong(response.getDomainMetadataResult().getAttributeValuesSizeBytes()),
+						Long.parseLong(response.getDomainMetadataResult().getAttributeNamesSizeBytes()),
+						new Date(Long.parseLong(response.getDomainMetadataResult().getTimestamp())*1000));
+		} finally {
+			method.releaseConnection();
+		}
 	}
 
 	static List<Domain> createList(String [] domainNames, String awsAccessKeyId,

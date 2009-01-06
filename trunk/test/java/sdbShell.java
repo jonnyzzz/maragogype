@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import com.xerox.amazonws.sdb.Domain;
+import com.xerox.amazonws.sdb.DomainMetadataResult;
 import com.xerox.amazonws.sdb.Item;
 import com.xerox.amazonws.sdb.ItemAttribute;
 import com.xerox.amazonws.sdb.ItemListener;
@@ -141,6 +142,19 @@ public class sdbShell {
 						continue;
 					}
 					dom = sds.getDomain(st.nextToken());
+				}
+				else if (cmd.equals("dm") || cmd.equals("domainmetadata")) {
+					if (checkDomain(dom)) {
+						DomainMetadataResult metadata = dom.getMetadata();
+						System.out.println("Domain Metadata for : "+dom.getName());
+						System.out.println(" ItemCount: "+metadata.getItemCount());
+						System.out.println(" AttributeNameCount: "+metadata.getAttributeNameCount());
+						System.out.println(" AttributeValueCount: "+metadata.getAttributeValueCount());
+						System.out.println(" ItemNamesSizeBytes: "+metadata.getItemNamesSizeBytes());
+						System.out.println(" AttributeNamesSizeBytes: "+metadata.getAttributeNamesSizeBytes());
+						System.out.println(" AttributeValuesSizeBytes: "+metadata.getAttributeValuesSizeBytes());
+						System.out.println(" Timestamp: "+metadata.getTimestamp());
+					}
 				}
 				else if (cmd.equals("aa") || cmd.equals("addattr")) {
 					if (checkDomain(dom)) {
@@ -274,6 +288,7 @@ public class sdbShell {
 		System.out.println("deletedomain(dd) <domain name> : delete domain (not functional in SDS yet)");
 		System.out.println("domains(d) : list domains");
 		System.out.println("setdomain(sd) <domain name> : set current domain");
+		System.out.println("domainmetadata(dm) : show current domain metadata");
 		System.out.println("addattr(aa) <item id> <attr name> <attr value> : add attribute to item in current domain");
 		System.out.println("replaceattr(aa) <item id> <attr name> <attr value> : replace attribute to item in current domain");
 		System.out.println("deleteattr(da) <item id> <attr name> : delete attribute of item in current domain");
