@@ -219,7 +219,7 @@ public class sdbShell {
 					if (checkDomain(dom)) {
 						itemCount = 0;
 						dom.setMaxThreads(20);
-						long start = System.currentTimeMillis();
+//						long start = System.currentTimeMillis();
 						//dom.setSignatureVersion(0);
 						//dom.listItemsAttributes("", new ItemListener() {
 						dom.listItemsWithAttributes("", null, new ItemListener() {
@@ -231,15 +231,15 @@ public class sdbShell {
 									itemCount++;
 								}
 							});
-						long end = System.currentTimeMillis();
-						System.out.println("Time : "+((int)(end-start)/1000.0));
-						System.out.println("Number of items returned : "+itemCount);
+//						long end = System.currentTimeMillis();
+//						System.out.println("Time : "+((int)(end-start)/1000.0));
+//						System.out.println("Number of items returned : "+itemCount);
 					}
 				}
 				else if (cmd.equals("ga") || cmd.equals("getattributes")) {
 					if (checkDomain(dom)) {
 						itemCount = 0;
-						long start = System.currentTimeMillis();
+//						long start = System.currentTimeMillis();
 						String nextToken = null;
 						do {
 							QueryWithAttributesResult qwar = dom.listItemsWithAttributes("", null, nextToken, 250);
@@ -253,9 +253,31 @@ public class sdbShell {
 							}
 							nextToken = qwar.getNextToken();
 						} while (nextToken != null && !nextToken.trim().equals(""));
-						long end = System.currentTimeMillis();
-						System.out.println("Time : "+((int)(end-start)/1000.0));
-						System.out.println("Number of items returned : "+itemCount);
+//						long end = System.currentTimeMillis();
+//						System.out.println("Time : "+((int)(end-start)/1000.0));
+//						System.out.println("Number of items returned : "+itemCount);
+					}
+				}
+				else if (cmd.equals("select")) {
+					if (checkDomain(dom)) {
+						itemCount = 0;
+//						long start = System.currentTimeMillis();
+						String nextToken = null;
+						do {
+							QueryWithAttributesResult qwar = dom.selectItems(line, nextToken);
+							Map<String, List<ItemAttribute>> items = qwar.getItems();
+							for (String id : items.keySet()) {
+								System.out.println("Item : "+id);
+								for (ItemAttribute attr : items.get(id)) {
+									System.out.println("  "+attr.getName()+" = "+filter(attr.getValue()));
+								}
+								itemCount++;
+							}
+							nextToken = qwar.getNextToken();
+						} while (nextToken != null && !nextToken.trim().equals(""));
+//						long end = System.currentTimeMillis();
+//						System.out.println("Time : "+((int)(end-start)/1000.0));
+//						System.out.println("Number of items returned : "+itemCount);
 					}
 				}
 				else if (cmd.equals("l") || cmd.equals("list")) {
@@ -295,6 +317,7 @@ public class sdbShell {
 		System.out.println("deleteitem(di) <item id> : delete item in current domain");
 		System.out.println("list(l) or <filter string> : lists items matching filter in current domain");
 		System.out.println("item(i) <item id> : shows item attributes");
+		System.out.println("select <expression> : runs a SQL like query against the domain specified");
 		System.out.println("getitems(gi) : shows attributes for multiple items");
 		System.out.println("help(h,?) : show help");
 		System.out.println("quit(q) : exit the shell");

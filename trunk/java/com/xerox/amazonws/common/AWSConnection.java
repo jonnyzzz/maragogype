@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.TreeMap;
 
@@ -206,11 +207,27 @@ public abstract class AWSConnection {
 	}
 
     protected String urlencode(String unencoded) {
+		String encoded = unencoded;
         try {
-            return URLEncoder.encode(unencoded, "UTF-8");
+            encoded = URLEncoder.encode(unencoded, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             // should never happen
             throw new RuntimeException("Could not url encode to UTF-8", e);
         }
+		if (sigVersion == 2) {	// convert "+" to "%20"
+			StringBuilder tmp = new StringBuilder();
+			StringTokenizer st = new StringTokenizer(encoded, "+", true);
+			while (st.hasMoreTokens()) {
+				String tok = st.nextToken();
+				if (tok.equals("+")) {
+					tmp.append("%20");
+				}
+				else {
+					tmp.append(tok);
+				}
+			}
+			encoded = tmp.toString();
+		}
+		return encoded;
     }
 }

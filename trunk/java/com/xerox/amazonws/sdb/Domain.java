@@ -43,11 +43,12 @@ import org.apache.commons.httpclient.methods.GetMethod;
 
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
+import com.xerox.amazonws.typica.sdb.jaxb.Attribute;
 import com.xerox.amazonws.typica.sdb.jaxb.DomainMetadataResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.QueryResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.QueryResult.ItemName;
-import com.xerox.amazonws.typica.sdb.jaxb.Attribute;
 import com.xerox.amazonws.typica.sdb.jaxb.QueryWithAttributesResponse;
+import com.xerox.amazonws.typica.sdb.jaxb.SelectResponse;
 
 /**
  * This class provides an interface with the Amazon SDB service. It provides methods for
@@ -432,6 +433,40 @@ public class Domain extends AWSQueryConnection {
 						Long.parseLong(response.getDomainMetadataResult().getAttributeValuesSizeBytes()),
 						Long.parseLong(response.getDomainMetadataResult().getAttributeNamesSizeBytes()),
 						new Date(Long.parseLong(response.getDomainMetadataResult().getTimestamp())*1000));
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	public QueryWithAttributesResult selectItems(String selectExpression, String nextToken) throws SDBException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("SelectExpression", selectExpression);
+		if (nextToken != null) {
+			params.put("NextToken", nextToken);
+		}
+		GetMethod method = new GetMethod();
+		try {
+			SelectResponse response =
+						makeRequestInt(method, "Select", params, SelectResponse.class);
+			Map<String, List<ItemAttribute>> results = new LinkedHashMap<String, List<ItemAttribute>>();
+			for (com.xerox.amazonws.typica.sdb.jaxb.Item i : response.getSelectResult().getItems()) {
+				List<ItemAttribute> attrs = new ArrayList<ItemAttribute>();
+				for (Attribute a : i.getAttributes()) {
+					attrs.add(createAttribute(a));
+				}
+				String iName = i.getName().getValue();
+				String encoding = i.getName().getEncoding();
+				if (encoding != null && encoding.equals("base64")) {
+					iName = new String(Base64.decodeBase64(iName.getBytes()));
+				}
+				results.put(iName, attrs);
+			}
+
+			return new QueryWithAttributesResult(
+						response.getSelectResult().getNextToken(),
+						response.getResponseMetadata().getRequestId(),
+						response.getResponseMetadata().getBoxUsage(),
+						results);
 		} finally {
 			method.releaseConnection();
 		}
