@@ -316,7 +316,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("CSNumberOf", descriptorPolicy.getCSNumberOf().value());
         }
         if (tempDeclinePolicy != null) {
-            params.put("TemporaryDeclinePolicy", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
+            params.put("TemporaryDeclinePolicy.TemporaryDeclinePolicyType", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
             params.put("ImplicitRetryTimeoutInMins", Integer.toString(tempDeclinePolicy.getImplicitRetryTimeoutInMins()));
         }
         GetMethod method = new GetMethod();
@@ -978,7 +978,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("CSNumberOf", descriptorPolicy.getCSNumberOf().value());
         }
         if (tempDeclinePolicy != null) {
-            params.put("TemporaryDeclinePolicy", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
+            params.put("TemporaryDeclinePolicy.TemporaryDeclinePolicyType", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
             params.put("ImplicitRetryTimeoutInMins", Integer.toString(tempDeclinePolicy.getImplicitRetryTimeoutInMins()));
         }
         GetMethod method = new GetMethod();
@@ -1176,7 +1176,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("CSNumberOf", descriptorPolicy.getCSNumberOf().value());
         }
         if (tempDeclinePolicy != null) {
-            params.put("TemporaryDeclinePolicy", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
+            params.put("TemporaryDeclinePolicy.TemporaryDeclinePolicyType", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
             params.put("ImplicitRetryTimeoutInMins", Integer.toString(tempDeclinePolicy.getImplicitRetryTimeoutInMins()));
         }
         GetMethod method = new GetMethod();
@@ -1367,7 +1367,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("CSNumberOf", descriptorPolicy.getCSNumberOf().value());
         }
         if (tempDeclinePolicy != null) {
-            params.put("TemporaryDeclinePolicy", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
+            params.put("TemporaryDeclinePolicy.TemporaryDeclinePolicyType", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
             params.put("ImplicitRetryTimeoutInMins", Integer.toString(tempDeclinePolicy.getImplicitRetryTimeoutInMins()));
         }
         GetMethod method = new GetMethod();
