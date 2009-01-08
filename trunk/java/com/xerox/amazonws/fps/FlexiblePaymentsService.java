@@ -4,31 +4,7 @@ import com.xerox.amazonws.common.AWSError;
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.sdb.DataUtils;
-import com.xerox.amazonws.typica.fps.jaxb.CancelTokenResponse;
-import com.xerox.amazonws.typica.fps.jaxb.DiscardResultsResponse;
-import com.xerox.amazonws.typica.fps.jaxb.FundPrepaidResponse;
-import com.xerox.amazonws.typica.fps.jaxb.GetAccountActivityResponse;
-import com.xerox.amazonws.typica.fps.jaxb.GetAccountBalanceResponse;
-import com.xerox.amazonws.typica.fps.jaxb.GetAllCreditInstrumentsResponse;
-import com.xerox.amazonws.typica.fps.jaxb.GetDebtBalanceResponse;
-import com.xerox.amazonws.typica.fps.jaxb.GetOutstandingDebtBalanceResponse;
-import com.xerox.amazonws.typica.fps.jaxb.GetPaymentInstructionResponse;
-import com.xerox.amazonws.typica.fps.jaxb.GetTokenByCallerResponse;
-import com.xerox.amazonws.typica.fps.jaxb.GetTokensResponse;
-import com.xerox.amazonws.typica.fps.jaxb.GetTransactionResponse;
-import com.xerox.amazonws.typica.fps.jaxb.InstallPaymentInstructionResponse;
-import com.xerox.amazonws.typica.fps.jaxb.OutstandingDebtBalance;
-import com.xerox.amazonws.typica.fps.jaxb.PayResponse;
-import com.xerox.amazonws.typica.fps.jaxb.RefundResponse;
-import com.xerox.amazonws.typica.fps.jaxb.ResponseStatus;
-import com.xerox.amazonws.typica.fps.jaxb.ServiceError;
-import com.xerox.amazonws.typica.fps.jaxb.ServiceErrors;
-import com.xerox.amazonws.typica.fps.jaxb.SettleDebtResponse;
-import com.xerox.amazonws.typica.fps.jaxb.TransactionResponse;
-import com.xerox.amazonws.typica.fps.jaxb.WriteOffDebtResponse;
-import com.xerox.amazonws.typica.fps.jaxb.ReserveResponse;
-import com.xerox.amazonws.typica.fps.jaxb.SettleResponse;
-import com.xerox.amazonws.typica.fps.jaxb.RetryTransactionResponse;
+import com.xerox.amazonws.typica.fps.jaxb.*;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -557,11 +533,32 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         }
     }
 
-    /** TODO: getPrepaidBalance
-     public void getPrepaidBalance() throws FPSException {
-
-     }
-     **/
+    /**
+     * Retrieve the balance of a prepaid instrument.
+     * Note: only on the instruments for which you are the sender or the recipient can be queried
+     *
+     * @param prepaidInstrumentId prepaid instrument for which the balance is queried
+     * @return the balance
+     * @throws FPSException wraps checked exceptions
+     */
+    public PrepaidBalance getPrepaidBalance(String prepaidInstrumentId) throws FPSException {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("PrepaidInstrumentId", prepaidInstrumentId);
+        GetMethod method = new GetMethod();
+        try {
+            GetPrepaidBalanceResponse response =
+                    makeRequestInt(method, "GetPrepaidBalance", params, GetPrepaidBalanceResponse.class);
+            com.xerox.amazonws.typica.fps.jaxb.PrepaidBalance balance = response.getPrepaidBalance();
+            com.xerox.amazonws.typica.fps.jaxb.Amount availableBalance = balance.getAvailableBalance();
+            com.xerox.amazonws.typica.fps.jaxb.Amount pendingOutBalance = balance.getPendingInBalance();
+            return new PrepaidBalance(
+                    new Amount(new BigDecimal(availableBalance.getAmount()), availableBalance.getCurrencyCode().toString()),
+                    new Amount(new BigDecimal(pendingOutBalance.getAmount()), pendingOutBalance.getCurrencyCode().toString())
+            );
+        } finally {
+            method.releaseConnection();
+        }
+    }
 
     /** TODO: getResults
      public void getResults() throws FPSException {
@@ -713,17 +710,72 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         }
     }
 
-    /** TODO: getTokenUsage
-     public void getTokenUsage() throws FPSException {
+    /**
+     * Fetch the details and usage of a multi-use token.
+     * Note: the usage limit is returned only for the multi-use token and not for the single-use token
+     * @param tokenID the token for which the usage is queried
+     * @return the list of available usage limits on the token
+     * @throws FPSException wraps checked exceptions
+     */
+    public List<TokenUsageLimit> getTokenUsage(String tokenID) throws FPSException {
+        Map<String, String> params = new HashMap<String, String>();
+        if (tokenID == null)
+            throw new IllegalArgumentException("Either the token ID or the caller reference must be given!");
+        if (tokenID.length() != 64)
+            throw new IllegalArgumentException("The token must have a length of 64 bytes");
+        params.put("TokenId", tokenID);
+        GetMethod method = new GetMethod();
+        try {
+            GetTokenUsageResponse response =
+                    makeRequestInt(method, "GetTokenUsage", params, GetTokenUsageResponse.class);
+            List<TokenUsageLimit> limits = new ArrayList<TokenUsageLimit>(response.getTokenUsageLimits().size());
+            for (com.xerox.amazonws.typica.fps.jaxb.TokenUsageLimit limit : response.getTokenUsageLimits()) {
+                limits.add(new TokenUsageLimit(
+                        limit.getCount(),
+                        new Amount(
+                                new BigDecimal(limit.getAmount().getAmount()),
+                                limit.getAmount().getCurrencyCode().value()
+                        ),
+                        limit.getLastResetCount(),
+                        new Amount(
+                                new BigDecimal(limit.getLastResetAmount().getAmount()),
+                                limit.getLastResetAmount().getCurrencyCode().value()
+                        ),
+                        limit.getLastResetTimeStamp().toGregorianCalendar().getTime()
+                ));
+            }
+            return limits;
+        } finally {
+            method.releaseConnection();
+        }
+    }
 
-     }
-     **/
-
-    /** TODO: getTotalPrepaidLiability
-     public void getTotalPrepaidLiability() throws FPSException {
-
-     }
-     **/
+    /**
+     * Returns the total liability held by the recipient corresponding to all the prepaid instruments.
+     * @return the total liability
+     * @throws FPSException wraps checked exceptions
+     */
+    public OutstandingPrepaidLiability getTotalPrepaidLiability() throws FPSException {
+        Map<String, String> params = new HashMap<String, String>();
+        GetMethod method = new GetMethod();
+        try {
+            GetTotalPrepaidLiabilityResponse response =
+                    makeRequestInt(method, "GetTotalPrepaidLiability", params, GetTotalPrepaidLiabilityResponse.class);
+            com.xerox.amazonws.typica.fps.jaxb.OutstandingPrepaidLiability liability = response.getOutstandingPrepaidLiability();
+            return new OutstandingPrepaidLiability(
+                    new Amount(
+                            new BigDecimal(liability.getOutstandingBalance().getAmount()),
+                            liability.getOutstandingBalance().getCurrencyCode().value()
+                    ),
+                    new Amount(
+                            new BigDecimal(liability.getPendingInBalance().getAmount()),
+                            liability.getPendingInBalance().getCurrencyCode().value()
+                    )
+            );
+        } finally {
+            method.releaseConnection();
+        }
+    }
 
     /**
      * Fetch details of a transaction referred by the <tt>transactionId</tt>.
@@ -1386,17 +1438,51 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         }
     }
 
-    /** TODO: subscribeForCallerNotification
-     public void subscribeForCallerNotification() throws FPSException {
+    /**
+     * Allows callers to subscribe to events that are given out using the web service notification mechanism.
+     * This operation is used for subscribing to the notifications provided to callers through web services.
+     * Amazon FPS supports two events, Transaction results and token deletion that you can subscribe.
+     * @param operationType specify the event types for which the notifications are required
+     * @param webService the URL to your web service
+     * @throws FPSException wraps checked exceptions
+     */
+    public void subscribeForCallerNotification(NotificationEventType operationType, URL webService) throws FPSException {
+        if (operationType == null)
+            throw new IllegalArgumentException("The notification operation name is required!");
+        if (webService == null)
+            throw new IllegalArgumentException("The Web Service API URL is required!");
+        if (logger.isInfoEnabled())
+            logger.info("Subscribe for caller notification for operations " + operationType + " at " + webService);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("NotificationOperationName", operationType.value());
+        params.put("WebServiceAPIURLt", webService.toString());
+        GetMethod method = new GetMethod();
+        try {
+            makeRequestInt(method, "SubscribeForCallerNotification", params, SubscribeForCallerNotificationResponse.class);
+        } finally {
+            method.releaseConnection();
+        }
+    }
 
-     }
-     **/
-
-    /** TODO: unsubscribeForCallerNotification
-     public void unsubscribeForCallerNotification() throws FPSException {
-
-     }
-     **/
+    /**
+     * Allows callers to unsubscribe to events that are previously subscribed by the calling applications.
+     * @param operationType specify the event types for which the notifications are required
+     * @throws FPSException wraps checked exceptions
+     */
+    public void unsubscribeForCallerNotification(NotificationEventType operationType) throws FPSException {
+        if (operationType == null)
+            throw new IllegalArgumentException("The notification operation name is required!");
+        if (logger.isInfoEnabled())
+            logger.info("Unsubscribe for caller notification for operations " + operationType);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("NotificationOperationName", operationType.value());
+        GetMethod method = new GetMethod();
+        try {
+            makeRequestInt(method, "UnSubscribeForCallerNotification", params, UnSubscribeForCallerNotificationResponse.class);
+        } finally {
+            method.releaseConnection();
+        }
+    }
 
     /**
      * Write off the debt accumulated by the recipient on any credit instrument
