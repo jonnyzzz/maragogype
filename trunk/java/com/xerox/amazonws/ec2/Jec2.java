@@ -188,7 +188,7 @@ public class Jec2 extends AWSQueryConnection {
                              String server, int port)
     {
 		super(awsAccessId, awsSecretKey, isSecure, server, port);
-		ArrayList vals = new ArrayList();
+		ArrayList<String> vals = new ArrayList<String>();
 		vals.add("2008-12-01");
 		super.headers.put("Version", vals);
     }
@@ -1717,6 +1717,24 @@ public class Jec2 extends AWSQueryConnection {
 		} finally {
 			method.releaseConnection();
 		}
+	}
+
+	/**
+	 * Sets the region to use.
+	 *
+	 * @param region the region to use, from describeRegions()
+	 */
+	public void setRegion(RegionInfo region) {
+		setServer(region.getUrl());
+	}
+
+	/**
+	 * Sets the region Url to use.
+	 *
+	 * @param region the region Url to use from RegionInfo.getUrl()
+	 */
+	public void setRegion(String regionUrl) {
+		setServer(regionUrl);
 	}
 
 	public BundleInstanceInfo bundleInstance(String instanceId, String accessId, String bucketName, String prefix, UploadPolicy policy) throws EC2Exception {

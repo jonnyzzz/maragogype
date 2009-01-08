@@ -111,6 +111,10 @@ public abstract class AWSConnection {
 		return this.server;
 	}
 
+	protected void setServer(String server) {
+		this.server = server;
+	}
+
 	protected int getPort() {
 		return this.port;
 	}

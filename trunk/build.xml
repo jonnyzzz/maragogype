@@ -77,6 +77,9 @@
 		<javac destdir="${typica.classes}" debug="on" target="1.5">
 			<src path="${typica.src}" />
 			<classpath refid="typica.compile.classpath" />
+			<!--
+			<compilerarg value="-Xlint"/>
+			-->
 		</javac>
     </target>
 
