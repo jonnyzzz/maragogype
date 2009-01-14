@@ -65,7 +65,7 @@ public class TestJec2 {
 //		logger.info("Address allocated : "+publicIp);
 
 //		ReservationDescription runInst = ec2.runInstances(new LaunchConfiguration("ami-20b65349", 1, 1));
-		ReservationDescription runInst = ec2.runInstances("ami-36ff1a5f", 1, 1, new ArrayList<String>(), null, "dak-keypair", true, InstanceType.LARGE, "us-east-1c", null, null, null);
+//		ReservationDescription runInst = ec2.runInstances("ami-36ff1a5f", 1, 1, new ArrayList<String>(), null, "dak-keypair", true, InstanceType.LARGE, "us-east-1c", null, null, null);
 
 /*
 */

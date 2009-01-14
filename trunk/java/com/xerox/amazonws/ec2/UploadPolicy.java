@@ -26,6 +26,9 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+/**
+ * This class describes the upload policy used when bundling images. 
+ */
 public class UploadPolicy {
     private static Log logger = LogFactory.getLog(UploadPolicy.class);
 

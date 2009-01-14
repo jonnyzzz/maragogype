@@ -615,8 +615,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @return A list of {@link TerminatingInstanceDescription} instances.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
-	public List<TerminatingInstanceDescription> terminateInstances(
-			String[] instanceIds) throws EC2Exception {
+	public List<TerminatingInstanceDescription> terminateInstances(String[] instanceIds) throws EC2Exception {
 		return this.terminateInstances(Arrays.asList(instanceIds));
 	}
 
@@ -1733,10 +1732,21 @@ public class Jec2 extends AWSQueryConnection {
 	 *
 	 * @param region the region Url to use from RegionInfo.getUrl()
 	 */
-	public void setRegion(String regionUrl) {
+	public void setRegionUrl(String regionUrl) {
 		setServer(regionUrl);
 	}
 
+	/**
+	 * Initiates bundling of an instance running Windows.
+	 *
+	 * @param instanceId the Id of the instance to bundle
+	 * @param accessId the accessId of the owner of the S3 bucket
+	 * @param bucketName the name of the S3 bucket in which the AMi will be stored
+	 * @param prefix the prefix to append to the AMI
+	 * @param policy an UploadPolicy object containing policy parameters
+	 * @return information about the bundle task
+	 * @throws EC2Exception wraps checked exceptions
+	 */
 	public BundleInstanceInfo bundleInstance(String instanceId, String accessId, String bucketName, String prefix, UploadPolicy policy) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("InstanceId", instanceId);
@@ -1760,6 +1770,13 @@ public class Jec2 extends AWSQueryConnection {
 		}
 	}
 
+	/**
+	 * Cancel a bundling operation.
+	 *
+	 * @param bundleId the Id of the bundle task to cancel
+	 * @return information about the cancelled task
+	 * @throws EC2Exception wraps checked exceptions
+	 */
 	public BundleInstanceInfo cancelBundleInstance(String bundleId) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("BundleId", bundleId);
@@ -1777,10 +1794,28 @@ public class Jec2 extends AWSQueryConnection {
 		}
 	}
 
-	public List<BundleInstanceInfo> describeBundleTasks(String bundleId) throws EC2Exception {
+	/**
+	 * Returns a list of current bundling tasks. An empty array causes all tasks to be returned.
+	 *
+	 * @param bundleIds the Ids of the bundle task to describe
+	 * @return information about the cancelled task
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<BundleInstanceInfo> describeBundleTasks(String [] bundleIds) throws EC2Exception {
+		return this.terminateInstances(Arrays.asList(bundleIds));
+	}
+
+	/**
+	 * Returns a list of current bundling tasks. An empty list causes all tasks to be returned.
+	 *
+	 * @param bundleIds the Ids of the bundle task to describe
+	 * @return information about the cancelled task
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<BundleInstanceInfo> describeBundleTasks(List<String> bundleIds) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
-		if (bundleId != null) {
-			params.put("BundleId", bundleId);
+		for (int i=0 ; i<bundleIds.size(); i++) {
+			params.put("BundleId."+(i+1), bundleIds.get(i));
 		}
 		GetMethod method = new GetMethod();
 		try {
