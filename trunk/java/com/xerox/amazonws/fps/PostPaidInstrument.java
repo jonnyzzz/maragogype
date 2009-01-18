@@ -16,13 +16,13 @@ public class PostPaidInstrument implements Instrument {
     private final Address address;
     private final Status status;
 
-    public PostPaidInstrument(String creditInstrumentId, String creditSenderTokenId, String settlementTokenId, Date expiry, Address address, Status status) {
+    public PostPaidInstrument(String creditInstrumentId, String creditSenderTokenId, String settlementTokenId, Date expiry, Address address) {
         this.creditInstrumentId = creditInstrumentId;
         this.creditSenderTokenId = creditSenderTokenId;
         this.settlementTokenId = settlementTokenId;
         this.expiry = expiry;
         this.address = address;
-        this.status = status;
+        this.status = Status.ACTIVE;
     }
 
     public String getCreditInstrumentId() {

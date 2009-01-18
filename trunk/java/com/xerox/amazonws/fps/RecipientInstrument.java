@@ -14,10 +14,10 @@ public class RecipientInstrument implements Instrument {
     private final String refundTokenId;
     private final Status status;
 
-    public RecipientInstrument(String tokenId, String refundTokenId, Status status) {
+    public RecipientInstrument(String tokenId, String refundTokenId) {
         this.tokenId = tokenId;
         this.refundTokenId = refundTokenId;
-        this.status = status;
+        this.status = Status.ACTIVE;
     }
 
     public String getTokenId() {

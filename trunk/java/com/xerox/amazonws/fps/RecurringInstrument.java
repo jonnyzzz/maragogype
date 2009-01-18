@@ -13,11 +13,11 @@ public class RecurringInstrument implements Instrument {
     private final Address address;
     private final Status status;
 
-    public RecurringInstrument(String tokenId, Date expiry, Address address, Status status) {
+    public RecurringInstrument(String tokenId, Date expiry, Address address) {
         this.tokenId = tokenId;
         this.expiry = expiry;
         this.address = address;
-        this.status = status;
+        this.status = Status.ACTIVE;
     }
 
     public String getTokenId() {

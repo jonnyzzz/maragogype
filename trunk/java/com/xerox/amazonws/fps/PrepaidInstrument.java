@@ -15,13 +15,13 @@ public class PrepaidInstrument implements Instrument {
     private final Address address;
     private final Status status;
 
-    public PrepaidInstrument(String prepaidInstrumentId, String fundingInstrumentId, String prepaidSenderTokenId, Date expiry, Address address, Status status) {
+    public PrepaidInstrument(String prepaidInstrumentId, String fundingInstrumentId, String prepaidSenderTokenId, Date expiry, Address address) {
         this.prepaidInstrumentId = prepaidInstrumentId;
         this.fundingInstrumentId = fundingInstrumentId;
         this.prepaidSenderTokenId = prepaidSenderTokenId;
         this.expiry = expiry;
         this.address = address;
-        this.status = status;
+        this.status = Status.ACTIVE;
     }
 
     public String getPrepaidInstrumentId() {

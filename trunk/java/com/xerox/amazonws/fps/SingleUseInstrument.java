@@ -15,11 +15,11 @@ public class SingleUseInstrument implements Instrument {
     private final Address address;
     private final Status status;
 
-    public SingleUseInstrument(String tokenId, Date expiry, Address address, Status status) {
+    public SingleUseInstrument(String tokenId, Date expiry, Address address) {
         this.tokenId = tokenId;
         this.expiry = expiry;
         this.address = address;
-        this.status = status;
+        this.status = Status.ACTIVE;
     }
 
     public String getTokenId() {

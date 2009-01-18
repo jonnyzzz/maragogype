@@ -141,6 +141,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         this.descriptorPolicy = descriptorPolicy;
         this.tempDeclinePolicy = tempDeclinePolicy;
         setVersionHeader(this);
+        setSignatureVersion(1);
     }
 
     /**
@@ -149,16 +150,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      * @return the version
      */
     public int getSignatureVersion() {
-        return super.getSignatureVersion();
-    }
-
-    /**
-     * This method sets the signature version used to sign requests (0 or 1).
-     *
-     * @param version signature version
-     */
-    public void setSignatureVersion(int version) {
-        super.setSignatureVersion(version);
+        return 1;
     }
 
     /**
@@ -2093,15 +2085,14 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                         request.getParameter("city"),
                         request.getParameter("state"),
                         request.getParameter("zip")
-                ),
-                Instrument.Status.fromValue(status)
+                )
         );
     }
 
     /**
      * Extract the multi use token from the CBUI pipeline return.
      */
-    public MultiUseInstrument extractMultiseTokenFromCBUI(HttpServletRequest request)
+    public MultiUseInstrument extractMultiUseTokenFromCBUI(HttpServletRequest request)
             throws MalformedURLException, FPSException {
         // parse status message
 		String status = request.getParameter("status");
@@ -2145,8 +2136,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                         request.getParameter("city"),
                         request.getParameter("state"),
                         request.getParameter("zip")
-                ),
-                Instrument.Status.fromValue(status)
+                )
         );
     }
 
@@ -2197,8 +2187,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                         request.getParameter("city"),
                         request.getParameter("state"),
                         request.getParameter("zip")
-                ),
-                Instrument.Status.fromValue(status)
+                )
         );
     }
 
@@ -2232,8 +2221,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             throw new InvalidSignatureException(request.getParameter("awsSignature"), request.getRequestURI());
         return new RecipientInstrument(
                 request.getParameter("tokenID"),
-                request.getParameter("refundTokenID"),
-                Instrument.Status.fromValue(status)
+                request.getParameter("refundTokenID")
         );
     }
 
@@ -2286,8 +2274,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                         request.getParameter("city"),
                         request.getParameter("state"),
                         request.getParameter("zip")
-                ),
-                Instrument.Status.fromValue(status)
+                )
         );
     }
 
@@ -2345,8 +2332,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                         request.getParameter("city"),
                         request.getParameter("state"),
                         request.getParameter("zip")
-                ),
-                Instrument.Status.fromValue(status)
+                )
         );
     }
 

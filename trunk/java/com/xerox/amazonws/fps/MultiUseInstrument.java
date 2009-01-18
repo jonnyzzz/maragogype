@@ -15,11 +15,11 @@ public class MultiUseInstrument implements Instrument {
     private final Address address;
     private final Status status;
 
-    public MultiUseInstrument(String tokenId, Date expiry, Address address, Status status) {
+    public MultiUseInstrument(String tokenId, Date expiry, Address address) {
         this.tokenId = tokenId;
         this.expiry = expiry;
         this.address = address;
-        this.status = status;
+        this.status = Status.ACTIVE;
     }
 
     public String getTokenId() {
