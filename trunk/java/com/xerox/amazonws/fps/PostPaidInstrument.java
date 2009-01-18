@@ -13,14 +13,16 @@ public class PostPaidInstrument implements Instrument {
     private final String creditSenderTokenId;
     private final String settlementTokenId;
     private final Date expiry;
+    private final Address address;
     private final Status status;
 
-    public PostPaidInstrument(String creditInstrumentId, String creditSenderTokenId, String settlementTokenId, Date expiry) {
+    public PostPaidInstrument(String creditInstrumentId, String creditSenderTokenId, String settlementTokenId, Date expiry, Address address, Status status) {
         this.creditInstrumentId = creditInstrumentId;
         this.creditSenderTokenId = creditSenderTokenId;
         this.settlementTokenId = settlementTokenId;
         this.expiry = expiry;
-        this.status = Status.ACTIVE;
+        this.address = address;
+        this.status = status;
     }
 
     public String getCreditInstrumentId() {
@@ -39,18 +41,25 @@ public class PostPaidInstrument implements Instrument {
         return expiry;
     }
 
+    public Address getAddress() {
+        return address;
+    }
+
     public Status getStatus() {
         return status;
     }
 
     @Override
     public String toString() {
-        return "PostPaidInstrument{" +
-                "creditInstrumentId='" + creditInstrumentId + '\'' +
-                ", creditSenderTokenId='" + creditSenderTokenId + '\'' +
-                ", settlementTokenId='" + settlementTokenId + '\'' +
-                ", expiry=" + expiry +
-                ", status=" + status +
-                '}';
+        final StringBuilder sb = new StringBuilder();
+        sb.append("PostPaidInstrument");
+        sb.append("{creditInstrumentId='").append(creditInstrumentId).append('\'');
+        sb.append(", creditSenderTokenId='").append(creditSenderTokenId).append('\'');
+        sb.append(", settlementTokenId='").append(settlementTokenId).append('\'');
+        sb.append(", expiry=").append(expiry);
+        sb.append(", address=").append(address);
+        sb.append(", status=").append(status);
+        sb.append('}');
+        return sb.toString();
     }
 }

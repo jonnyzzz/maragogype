@@ -388,11 +388,35 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         }
     }
 
-    /** TODO: getAllPrepaidInstruments
-     public void getAllPrepaidInstruments() throws FPSException {
+    /**
+     * Retrieve all the prepaid instruments associated with your account
+     * @return the list of prepaid instruments
+     * @throws FPSException wraps checked exceptions
+     */
+    public List<String> getAllPrepaidInstruments() throws FPSException {
+        return getAllPrepaidInstruments(null);
+    }
 
-     }
-     **/
+    /**
+     * Retrieve all the prepaid instruments associated with your account
+     *
+     * @param instrumentStatus filter instruments by status
+     * @return the list of prepaid instruments
+     * @throws FPSException wraps checked exceptions
+     */
+    public List<String> getAllPrepaidInstruments(Instrument.Status instrumentStatus) throws FPSException {
+        Map<String, String> params = new HashMap<String, String>();
+        if (instrumentStatus != null)
+            params.put("InstrumentStatus", instrumentStatus.value());
+        GetMethod method = new GetMethod();
+        try {
+            GetAllPrepaidInstrumentsResponse response =
+                    makeRequestInt(method, "GetAllPrepaidInstruments", params, GetAllPrepaidInstrumentsResponse.class);
+            return response.getPrepaidInstrumentIds();
+        } finally {
+            method.releaseConnection();
+        }
+    }
 
     /**
      * Retrieve all credit instruments associated with an account.
@@ -560,11 +584,48 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         }
     }
 
-    /** TODO: getResults
-     public void getResults() throws FPSException {
+    /**
+     * This operation is used to poll for transaction results that are returned asynchronously.
+     *
+     * @throws FPSException wraps checked exceptions
+     */
+    public List<TransactionResult> getResults() throws FPSException {
+        return getResults(null, null);
+    }
 
-     }
-     **/
+    /**
+     * This operation is used to poll for transaction results that are returned asynchronously.
+     *
+     * @param operation Used to filter results based on the operation type (e.g. Pay, Refund, Settle, SettleDebt, WriteOffDebt, FundPrepaid)
+     * @param maxResultsCount Used to specify the maximum results that can be retrieved. The minimum value is 1 and the maximum value is 25. By default the maximum or the available results are returned.
+     * @return the list of transactions
+     * @throws FPSException wraps checked exceptions
+     */
+    public List<TransactionResult> getResults(FPSOperationFilter operation, Integer maxResultsCount) throws FPSException {
+        Map<String, String> params = new HashMap<String, String>();
+        if (operation != null)
+            params.put("Operation", operation.toString());
+        if (maxResultsCount != null)
+            params.put("MaxResultsCount", maxResultsCount.toString());
+        GetMethod method = new GetMethod();
+        try {
+            GetResultsResponse response =
+                    makeRequestInt(method, "GetResults", params, GetResultsResponse.class);
+            List<com.xerox.amazonws.typica.fps.jaxb.TransactionResult> rawTransactions = response.getTransactionResults();
+            List<TransactionResult> transactionResults = new ArrayList<TransactionResult>(rawTransactions.size());
+            for (com.xerox.amazonws.typica.fps.jaxb.TransactionResult txn : rawTransactions) {
+                transactionResults.add(new TransactionResult(
+                        txn.getTransactionId(),
+                        FPSOperation.fromValue(txn.getOperation().value()),
+                        txn.getCallerReference(),
+                        Transaction.Status.fromValue(txn.getStatus().value())
+                ));
+            }
+            return transactionResults;
+        } finally {
+            method.releaseConnection();
+        }
+    }
 
     /**
      * Fetch all the tokens installed on your (caller) account.
@@ -1598,54 +1659,34 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
 
     /**
      * Generate a signed URL for the CBUI pipeline.
-     *
-     * @param callerReference
-     * @param returnURL
-     * @param amount
-     * @param reason
-     * @return the signed URL
-     * @throws FPSException
-     * @throws MalformedURLException
      */
     public String acquireSingleUseToken(String callerReference, Amount amount, String returnURL, String reason)
             throws FPSException, MalformedURLException {
-        return acquireSingleUseToken(callerReference, amount, false, null, null, returnURL, reason);
+        return acquireSingleUseToken(callerReference, amount, false, null, null,
+                false, true, null,
+                null, null, null, null, null, null,
+                returnURL, reason);
     }
 
     /**
      * Generate a signed URL for the CBUI pipeline.
-     *
-     * @param callerReference
-     * @param returnURL
-     * @param amount
-     * @param paymentMethod
-     * @param reason
-     * @return the signed URL
-     * @throws FPSException
-     * @throws MalformedURLException
      */
     public String acquireSingleUseToken(String callerReference, Amount amount, PaymentMethod paymentMethod,
                                         String returnURL, String reason)
             throws FPSException, MalformedURLException {
-        return acquireSingleUseToken(callerReference, amount, false, paymentMethod, null, returnURL, reason);
+        return acquireSingleUseToken(callerReference, amount, false, paymentMethod, null,
+                false, true, null,
+                null, null, null, null, null, null,
+                returnURL, reason);
     }
 
     /**
      * Generate a signed URL for the CBUI pipeline.
-     * 
-     * @param callerReference
-     * @param returnURL
-     * @param amount
-     * @param reserve
-     * @param paymentMethod
-     * @param recipientToken
-     * @param reason
-     * @return the signed URL
-     * @throws FPSException
-     * @throws MalformedURLException
      */
     public String acquireSingleUseToken(String callerReference, Amount amount, boolean reserve,
                                         PaymentMethod paymentMethod, String recipientToken,
+                                        Boolean isRecipientCobranding, Boolean collectShippingAddress, Address address,
+                                        Amount itemTotal, Amount shipping, Amount handling, Boolean giftWrapping, Amount discount, Amount tax,
                                         String returnURL, String reason)
             throws FPSException, MalformedURLException {
         Map<String, String> parameters = new HashMap<String, String>();
@@ -1660,59 +1701,122 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             parameters.put("paymentReason", reason);
         if (reserve)
             parameters.put("reserve", "True");
+        if (isRecipientCobranding != null)
+            parameters.put("isRecipientCobranding", isRecipientCobranding.toString());
+        if (collectShippingAddress)
+            parameters.put("collectShippingAddress", "True");
+        if (address != null) {
+            parameters.put("addressName", address.getName());
+            parameters.put("addressLine1", address.getLine1());
+            parameters.put("addressLine2", address.getLine2());
+            parameters.put("city", address.getCity());
+            parameters.put("zip", address.getZipCode());
+        }
+        if (itemTotal != null)
+            parameters.put("itemTotal", itemTotal.getAmount().toString());
+        if (shipping != null)
+            parameters.put("shipping", shipping.getAmount().toString());
+        if (handling != null)
+            parameters.put("handling", handling.getAmount().toString());
+        if (discount != null)
+            parameters.put("discount", discount.getAmount().toString());
+        if (tax != null)
+            parameters.put("tax", tax.getAmount().toString());
+        if (giftWrapping != null)
+            parameters.put("giftWrapping", "True");
         return generateUIPipelineURL("SingleUse", returnURL, parameters);
     }
 
-    /** TODO: acquireMultiUseToken
-    public String acquireMultiUseToken(String callerReference, String returnURL, Amount amount,
-                                        PaymentMethod paymentMethod, String recipientToken, String paymentReason)
-            throws FPSException, MalformedURLException {
-
+    /**
+     * Generate a signed URL for the CBUI pipeline.
+     */
+    public String acquireMultiUseToken(String callerReference, Amount amount,
+                                       Amount globalLimit, String returnURL, String reason)
+    throws MalformedURLException, FPSException {
+        return acquireMultiUseToken(callerReference, amount, null, null, globalLimit, null,
+                null, null, null,
+                null, null, null,
+                returnURL, reason);
     }
-    */
 
     /**
      * Generate a signed URL for the CBUI pipeline.
-     *
-     * @param callerReference
-     * @param returnURL
-     * @param amount
-     * @param recurringInterval
-     * @param recurringGranularity
-     * @param reason
-     * @return the signed URL
-     * @throws MalformedURLException
-     * @throws FPSException
+     */
+    public String acquireMultiUseToken(String callerReference, Amount amount,
+                                       List<String> recipientTokens, AmountType amountType, Amount globalLimit, List<UsageLimit> usageLimits,
+                                       Boolean isRecipientCobranding, Boolean collectShippingAddress, Address address,
+                                       Date validityStart, Date validityExpiry, PaymentMethod paymentMethod,
+                                       String returnURL, String reason)
+    throws FPSException, MalformedURLException {
+        Map<String, String> parameters = new HashMap<String, String>();
+        parameters.put("callerReference", callerReference);
+        parameters.put("currencyCode", amount.getCurrencyCode());
+        parameters.put("transactionAmount", amount.getAmount().toString());
+
+        if (reason != null)
+            parameters.put("paymentReason", reason);
+        if (recipientTokens != null && recipientTokens.size() > 0) {
+            StringBuffer buffer = new StringBuffer();
+            for (int i = 0; i < recipientTokens.size(); i++) {
+                String token = recipientTokens.get(i);
+                if (i > 0)
+                    buffer.append(',');
+                buffer.append(token);
+            }
+            parameters.put("recipientTokenList", buffer.toString());
+        }
+        if (amountType != null)
+            parameters.put("amountType", amountType.value());
+        if (validityStart != null)
+            parameters.put("validityStart", DataUtils.encodeDate(validityStart));
+        if (validityExpiry != null)
+            parameters.put("validityExpiry", DataUtils.encodeDate(validityExpiry));
+        if (paymentMethod != null)
+            parameters.put("paymentMethod", paymentMethod.value());
+        if (usageLimits != null) {
+            for (int i = 0; i < usageLimits.size(); i++) {
+                UsageLimit limit = usageLimits.get(i);
+                parameters.put("usageLimitType" + i, limit.getType().value());
+                if (limit.getPeriodicity() != null)
+                    parameters.put("usageLimitPeriod" + i, limit.getPeriodicity().toString());
+            }
+        }
+        if (isRecipientCobranding != null)
+            parameters.put("isRecipientCobranding", isRecipientCobranding.toString());
+        if (collectShippingAddress != null)
+            parameters.put("collectShippingAddress", collectShippingAddress.toString());
+        if (address != null) {
+            parameters.put("addressName", address.getName());
+            parameters.put("addressLine1", address.getLine1());
+            parameters.put("addressLine2", address.getLine2());
+            parameters.put("city", address.getCity());
+            parameters.put("zip", address.getZipCode());
+        }
+        return generateUIPipelineURL("MultiUse", returnURL, parameters);
+    }
+
+
+    /**
+     * Generate a signed URL for the CBUI pipeline.
      */
     public String acquireRecurringToken(String callerReference, Amount amount,
                                         int recurringInterval, RecurringGranularity recurringGranularity,
                                         String returnURL, String reason)
             throws MalformedURLException, FPSException {
         return acquireRecurringToken(callerReference, amount, recurringInterval, recurringGranularity,
-                null, null, null, null, returnURL, reason);
+                null, null, null, null,
+                null, null, null,
+                returnURL, reason);
     }
 
     /**
      * Generate a signed URL for the CBUI pipeline.
-     *
-     * @param callerReference
-     * @param returnURL
-     * @param amount
-     * @param recurringInterval
-     * @param recurringGranularity
-     * @param validityStart
-     * @param validityExpiry
-     * @param paymentMethod
-     * @param recipientToken
-     * @param reason
-     * @return the signed URL
-     * @throws FPSException
-     * @throws MalformedURLException
      */
     public String acquireRecurringToken(String callerReference, Amount amount,
                                         int recurringInterval, RecurringGranularity recurringGranularity,
                                         Date validityStart, Date validityExpiry,
                                         PaymentMethod paymentMethod, String recipientToken,
+                                        Boolean isRecipientCobranding, Boolean collectShippingAddress, Address address,
                                         String returnURL, String reason)
             throws FPSException, MalformedURLException {
         Map<String, String> parameters = new HashMap<String, String>();
@@ -1731,110 +1835,133 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             parameters.put("validityExpiry", DataUtils.encodeDate(validityExpiry));
         String recurringPeriod = Integer.toString(recurringInterval) + " " + recurringGranularity.getValue();
         parameters.put("recurringPeriod", recurringPeriod);
+        if (isRecipientCobranding != null)
+            parameters.put("isRecipientCobranding", isRecipientCobranding.toString());
+        if (collectShippingAddress)
+            parameters.put("collectShippingAddress", "True");
+        if (address != null) {
+            parameters.put("addressName", address.getName());
+            parameters.put("addressLine1", address.getLine1());
+            parameters.put("addressLine2", address.getLine2());
+            parameters.put("city", address.getCity());
+            parameters.put("zip", address.getZipCode());
+        }
         return generateUIPipelineURL("Recurring", returnURL, parameters);
     }
 
     /**
      * Generate a signed URL for the CBUI pipeline.
-     *
-     * @param callerReference
-     * @param tokenID
-     * @param paymentMethod
-     * @param returnURL
-     * @return the signed URL
-     * @throws FPSException
-     * @throws MalformedURLException
      */
-    public String acquireEditToken(String callerReference, String tokenID, PaymentMethod paymentMethod,
-                                   String returnURL)
+    public String acquireRecipientToken(String callerReference, Boolean recipientPaysFee,
+                                        String returnURL, String reason)
+            throws FPSException, MalformedURLException {
+        return acquireRecipientToken(callerReference, null, null, null, recipientPaysFee,
+                null, null, null, returnURL, reason);
+    }
+
+    /**
+     * Generate a signed URL for the CBUI pipeline.
+     */
+    public String acquireRecipientToken(String callerReference, Date validityStart, Date validityExpiry,
+                                        PaymentMethod paymentMethod, Boolean recipientPaysFee,
+                                        String callerReferenceRefund, Long maxVariableFee, Long maxFixedFee,
+                                        String returnURL, String reason)
             throws FPSException, MalformedURLException {
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put("callerReference", callerReference);
-        parameters.put("tokenID", tokenID);
+        parameters.put("recipientPaysFee", recipientPaysFee ? "True" : "False");
+        if (validityStart != null)
+            parameters.put("validityStart", DataUtils.encodeDate(validityStart));
+        if (validityExpiry != null)
+            parameters.put("validityExpiry", DataUtils.encodeDate(validityExpiry));
         if (paymentMethod != null)
             parameters.put("paymentMethod", paymentMethod.value());
-        return generateUIPipelineURL("EditToken", returnURL, parameters);
+        if (callerReferenceRefund != null)
+            parameters.put("callerReferenceRefund", callerReferenceRefund);
+        if (maxVariableFee != null)
+            parameters.put("maxVariableFee", maxVariableFee.toString());
+        if (maxFixedFee != null)
+            parameters.put("maxFixedFee", maxFixedFee.toString());
+        return generateUIPipelineURL("Recipient", returnURL, parameters);
     }
-
-    /** TODO: acquireRecipientToken
-    public String acquireRecipientToken(String callerReference, String returnURL, Amount amount,
-                                        PaymentMethod paymentMethod, String recipientToken, String paymentReason)
-            throws FPSException, MalformedURLException {
-
-    }
-    */
-
-    /** TODO: acquirePrepaidToken
-    public String acquirePrepaidToken(String callerReference, String returnURL, Amount amount,
-                                        PaymentMethod paymentMethod, String recipientToken, String paymentReason)
-            throws FPSException, MalformedURLException {
-
-    }
-    */
 
     /**
      * Generate a signed URL for the CBUI pipeline.
-     *
-     * @param callerReferenceSender
-     * @param callerReferenceSettlement
-     * @param returnURL
-     * @param creditLimit
-     * @param globalAmountLimit
-     * @param paymentReason
-     * @return the signed URL
-     * @throws FPSException
-     * @throws MalformedURLException
+     */
+    public String acquirePrepaidToken(String callerReferenceSender, String callerReferenceFunding, Amount amount,
+                                      String returnURL, String reason)
+            throws FPSException, MalformedURLException {
+        return acquirePrepaidToken(callerReferenceSender, callerReferenceFunding, amount,
+                null, null, null, null, null, returnURL, reason);
+    }
+
+    /**
+     * Generate a signed URL for the CBUI pipeline.
+     */
+    public String acquirePrepaidToken(String callerReferenceSender, String callerReferenceFunding, Amount amount,
+                                      PaymentMethod paymentMethod,
+                                      Date validityStart, Date validityExpiry,
+                                      Boolean collectShippingAddress, Address address,
+                                      String returnURL, String reason)
+            throws FPSException, MalformedURLException {
+        Map<String, String> parameters = new HashMap<String, String>();
+        parameters.put("callerReferenceSender", callerReferenceSender);
+        parameters.put("callerReferenceFunding", callerReferenceFunding);
+        parameters.put("currencyCode", amount.getCurrencyCode());
+        parameters.put("transactionAmount", amount.getAmount().toString());
+
+        if (reason != null)
+            parameters.put("paymentReason", reason);
+        if (validityStart != null)
+            parameters.put("validityStart", DataUtils.encodeDate(validityStart));
+        if (validityExpiry != null)
+            parameters.put("validityExpiry", DataUtils.encodeDate(validityExpiry));
+        if (paymentMethod != null)
+            parameters.put("paymentMethod", paymentMethod.value());
+        if (collectShippingAddress != null)
+            parameters.put("collectShippingAddress", collectShippingAddress.toString());
+        if (address != null) {
+            parameters.put("addressName", address.getName());
+            parameters.put("addressLine1", address.getLine1());
+            parameters.put("addressLine2", address.getLine2());
+            parameters.put("city", address.getCity());
+            parameters.put("zip", address.getZipCode());
+        }
+        return generateUIPipelineURL("SetupPrepaid", returnURL, parameters);
+    }
+
+    /**
+     * Generate a signed URL for the CBUI pipeline.
      */
     public String acquirePostPaidToken(String callerReferenceSender, String callerReferenceSettlement,
-                                       String returnURL, Amount creditLimit, Amount globalAmountLimit,
-                                       String paymentReason)
+                                       Amount creditLimit, Amount globalAmountLimit,
+                                       String returnURL, String reason)
             throws FPSException, MalformedURLException {
         return acquirePostPaidToken(callerReferenceSender, callerReferenceSettlement, null, null,
-                returnURL, creditLimit, globalAmountLimit, null, paymentReason);
+                creditLimit, globalAmountLimit, null, null, null, null, returnURL, reason);
     }
 
     /**
      * Generate a signed URL for the CBUI pipeline.
-     *
-     * @param callerReferenceSender
-     * @param callerReferenceSettlement
-     * @param returnURL
-     * @param creditLimit
-     * @param globalAmountLimit
-     * @param paymentMethod
-     * @param paymentReason
-     * @return the signed URL
-     * @throws FPSException
-     * @throws MalformedURLException
      */
     public String acquirePostPaidToken(String callerReferenceSender, String callerReferenceSettlement,
-                                       String returnURL, Amount creditLimit, Amount globalAmountLimit,
-                                       PaymentMethod paymentMethod, String paymentReason)
+                                       Amount creditLimit, Amount globalAmountLimit,
+                                       PaymentMethod paymentMethod,
+                                       String returnURL, String reason)
             throws FPSException, MalformedURLException {
         return acquirePostPaidToken(callerReferenceSender, callerReferenceSettlement, null, null,
-                returnURL, creditLimit, globalAmountLimit, paymentMethod, paymentReason);
+                creditLimit, globalAmountLimit, null, null, null, paymentMethod, returnURL, reason);
     }
 
     /**
      * Generate a signed URL for the CBUI pipeline.
-     *
-     * @param callerReferenceSender
-     * @param callerReferenceSettlement
-     * @param validityStart
-     * @param validityExpiry
-     * @param returnURL
-     * @param creditLimit
-     * @param globalAmountLimit
-     * @param paymentMethod
-     * @param paymentReason
-     * @return the signed URL
-     * @throws FPSException
-     * @throws MalformedURLException
      */
     public String acquirePostPaidToken(String callerReferenceSender, String callerReferenceSettlement,
                                        Date validityStart, Date validityExpiry,
-                                       String returnURL, Amount creditLimit, Amount globalAmountLimit,
-                                       PaymentMethod paymentMethod, String paymentReason)
+                                       Amount creditLimit, Amount globalAmountLimit,
+                                       List<UsageLimit> usageLimits, Boolean collectShippingAddress, Address address,
+                                       PaymentMethod paymentMethod,
+                                       String returnURL, String reason)
             throws FPSException, MalformedURLException {
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put("callerReferenceSender", callerReferenceSender);
@@ -1848,9 +1975,40 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         parameters.put("globalAmountLimit", globalAmountLimit.getAmount().toString());
         if (paymentMethod != null)
             parameters.put("paymentMethod", paymentMethod.value());
-        if (paymentReason != null)
-            parameters.put("paymentReason", paymentReason);
+        if (reason != null)
+            parameters.put("paymentReason", reason);
+        if (usageLimits != null) {
+            for (int i = 0; i < usageLimits.size(); i++) {
+                UsageLimit limit = usageLimits.get(i);
+                parameters.put("usageLimitType" + i, limit.getType().value());
+                if (limit.getPeriodicity() != null)
+                    parameters.put("usageLimitPeriod" + i, limit.getPeriodicity().toString());
+            }
+        }
+        if (collectShippingAddress != null)
+            parameters.put("collectShippingAddress", collectShippingAddress.toString());
+        if (address != null) {
+            parameters.put("addressName", address.getName());
+            parameters.put("addressLine1", address.getLine1());
+            parameters.put("addressLine2", address.getLine2());
+            parameters.put("city", address.getCity());
+            parameters.put("zip", address.getZipCode());
+        }
         return generateUIPipelineURL("SetupPostpaid", returnURL, parameters);
+    }
+
+    /**
+     * Generate a signed URL for the CBUI pipeline.
+     */
+    public String acquireEditToken(String callerReference, String tokenID, PaymentMethod paymentMethod,
+                                   String returnURL)
+            throws FPSException, MalformedURLException {
+        Map<String, String> parameters = new HashMap<String, String>();
+        parameters.put("callerReference", callerReference);
+        parameters.put("tokenID", tokenID);
+        if (paymentMethod != null)
+            parameters.put("paymentMethod", paymentMethod.value());
+        return generateUIPipelineURL("EditToken", returnURL, parameters);
     }
 
     /**
@@ -1890,13 +2048,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
 
     /**
      * Extract the single use token from the CBUI pipeline return.
-     *
-     * @param request the HTTP request
-     * @return the single use token ID
-     * @throws MalformedURLException
-     * @throws FPSException
      */
-    public String extractSingleUseTokenFromCBUI(HttpServletRequest request)
+    public SingleUseInstrument extractSingleUseTokenFromCBUI(HttpServletRequest request)
             throws MalformedURLException, FPSException {
 		// parse status message
 		String status = request.getParameter("status");
@@ -1921,46 +2074,88 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         // ensure first that the request is valid
         if (!isSignatureValid(request))
             throw new InvalidSignatureException(request.getParameter("awsSignature"), request.getRequestURI());
-        return request.getParameter("tokenID");
+        // extract expiry
+        Date expiry = null;
+        try {
+            String expiryValue = request.getParameter("expiry");
+            if (expiryValue != null)
+                expiry = DataUtils.decodeDate(expiryValue);
+        } catch (ParseException e) {
+            // do nothing -- this might happen!
+        }
+        return new SingleUseInstrument(
+                request.getParameter("tokenID"),
+                expiry,
+                new Address(
+                        request.getParameter("addressName"),
+                        request.getParameter("addressLine1"),
+                        request.getParameter("addressLine2"),
+                        request.getParameter("city"),
+                        request.getParameter("state"),
+                        request.getParameter("zip")
+                ),
+                Instrument.Status.fromValue(status)
+        );
     }
 
-    /* todo: extractMultiseTokenFromCBUI
-    public String extractMultiseTokenFromCBUI(HttpServletRequest request)
-            throws MalformedURLException, InvalidSignatureException {
+    /**
+     * Extract the multi use token from the CBUI pipeline return.
+     */
+    public MultiUseInstrument extractMultiseTokenFromCBUI(HttpServletRequest request)
+            throws MalformedURLException, FPSException {
+        // parse status message
+		String status = request.getParameter("status");
+		String errorMessage = request.getParameter("errorMessage");
+		String requestID = request.getParameter("RequestId");
+		if ("SE".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("A".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("CE".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("PE".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("NP".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("NM".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		if (logger.isDebugEnabled()) {
+            logger.debug("Status: " + status);
+		    logger.debug("Error Message: " + errorMessage);
+        }
         // ensure first that the request is valid
         if (!isSignatureValid(request))
-            throw new InvalidSignatureException(request.getParameter("awsSignature"));
-        return request.getParameter("tokenID");
+            throw new InvalidSignatureException(request.getParameter("awsSignature"), request.getRequestURI());
+        // extract expiry
+        Date expiry = null;
+        try {
+            String expiryValue = request.getParameter("expiry");
+            if (expiryValue != null)
+                expiry = DataUtils.decodeDate(expiryValue);
+        } catch (ParseException e) {
+            // do nothing -- this might happen!
+        }
+        return new MultiUseInstrument(
+                request.getParameter("tokenID"),
+                expiry,
+                new Address(
+                        request.getParameter("addressName"),
+                        request.getParameter("addressLine1"),
+                        request.getParameter("addressLine2"),
+                        request.getParameter("city"),
+                        request.getParameter("state"),
+                        request.getParameter("zip")
+                ),
+                Instrument.Status.fromValue(status)
+        );
     }
-    */
 
     /**
      * Extract the recurring token from the CBUI pipeline return.
-     *
-     * @param request the HTTP request
-     * @return the recurring token ID
-     * @throws MalformedURLException
-     * @throws FPSException
      */
-    public String extractRecurringTokenFromCBUI(HttpServletRequest request)
-            throws MalformedURLException, InvalidSignatureException {
-        // ensure first that the request is valid
-        if (!isSignatureValid(request))
-            throw new InvalidSignatureException(request.getParameter("awsSignature"), request.getRequestURI());
-        return request.getParameter("tokenID");
-    }
-
-    /**
-     * Extract the edit token from the CBUI pipeline return.
-     *
-     * @param request the HTTP request
-     * @return the edit token ID
-     * @throws MalformedURLException
-     * @throws FPSException
-     */
-    public String extractEditTokenFromCBUI(HttpServletRequest request)
+    public RecurringInstrument extractRecurringTokenFromCBUI(HttpServletRequest request)
             throws MalformedURLException, FPSException {
-		// parse status message
+        // parse status message
 		String status = request.getParameter("status");
 		String errorMessage = request.getParameter("errorMessage");
 		String requestID = request.getParameter("RequestId");
@@ -1983,28 +2178,118 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         // ensure first that the request is valid
         if (!isSignatureValid(request))
             throw new InvalidSignatureException(request.getParameter("awsSignature"), request.getRequestURI());
-        return request.getParameter("tokenID");
+        // extract expiry
+        Date expiry = null;
+        try {
+            String expiryValue = request.getParameter("expiry");
+            if (expiryValue != null)
+                expiry = DataUtils.decodeDate(expiryValue);
+        } catch (ParseException e) {
+            // do nothing -- this might happen!
+        }
+        return new RecurringInstrument(
+                request.getParameter("tokenID"),
+                expiry,
+                new Address(
+                        request.getParameter("addressName"),
+                        request.getParameter("addressLine1"),
+                        request.getParameter("addressLine2"),
+                        request.getParameter("city"),
+                        request.getParameter("state"),
+                        request.getParameter("zip")
+                ),
+                Instrument.Status.fromValue(status)
+        );
     }
 
-    /*
-    // todo: extractRecipientTokenFromCBUI
-    public String extractRecipientTokenFromCBUI(HttpServletRequest request)
-            throws MalformedURLException, InvalidSignatureException {
+    /**
+     * Extract the recurring token from the CBUI pipeline return.
+     */
+    public RecipientInstrument extractRecipientTokenFromCBUI(HttpServletRequest request)
+            throws MalformedURLException, FPSException {
+        // parse status message
+		String status = request.getParameter("status");
+		String errorMessage = request.getParameter("errorMessage");
+		String requestID = request.getParameter("RequestId");
+		if ("SE".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("A".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("CE".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("PE".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("NP".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("NM".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		if (logger.isDebugEnabled()) {
+            logger.debug("Status: " + status);
+		    logger.debug("Error Message: " + errorMessage);
+        }
         // ensure first that the request is valid
         if (!isSignatureValid(request))
-            throw new InvalidSignatureException(request.getParameter("awsSignature"));
-        return request.getParameter("tokenID");
+            throw new InvalidSignatureException(request.getParameter("awsSignature"), request.getRequestURI());
+        return new RecipientInstrument(
+                request.getParameter("tokenID"),
+                request.getParameter("refundTokenID"),
+                Instrument.Status.fromValue(status)
+        );
     }
 
-    // todo: extractPrePaidTokenFromCBUI
-    public String extractPrePaidTokenFromCBUI(HttpServletRequest request)
-            throws MalformedURLException, InvalidSignatureException {
+    /**
+     * Extract the recurring token from the CBUI pipeline return.
+     */
+    public PrepaidInstrument extractPrepaidTokenFromCBUI(HttpServletRequest request)
+            throws MalformedURLException, FPSException {
+        // parse status message
+		String status = request.getParameter("status");
+		String errorMessage = request.getParameter("errorMessage");
+		String requestID = request.getParameter("RequestId");
+		if ("SE".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("A".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("CE".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("PE".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("NP".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("NM".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		if (logger.isDebugEnabled()) {
+            logger.debug("Status: " + status);
+		    logger.debug("Error Message: " + errorMessage);
+        }
         // ensure first that the request is valid
         if (!isSignatureValid(request))
-            throw new InvalidSignatureException(request.getParameter("awsSignature"));
-        return request.getParameter("tokenID");
+            throw new InvalidSignatureException(request.getParameter("awsSignature"), request.getRequestURI());
+        // extract expiry
+        Date expiry = null;
+        try {
+            String expiryValue = request.getParameter("expiry");
+            if (expiryValue != null)
+                expiry = DataUtils.decodeDate(expiryValue);
+        } catch (ParseException e) {
+            // do nothing -- this might happen!
+        }
+        return new PrepaidInstrument(
+                request.getParameter("prepaidInstrumentID"),
+                request.getParameter("fundingTokenID"),
+                request.getParameter("prepaidSenderTokenID"),
+                expiry,
+                new Address(
+                        request.getParameter("addressName"),
+                        request.getParameter("addressLine1"),
+                        request.getParameter("addressLine2"),
+                        request.getParameter("city"),
+                        request.getParameter("state"),
+                        request.getParameter("zip")
+                ),
+                Instrument.Status.fromValue(status)
+        );
     }
-    */
 
     /**
      * Extract the post paid token from the CBUI pipeline return.
@@ -2016,9 +2301,30 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      */
     public PostPaidInstrument extractPostPaidTokenFromCBUI(HttpServletRequest request)
             throws MalformedURLException, FPSException {
+        // parse status message
+		String status = request.getParameter("status");
+		String errorMessage = request.getParameter("errorMessage");
+		String requestID = request.getParameter("RequestId");
+		if ("SE".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("A".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("CE".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("PE".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("NP".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		else if ("NM".equals(status))
+			throw new FPSException(requestID, status, errorMessage);
+		if (logger.isDebugEnabled()) {
+            logger.debug("Status: " + status);
+		    logger.debug("Error Message: " + errorMessage);
+        }
         // ensure first that the request is valid
         if (!isSignatureValid(request))
             throw new InvalidSignatureException(request.getParameter("awsSignature"), request.getRequestURI());
+        // extract expiry
         Date expiry = null;
         try {
             String expiryValue = request.getParameter("expiry");
@@ -2031,7 +2337,16 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
                 request.getParameter("creditInstrumentID"),
                 request.getParameter("creditSenderTokenID"),
                 request.getParameter("settlementTokenID"),
-                expiry
+                expiry,
+                new Address(
+                        request.getParameter("addressName"),
+                        request.getParameter("addressLine1"),
+                        request.getParameter("addressLine2"),
+                        request.getParameter("city"),
+                        request.getParameter("state"),
+                        request.getParameter("zip")
+                ),
+                Instrument.Status.fromValue(status)
         );
     }
 
