@@ -1802,7 +1802,7 @@ public class Jec2 extends AWSQueryConnection {
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<BundleInstanceInfo> describeBundleTasks(String [] bundleIds) throws EC2Exception {
-		return this.terminateInstances(Arrays.asList(bundleIds));
+		return this.describeBundleTasks(Arrays.asList(bundleIds));
 	}
 
 	/**
