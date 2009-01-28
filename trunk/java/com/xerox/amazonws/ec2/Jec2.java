@@ -1043,7 +1043,8 @@ public class Jec2 extends AWSQueryConnection {
 	}
 
 	/**
-	 * Lists public/private keypairs.
+	 * Lists public/private keypairs. NOTE: the KeyPairInfo.getMaterial() method will return null
+	 * because this API call doesn't return the keypair material.
 	 * 
 	 * @param keyIds A list of keypairs.
 	 * @return A list of keypair descriptions ({@link KeyPairInfo}).

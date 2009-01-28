@@ -32,7 +32,7 @@ public class TestBundle {
 								args[1], args[2], new UploadPolicy(60*12, args[1], "ec2-bundle-read"));
 		logger.info("Bunding instance "+args[0]);
 
-		List<BundleInstanceInfo> tasks = ec2.describeBundleTasks(null);
+		List<BundleInstanceInfo> tasks = ec2.describeBundleTasks(new String [] {});
 		for (BundleInstanceInfo task : tasks) {
 			logger.info("bundle id : "+task.getBundleId());
 			logger.info("state : "+task.getState());

@@ -29,6 +29,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -58,7 +59,7 @@ public abstract class AWSConnection {
 	private int sigVersion = 2;
 	protected Map <String, List<String>> headers;
 	// used for caching last used Mac obj.. to save time 99.99% of the time
-	private static Mac mac;
+	private static Map<String, Mac> macMap = new HashMap<String, Mac>();
 	private static String lastSecretKey;
 	private static Object macSync = new Object();
 
@@ -169,7 +170,9 @@ public abstract class AWSConnection {
             new SecretKeySpec(awsSecretKey.getBytes(), getAlgorithm());
 
         // Acquire the MAC instance and initialize with the signing key.
+		Mac mac = null;
 		synchronized (macSync) {
+			mac = macMap.get(getAlgorithm());
 			if (mac == null || !lastSecretKey.equals(awsSecretKey)) {
 				try {
 					mac = Mac.getInstance(getAlgorithm());
@@ -179,6 +182,7 @@ public abstract class AWSConnection {
 				}
 				try {
 					mac.init(signingKey);
+					macMap.put(getAlgorithm(), mac);
 				} catch (InvalidKeyException e) {
 					// also should not happen
 					mac = null;
