@@ -17,13 +17,15 @@
 
 package com.xerox.amazonws.common;
 
+import java.io.Serializable;
+
 /**
  * A wrapper exception to simplify catching errors related to AWS activity.
  *
  * @author D. Kavanagh
  * @author developer@dotech.com
  */
-public class AWSError {
+public class AWSError implements Serializable {
 	private final ErrorType type;
 	private final String code;
 	private final String message;
@@ -50,7 +52,7 @@ public class AWSError {
 		return "AWSError [type="+type.getTypeId()+",code="+code+",message="+message+"]";
 	}
 
-	public enum ErrorType {
+	public enum ErrorType implements Serializable {
 		RECEIVER("Receiver"),
 		SENDER("Sender");
 
