@@ -60,6 +60,7 @@ class AttrWorker implements Runnable {
 			} catch (SDBException sdbex) {
 				AWSError err = sdbex.getErrors().get(0);
 				if (err.getCode().equals("NoSuchDomain")) {
+					return;
 //					throw sdbex;
 				}
 			}
