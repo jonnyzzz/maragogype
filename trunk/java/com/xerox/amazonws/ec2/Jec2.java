@@ -293,19 +293,6 @@ public class Jec2 extends AWSQueryConnection {
 	}
 
 	/**
-	 * Describe the AMIs image type (machine, kernel, ramdisk).
-	 * 
-	 * @param type An image type.
-	 * @return A list of {@link ImageDescription} instances describing each AMI ID.
-	 * @throws EC2Exception wraps checked exceptions
-	 */
-	public List<ImageDescription> describeImagesByImageType(ImageType type) throws EC2Exception {
-		Map<String, String> params = new HashMap<String, String>();
-		params.put("ImageType", type.getTypeId());
-		return describeImages(params);
-	}
-
-	/**
 	 * Describe the AMIs that match the intersection of the criteria supplied
 	 * 
 	 * @param imageIds A list of AMI IDs as returned by {@link #registerImage(String)}.
