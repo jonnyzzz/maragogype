@@ -1084,7 +1084,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         }
         if (tempDeclinePolicy != null) {
             params.put("TemporaryDeclinePolicy.TemporaryDeclinePolicyType", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
-            params.put("ImplicitRetryTimeoutInMins", Integer.toString(tempDeclinePolicy.getImplicitRetryTimeoutInMins()));
+            params.put("TemporaryDeclinePolicy.ImplicitRetryTimeoutInMins", Integer.toString(tempDeclinePolicy.getImplicitRetryTimeoutInMins()));
         }
         GetMethod method = new GetMethod();
         try {
