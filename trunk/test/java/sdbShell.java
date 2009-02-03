@@ -220,7 +220,6 @@ public class sdbShell {
 						itemCount = 0;
 						dom.setMaxThreads(20);
 //						long start = System.currentTimeMillis();
-						//dom.setSignatureVersion(0);
 						//dom.listItemsAttributes("", new ItemListener() {
 						dom.listItemsWithAttributes("", null, new ItemListener() {
 								public synchronized void itemAvailable(String id, List<ItemAttribute> attrs) {
