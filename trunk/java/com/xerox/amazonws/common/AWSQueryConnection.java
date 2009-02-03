@@ -279,7 +279,14 @@ public class AWSQueryConnection extends AWSConnection {
 			resource.append(method.getName());
 			resource.append("\n");
 			resource.append(getServer().toLowerCase());
-			resource.append("\n/\n");
+			resource.append("\n/");
+			String reqURL = makeURL("").toString();
+			// see if there is something after the host:port/ in the URL
+			if (reqURL.lastIndexOf('/') < (reqURL.length()-1)) {
+				// if so, put that here in the string to sign
+				resource.append(reqURL.substring(reqURL.lastIndexOf('/')+1));
+			}
+			resource.append("\n");
 			boolean first = true;
 			for (String key : keys) {
 				if (!first) {
@@ -298,6 +305,7 @@ public class AWSQueryConnection extends AWSConnection {
 				resource.append(qParams.get(key));
 			}
 		}
+//		System.err.println("String to sign :"+resource.toString());
 
 		// calculate signature
         String encoded = encode(getSecretAccessKey(), resource.toString(), true);
