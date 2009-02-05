@@ -1,9 +1,9 @@
-typica 1.4.1
-03-September-2008
+typica 1.5
+05-February-2009
 
 http://code.google.com/p/typica
 
-This is a simple API to access Amazon's SQS, EC2, SimpleDB and DevPay web services. It uses the QUERY interface and patterns the methods after those available from Amazon in their SOAP client for these services. This code is thread-safe and works very reliably to the best of my knowledge. I've been using it on a system where sending messages in SQS is critical and we manage pools of servers in EC2.
+This is a simple API to access Amazon's SQS, EC2, SimpleDB, FPS and DevPay web services. It uses the QUERY interface. This code is thread-safe and works very reliably to the best of my knowledge. I've been using it on a system where sending messages in SQS is critical and we manage pools of servers in EC2.
 
 Distribution files;
 README      - this file
@@ -18,58 +18,171 @@ ant test.main -Dclass=TestQueueService -Dargs=testQueue
 
 Change history for this release;
 ------------------------------------------------------------------------
-r176 | dkavanagh | 2008-09-04 07:24:00 -0400 (Thu, 04 Sep 2008) | 2 lines
+r220 | jerome.bernard | 2009-02-03 16:13:26 -0500 (Tue, 03 Feb 2009) | 1 line
 
-fixed javadoc for EBS code
+Fixed temporary decline policy with implicit retries.
 ------------------------------------------------------------------------
-r175 | dkavanagh | 2008-09-03 21:32:29 -0400 (Wed, 03 Sep 2008) | 2 lines
+r219 | dkavanagh | 2009-02-03 08:37:47 -0500 (Tue, 03 Feb 2009) | 2 lines
 
-fix for base64 encoded sdb results
+updates to sdbShell.. supports select, etc.
 ------------------------------------------------------------------------
-r174 | jerome.bernard | 2008-09-03 09:51:42 -0400 (Wed, 03 Sep 2008) | 1 line
+r218 | dkavanagh | 2009-02-03 08:36:18 -0500 (Tue, 03 Feb 2009) | 2 lines
 
-Use UTF-8 encoding by default and platform encoding otherwise. UTF-8 encoding is similar to ASCII when the characters are available in the ASCII alphabet.
+provide static region URLS
 ------------------------------------------------------------------------
-r173 | dkavanagh | 2008-08-28 19:29:43 -0400 (Thu, 28 Aug 2008) | 5 lines
+r217 | dkavanagh | 2009-02-02 23:32:22 -0500 (Mon, 02 Feb 2009) | 2 lines
 
-fixed up schemas for DevPay and SQS error results removed some old releases
-build now has target for uploading javadoc to S3. Needs jets3t and awstasks jars to run
+fixed issue #38
 ------------------------------------------------------------------------
-r172 | dkavanagh | 2008-08-26 17:38:57 -0400 (Tue, 26 Aug 2008) | 2 lines
+r216 | dkavanagh | 2009-02-02 21:36:25 -0500 (Mon, 02 Feb 2009) | 2 lines
 
-massive change to exceptions. More details provided via AWSException and error list for certain services that support it. Also, simplified catch blocks in all API methods for all services.
+addresses issue #30 (attr worker infinite loop)
 ------------------------------------------------------------------------
-r171 | dkavanagh | 2008-08-26 09:53:11 -0400 (Tue, 26 Aug 2008) | 2 lines
+r215 | dkavanagh | 2009-02-02 20:40:36 -0500 (Mon, 02 Feb 2009) | 2 lines
 
-updated SimpleDB code to support QueryWithAttributes, fixed Item.getAttributes(..)
+fixed signing of SQS requests for version 2 signing
 ------------------------------------------------------------------------
-These changes were in the 1.4 release;
-------------------------------------------------------------------------
-r168 | dkavanagh | 2008-08-21 07:20:27 -0400 (Thu, 21 Aug 2008) | 2 lines
+r214 | jerome.bernard | 2009-02-02 16:57:21 -0500 (Mon, 02 Feb 2009) | 1 line
 
-support for the EBS feature (API 2008-05-05)
+Added support for serialization.
 ------------------------------------------------------------------------
-r165 | dkavanagh | 2008-08-04 16:22:56 -0400 (Mon, 04 Aug 2008) | 2 lines
+r213 | dkavanagh | 2009-01-28 08:12:03 -0500 (Wed, 28 Jan 2009) | 2 lines
 
-helper methods for getqueue and sendmessage
+fixed test error, fixed mac caching for diff signature types, ammended comment (jec2)
 ------------------------------------------------------------------------
-r164 | dkavanagh | 2008-08-04 15:42:45 -0400 (Mon, 04 Aug 2008) | 2 lines
+r212 | dkavanagh | 2009-01-23 11:47:13 -0500 (Fri, 23 Jan 2009) | 2 lines
 
-fixed retry issue #22
+fixed compile error in Jec2.
 ------------------------------------------------------------------------
-r163 | dkavanagh | 2008-08-04 15:38:45 -0400 (Mon, 04 Aug 2008) | 2 lines
+r211 | jerome.bernard | 2009-01-18 16:19:03 -0500 (Sun, 18 Jan 2009) | 1 line
 
-fix for nextToken issue #24
+FPS only supports signature version 1.
 ------------------------------------------------------------------------
-r162 | dkavanagh | 2008-08-04 14:56:57 -0400 (Mon, 04 Aug 2008) | 2 lines
+r210 | jerome.bernard | 2009-01-18 15:17:56 -0500 (Sun, 18 Jan 2009) | 1 line
 
-removed the deprecated Base64Coder which is under GPL and should not be included in typica
+Latest FPS impl.
 ------------------------------------------------------------------------
-r161 | dkavanagh | 2008-07-30 09:56:15 -0400 (Wed, 30 Jul 2008) | 2 lines
+r209 | dkavanagh | 2009-01-13 21:27:57 -0500 (Tue, 13 Jan 2009) | 2 lines
 
-pom file to enable publishing to Maven repo
+some fixes and better javadoc for bundle features
 ------------------------------------------------------------------------
-r159 | dkavanagh | 2008-06-26 15:15:26 -0400 (Thu, 26 Jun 2008) | 2 lines
+r208 | jerome.bernard@gmail.com | 2009-01-08 12:10:58 -0500 (Thu, 08 Jan 2009) | 1 line
 
-synchronized block around mac var test/set
+Progressively completing support for the full FPS API.
 ------------------------------------------------------------------------
+r207 | dkavanagh | 2009-01-07 22:30:14 -0500 (Wed, 07 Jan 2009) | 2 lines
+
+allow region to be set on Jec2.
+------------------------------------------------------------------------
+r206 | jerome.bernard@gmail.com | 2009-01-07 12:03:54 -0500 (Wed, 07 Jan 2009) | 1 line
+
+Fixed Temporary Decline Policy usage.
+------------------------------------------------------------------------
+r205 | dkavanagh | 2009-01-06 22:24:07 -0500 (Tue, 06 Jan 2009) | 2 lines
+
+support for simpleDB select.. fix for version 2 signing issue with space escaping
+------------------------------------------------------------------------
+r204 | dkavanagh | 2009-01-06 09:42:45 -0500 (Tue, 06 Jan 2009) | 2 lines
+
+updates for sdb domain metadata
+------------------------------------------------------------------------
+r203 | dkavanagh | 2009-01-04 22:49:13 -0500 (Sun, 04 Jan 2009) | 2 lines
+
+implement signature version 2, is now the default
+------------------------------------------------------------------------
+r202 | dkavanagh | 2009-01-04 13:10:56 -0500 (Sun, 04 Jan 2009) | 2 lines
+
+fixes to ec2 bundling code.
+------------------------------------------------------------------------
+r201 | dkavanagh | 2009-01-03 14:25:44 -0500 (Sat, 03 Jan 2009) | 2 lines
+
+first cut at region and bundling support for ec2
+------------------------------------------------------------------------
+r200 | dkavanagh | 2009-01-02 09:55:23 -0500 (Fri, 02 Jan 2009) | 2 lines
+
+capture error code when possible
+------------------------------------------------------------------------
+r199 | dkavanagh | 2009-01-02 09:50:37 -0500 (Fri, 02 Jan 2009) | 2 lines
+
+changes to support return request id. initial domain metadata pojo
+------------------------------------------------------------------------
+r197 | jerome.bernard | 2008-11-04 11:27:16 -0500 (Tue, 04 Nov 2008) | 1 line
+
+Fixed enums which were not public.
+------------------------------------------------------------------------
+r196 | jerome.bernard | 2008-10-31 16:17:01 -0400 (Fri, 31 Oct 2008) | 1 line
+
+Switched to a default temporary decline policy instead of null value when using methods with no explicit policy.
+------------------------------------------------------------------------
+r195 | jerome.bernard | 2008-10-31 13:41:01 -0400 (Fri, 31 Oct 2008) | 1 line
+
+Added support for TemporaryDeclinePolicy and provided the retryTransaction() method.
+------------------------------------------------------------------------
+r194 | dkavanagh | 2008-10-09 14:58:40 -0400 (Thu, 09 Oct 2008) | 2 lines
+
+fixed usage of LinkedHashMap.
+------------------------------------------------------------------------
+r193 | dkavanagh | 2008-10-06 10:45:15 -0400 (Mon, 06 Oct 2008) | 2 lines
+
+fix for issue #27. Box usage now supplied with QueryResult, QueryWithAttributesResult and ListDomainsResult.
+------------------------------------------------------------------------
+r192 | dkavanagh | 2008-10-06 10:24:54 -0400 (Mon, 06 Oct 2008) | 2 lines
+
+Use LinkedHashMap to ensure order of possibly sorted queries
+------------------------------------------------------------------------
+r191 | dkavanagh | 2008-10-05 16:32:53 -0400 (Sun, 05 Oct 2008) | 2 lines
+
+fix for issue #25, return more information in ImageDescription
+------------------------------------------------------------------------
+r190 | dkavanagh | 2008-09-11 21:45:48 -0400 (Thu, 11 Sep 2008) | 2 lines
+
+fixed message in exception
+------------------------------------------------------------------------
+r189 | jerome.bernard | 2008-09-10 19:15:55 -0400 (Wed, 10 Sep 2008) | 1 line
+
+Translate empty tokens to null (meaning no default tokens).
+------------------------------------------------------------------------
+r188 | jerome.bernard | 2008-09-10 11:16:07 -0400 (Wed, 10 Sep 2008) | 2 lines
+
+Added support for the Edit pipeline.
+Refactored System.out log statements into Log statements.
+------------------------------------------------------------------------
+r187 | jerome.bernard | 2008-09-10 11:01:32 -0400 (Wed, 10 Sep 2008) | 2 lines
+
+Added support for reserve and settle operations.
+Replace amount arguments specified as double to Amount instances.
+------------------------------------------------------------------------
+r186 | jerome.bernard | 2008-09-09 12:02:14 -0400 (Tue, 09 Sep 2008) | 1 line
+
+Added basic validation of arguments in order to avoid unnecessary calls to FPS.
+------------------------------------------------------------------------
+r185 | jerome.bernard | 2008-09-09 06:07:19 -0400 (Tue, 09 Sep 2008) | 1 line
+
+Oops. The enum should have been public.
+------------------------------------------------------------------------
+r184 | jerome.bernard | 2008-09-09 05:53:07 -0400 (Tue, 09 Sep 2008) | 2 lines
+
+Added support for transaction role filtering when searching for transactions.
+Improved JavaDoc.
+------------------------------------------------------------------------
+r183 | jerome.bernard | 2008-09-08 18:25:19 -0400 (Mon, 08 Sep 2008) | 1 line
+
+Added support for Soft Descriptor Customization.
+------------------------------------------------------------------------
+r182 | jerome.bernard | 2008-09-08 13:51:39 -0400 (Mon, 08 Sep 2008) | 1 line
+
+Avoid rounding errors.
+------------------------------------------------------------------------
+r181 | jerome.bernard | 2008-09-08 13:33:33 -0400 (Mon, 08 Sep 2008) | 1 line
+
+First pass for the FPS support.
+------------------------------------------------------------------------
+r180 | jerome.bernard | 2008-09-07 08:43:59 -0400 (Sun, 07 Sep 2008) | 1 line
+
+More concise code.
+------------------------------------------------------------------------
+r179 | dkavanagh | 2008-09-04 20:13:33 -0400 (Thu, 04 Sep 2008) | 2 lines
+
+updated release process
+------------------------------------------------------------------------
+
