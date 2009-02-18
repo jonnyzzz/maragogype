@@ -1722,10 +1722,10 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     /**
      * Generate a signed URL for the CBUI pipeline.
      */
-    public String acquireMultiUseToken(String callerReference, Amount amount,
+    public String acquireMultiUseToken(String callerReference,
                                        Amount globalLimit, String returnURL, String reason)
     throws MalformedURLException, FPSException {
-        return acquireMultiUseToken(callerReference, amount, null, null, globalLimit, null,
+        return acquireMultiUseToken(callerReference, null, null, globalLimit, null,
                 null, null, null,
                 null, null, null,
                 returnURL, reason);
@@ -1734,7 +1734,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     /**
      * Generate a signed URL for the CBUI pipeline.
      */
-    public String acquireMultiUseToken(String callerReference, Amount amount,
+    public String acquireMultiUseToken(String callerReference,
                                        List<String> recipientTokens, AmountType amountType, Amount globalLimit, List<UsageLimit> usageLimits,
                                        Boolean isRecipientCobranding, Boolean collectShippingAddress, Address address,
                                        Date validityStart, Date validityExpiry, PaymentMethod paymentMethod,
@@ -1742,8 +1742,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     throws FPSException, MalformedURLException {
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put("callerReference", callerReference);
-        parameters.put("currencyCode", amount.getCurrencyCode());
-        parameters.put("transactionAmount", amount.getAmount().toString());
+        if (globalLimit != null)
+            parameters.put("currencyCode", globalLimit.getCurrencyCode());
 
         if (reason != null)
             parameters.put("paymentReason", reason);
