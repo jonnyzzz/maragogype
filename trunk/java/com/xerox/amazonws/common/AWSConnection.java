@@ -224,11 +224,14 @@ public abstract class AWSConnection {
         }
 		if (sigVersion == 2) {	// convert "+" to "%20"
 			StringBuilder tmp = new StringBuilder();
-			StringTokenizer st = new StringTokenizer(encoded, "+", true);
+			StringTokenizer st = new StringTokenizer(encoded, "+*", true);
 			while (st.hasMoreTokens()) {
 				String tok = st.nextToken();
 				if (tok.equals("+")) {
 					tmp.append("%20");
+				}
+				else if (tok.equals("*")) {
+					tmp.append("%2A");
 				}
 				else {
 					tmp.append(tok);
