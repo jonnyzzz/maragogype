@@ -1743,7 +1743,7 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("Storage.S3.Prefix", prefix);
 		String jsonPolicy = policy.getPolicyString();
 		params.put("Storage.S3.UploadPolicy", jsonPolicy);
-		params.put("Storage.S3.UploadPolicySignature", encode(getSecretAccessKey(), jsonPolicy, false));
+		params.put("Storage.S3.UploadPolicySignature", encode(getSecretAccessKey(), jsonPolicy, false, "HmacSHA1"));
 		GetMethod method = new GetMethod();
 		try {
 			BundleInstanceResponse response =

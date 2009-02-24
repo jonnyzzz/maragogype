@@ -35,11 +35,13 @@ public class UploadPolicy {
 	private int minutesToExpiration;
 	private String bucket;
 	private String acl;
+	private String prefix;
 
-	public UploadPolicy(int minutesToExpiration, String bucket, String acl) {
+	public UploadPolicy(int minutesToExpiration, String bucket, String acl, String prefix) {
 		this.minutesToExpiration = minutesToExpiration;
 		this.bucket = bucket;
 		this.acl = acl;
+		this.prefix = prefix;
 	}
 
 	UploadPolicy(String jsonPolicyString) {
@@ -58,6 +60,10 @@ public class UploadPolicy {
 		return acl;
 	}
 
+	public String getPrefix() {
+		return prefix;
+	}
+
 	public String getPolicyString() {
 		StringBuilder json = new StringBuilder("{\n");
 		json.append("\"expiration\": \"");
@@ -68,13 +74,17 @@ public class UploadPolicy {
 		json.append("\",\n");
 		json.append("\"conditions\": [\n");
 
+		json.append("{\"acl\": \"");
+		json.append(acl);
+		json.append("\"},\n");
+
 		json.append("{\"bucket\": \"");
 		json.append(bucket);
 		json.append("\"},\n");
 
-		json.append("{\"acl\": \"");
-		json.append(acl);
-		json.append("\"},\n");
+		json.append("[\"starts-with\", \"$key\", \"");
+		json.append(prefix);
+		json.append("\"],\n");
 
 		json.append("]\n}");
 		logger.debug("JSON policy string = "+json.toString());

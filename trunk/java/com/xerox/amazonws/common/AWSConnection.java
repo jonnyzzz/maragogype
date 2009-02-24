@@ -161,28 +161,33 @@ public abstract class AWSConnection {
      */
     protected String encode(String awsSecretKey, String canonicalString,
                                 boolean urlencode) {
+		return encode(awsSecretKey, canonicalString, urlencode, getAlgorithm());
+	}
+
+    protected String encode(String awsSecretKey, String canonicalString,
+                                boolean urlencode, String algorithm) {
 
         // The following HMAC/SHA1 code for the signature is taken from the
         // AWS Platform's implementation of RFC2104 (amazon.webservices.common.Signature)
         //
         // Acquire an HMAC/SHA1 from the raw key bytes.
         SecretKeySpec signingKey =
-            new SecretKeySpec(awsSecretKey.getBytes(), getAlgorithm());
+            new SecretKeySpec(awsSecretKey.getBytes(), algorithm);
 
         // Acquire the MAC instance and initialize with the signing key.
 		Mac mac = null;
 		synchronized (macSync) {
-			mac = macMap.get(getAlgorithm());
+			mac = macMap.get(algorithm);
 			if (mac == null || !lastSecretKey.equals(awsSecretKey)) {
 				try {
-					mac = Mac.getInstance(getAlgorithm());
+					mac = Mac.getInstance(algorithm);
 				} catch (NoSuchAlgorithmException e) {
 					// should not happen
 					throw new RuntimeException("Could not find sha1 algorithm", e);
 				}
 				try {
 					mac.init(signingKey);
-					macMap.put(getAlgorithm(), mac);
+					macMap.put(algorithm, mac);
 				} catch (InvalidKeyException e) {
 					// also should not happen
 					mac = null;
