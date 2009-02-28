@@ -41,6 +41,8 @@
 
 package com.xerox.amazonws.sdb;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -350,4 +352,86 @@ public class DataUtils {
         SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormat);
         return dateFormatter.parse(javaValue);
     }
+
+	// the offset added to negative significands to yield proper collating order
+	private static final BigDecimal SIGNIFICAND_COLLATOR = BigDecimal.TEN;
+	
+	// the offset used on certain exponents to yield proper collating order
+	private static final int EXPONENT_COLLATOR = 999;
+	
+	private static final DecimalFormat FULL_DECIMAL_FORMAT = new DecimalFormat();
+	static { FULL_DECIMAL_FORMAT.applyPattern("0.0000000000000000E000"); }
+	
+	private static final DecimalFormat SIGNIFICAND_FORMAT = new DecimalFormat();
+	static { SIGNIFICAND_FORMAT.applyPattern("0.0000000000000000"); }
+	
+	/* A Java implementation of Doug Wood's work in progress
+	 * "Directory string representation for floating point values" 
+	 * http://tools.ietf.org/html/draft-wood-ldapext-float-00
+	 * 
+	 * Note: Section 3.5 of the above draft memo should be corrected to read:
+	 * 3.5 Negative mantissa and positive exponent (case 1)
+	 * When the exponent is positive and the mantissa are negative, the collating
+	 * sequence is flipped for both of them.  This is achieved by subtracting
+	 * the exponent from 999, and adding the mantissa to 10.
+	 * 
+	 * Note: the term 'significand' is used here rather than 'mantissa'.
+	 * Infinity and NaN are not handled.
+	 */
+	public static String encodeDouble(double d) {
+		// todo: replace String manipulation with math
+		String decimalString = FULL_DECIMAL_FORMAT.format(d);
+		int splitPoint = decimalString.indexOf('E');
+		String significand = decimalString.substring(0, splitPoint);
+		String exponent = decimalString.substring(splitPoint + 1);
+		boolean negativeExponent = exponent.startsWith("-");
+		String result;
+		
+		if (significand.startsWith("-")) {
+			// BigDecimal here preserves significand's last digit during add()
+			BigDecimal significandValue = new BigDecimal(significand);
+			BigDecimal collatedSignificand = significandValue.add(SIGNIFICAND_COLLATOR);
+			String formattedSignificand = SIGNIFICAND_FORMAT.format(collatedSignificand);
+			
+			if (!negativeExponent) { 
+				int exponentValue = EXPONENT_COLLATOR - Integer.parseInt(exponent);
+				result = "1 " + exponentValue + " "+ formattedSignificand;
+			} else {                 
+				result = "2 " + exponent.substring(1) + " " + formattedSignificand;
+			}
+		}  else {
+			if (d == 0.0D) {      
+				result = "3 000 0.0000000000000000";
+			} else if (negativeExponent) {  
+				int exponentValue = Integer.parseInt(exponent) + EXPONENT_COLLATOR;
+				result = "4 " + exponentValue + " " + significand;
+			} else {                 
+				result = "5 " + exponent + " " + significand;
+			}
+		}
+		return result;
+	}
+	
+	public static double decodeDouble(String s) {
+		char caseNumber = s.charAt(0);
+		if (caseNumber == '3') { return 0.0D; }
+		String exponentString = s.substring(2, 5);
+		int exponent = Integer.parseInt(exponentString);
+		String significand = s.substring(6);
+		
+		if (caseNumber == '4') {
+			exponent -= EXPONENT_COLLATOR;
+		} else if (caseNumber == '1' || caseNumber == '2'){
+			BigDecimal collatedSignificand = new BigDecimal(significand);
+			BigDecimal significandValue = collatedSignificand.subtract(SIGNIFICAND_COLLATOR);
+			significand = significandValue.toString();
+			if (caseNumber == '1') {
+				exponent = EXPONENT_COLLATOR - exponent;
+			} else if (caseNumber == '2'){
+				exponent = -exponent;
+			}
+		}
+		return Double.parseDouble(significand + "E" + exponent);
+	}
+	
 }
