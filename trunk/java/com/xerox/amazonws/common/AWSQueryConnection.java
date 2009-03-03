@@ -27,7 +27,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.text.Collator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -295,7 +294,7 @@ public class AWSQueryConnection extends AWSConnection {
 				else { first = false; }
 				resource.append(key);
 				resource.append("=");
-				resource.append(urlencode(qParams.get(key)));
+				resource.append(SignerEncoder.encode(qParams.get(key)));
 //				System.err.println("encoded params "+key+" :"+(urlencode(qParams.get(key))));
 			}
 		}
