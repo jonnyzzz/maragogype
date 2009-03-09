@@ -90,6 +90,7 @@ public class sdbShell {
 				return;
 			}
 			SimpleDB sds = new SimpleDB(awsAccessId, awsSecretKey, true);
+			sds.setSignatureVersion(2);
 
 			InputStream iStr = System.in;
 			if (args.length > 2) {
@@ -158,25 +159,35 @@ public class sdbShell {
 				}
 				else if (cmd.equals("aa") || cmd.equals("addattr")) {
 					if (checkDomain(dom)) {
-						if (st.countTokens() != 3) {
+						if (st.countTokens() < 3) {
 							System.out.println("Error: need item id, attribute name and value.");
 							continue;
 						}
 						Item item = dom.getItem(st.nextToken());
 						List<ItemAttribute> list = new ArrayList<ItemAttribute>();
-						list.add(new ItemAttribute(st.nextToken(), st.nextToken(), false));
+						String key = st.nextToken();
+						String value = st.nextToken();
+						if (line.indexOf('"') > -1) {
+							value = line.substring(line.indexOf('"')+1, line.lastIndexOf('"'));
+						}
+						list.add(new ItemAttribute(key, value, false));
 						item.putAttributes(list);
 					}
 				}
 				else if (cmd.equals("ra") || cmd.equals("replaceattr")) {
 					if (checkDomain(dom)) {
-						if (st.countTokens() != 3) {
+						if (st.countTokens() < 3) {
 							System.out.println("Error: need item id, attribute name and value.");
 							continue;
 						}
 						Item item = dom.getItem(st.nextToken());
 						List<ItemAttribute> list = new ArrayList<ItemAttribute>();
-						list.add(new ItemAttribute(st.nextToken(), st.nextToken(), true));
+						String key = st.nextToken();
+						String value = st.nextToken();
+						if (line.indexOf('"') > -1) {
+							value = line.substring(line.indexOf('"')+1, line.lastIndexOf('"'));
+						}
+						list.add(new ItemAttribute(key, value, true));
 						item.putAttributes(list);
 					}
 				}
@@ -208,7 +219,7 @@ public class sdbShell {
 							continue;
 						}
 						Item item = dom.getItem(st.nextToken());
-						List<ItemAttribute> attrs = item.getAttributes(st.nextToken());
+						List<ItemAttribute> attrs = item.getAttributes(new ArrayList<String>());
 						System.out.println("Item : "+item.getIdentifier());
 						for (ItemAttribute attr : attrs) {
 							System.out.println(" "+attr.getName()+" = "+attr.getValue());
@@ -311,7 +322,7 @@ public class sdbShell {
 		System.out.println("setdomain(sd) <domain name> : set current domain");
 		System.out.println("domainmetadata(dm) : show current domain metadata");
 		System.out.println("addattr(aa) <item id> <attr name> <attr value> : add attribute to item in current domain");
-		System.out.println("replaceattr(aa) <item id> <attr name> <attr value> : replace attribute to item in current domain");
+		System.out.println("replaceattr(ra) <item id> <attr name> <attr value> : replace attribute to item in current domain");
 		System.out.println("deleteattr(da) <item id> <attr name> : delete attribute of item in current domain");
 		System.out.println("deleteitem(di) <item id> : delete item in current domain");
 		System.out.println("list(l) or <filter string> : lists items matching filter in current domain");
