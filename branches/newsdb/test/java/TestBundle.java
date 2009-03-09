@@ -29,7 +29,7 @@ public class TestBundle {
 		ConsoleOutput cons = ec2.getConsoleOutput(args[0]);
 		logger.info("console output = "+cons.getOutput());
 		BundleInstanceInfo info = ec2.bundleInstance(args[0], props.getProperty("aws.accessId"), 
-								args[1], args[2], new UploadPolicy(60*12, args[1], "ec2-bundle-read"));
+								args[1], args[2], new UploadPolicy(60*12, args[1], "ec2-bundle-read", args[2]));
 		logger.info("Bunding instance "+args[0]);
 
 		List<BundleInstanceInfo> tasks = ec2.describeBundleTasks(new String [] {});

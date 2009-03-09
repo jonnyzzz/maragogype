@@ -9,16 +9,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import com.xerox.amazonws.sdb.Domain;
-import com.xerox.amazonws.sdb.DomainMetadataResult;
-import com.xerox.amazonws.sdb.Item;
-import com.xerox.amazonws.sdb.ItemAttribute;
-import com.xerox.amazonws.sdb.ItemListener;
-import com.xerox.amazonws.sdb.ListDomainsResult;
-import com.xerox.amazonws.sdb.QueryResult;
-import com.xerox.amazonws.sdb.QueryWithAttributesResult;
-import com.xerox.amazonws.sdb.SDBException;
-import com.xerox.amazonws.sdb.SimpleDB;
+import com.xerox.amazonws.simpledb.Domain;
+import com.xerox.amazonws.simpledb.DomainMetadataResult;
+import com.xerox.amazonws.simpledb.Item;
+import com.xerox.amazonws.simpledb.ListDomainsResult;
+import com.xerox.amazonws.simpledb.SelectResult;
+import com.xerox.amazonws.simpledb.SDBException;
+import com.xerox.amazonws.simpledb.SimpleDB;
 
 /**
  * Sample application demonstrating various operations against SDS.  
@@ -26,43 +23,6 @@ import com.xerox.amazonws.sdb.SimpleDB;
  */
 public class sdbShell {
 	static int itemCount;
-
-	/**
-	 * Executes specified query against given domain while demonstrating pagination.
-	 *
-	 * @param domain	    query domain 
-	 * @param queryString	query string
-	 * @param maxResults	maximum number of values to return per page of results
-	 */
-	private static void executeQuery(Domain domain, String queryString, int maxResults) {
-
-        String nextToken = "";
-        do {
-            try {
-                QueryResult result = domain.listItems(queryString, nextToken, maxResults);
-				List<Item> items = result.getItemList();
-                for (Item i : items) {
-                    System.out.println(i.getIdentifier());
-                }
-                nextToken = result.getNextToken();
-            }
-            catch (SDBException ex) {
-                System.out.println("Query '" + queryString + "' Failure: ");
-                ex.printStackTrace();
-            }
-        } while (nextToken != null && nextToken.trim().length() > 0);
-        System.out.println("Done.");
-	}
-
-	/**
-	 * Executes specified query against given domain.
-	 *
-	 * @param domain	    query domain 
-	 * @param queryString	query string
-	 */
-	private static void executeQuery(Domain domain, String queryString) {
-        executeQuery(domain, queryString, 0);
-    }
 
 	/**
 	 * Main execution body.
@@ -163,17 +123,18 @@ public class sdbShell {
 							System.out.println("Error: need item id, attribute name and value.");
 							continue;
 						}
-						Item item = dom.getItem(st.nextToken());
-						List<ItemAttribute> list = new ArrayList<ItemAttribute>();
+						String itemId = st.nextToken();
+						Map<String, String> map = new HashMap<String, String>();
 						String key = st.nextToken();
 						String value = st.nextToken();
 						if (line.indexOf('"') > -1) {
 							value = line.substring(line.indexOf('"')+1, line.lastIndexOf('"'));
 						}
-						list.add(new ItemAttribute(key, value, false));
-						item.putAttributes(list);
+						map.put(key, value);
+						dom.addItem(itemId, map);
 					}
 				}
+	/*
 				else if (cmd.equals("ra") || cmd.equals("replaceattr")) {
 					if (checkDomain(dom)) {
 						if (st.countTokens() < 3) {
@@ -203,6 +164,7 @@ public class sdbShell {
 						item.deleteAttributes(list);
 					}
 				}
+*/
 				else if (cmd.equals("di") || cmd.equals("deleteitem")) {
 					if (checkDomain(dom)) {
 						if (st.countTokens() != 1) {
@@ -219,53 +181,11 @@ public class sdbShell {
 							continue;
 						}
 						Item item = dom.getItem(st.nextToken());
-						List<ItemAttribute> attrs = item.getAttributes(new ArrayList<String>());
 						System.out.println("Item : "+item.getIdentifier());
-						for (ItemAttribute attr : attrs) {
-							System.out.println(" "+attr.getName()+" = "+attr.getValue());
+						for (String key : item.getAttributes().keySet()) {
+							String value = item.getAttributes().get(key);
+							System.out.println("  "+key+" = "+value);
 						}
-					}
-				}
-				else if (cmd.equals("gi") || cmd.equals("getitems")) {
-					if (checkDomain(dom)) {
-						itemCount = 0;
-						dom.setMaxThreads(20);
-//						long start = System.currentTimeMillis();
-						//dom.listItemsAttributes("", new ItemListener() {
-						dom.listItemsWithAttributes("", null, new ItemListener() {
-								public synchronized void itemAvailable(String id, List<ItemAttribute> attrs) {
-									System.out.println("Item : "+id);
-									for (ItemAttribute attr : attrs) {
-										System.out.println("  "+attr.getName()+" = "+filter(attr.getValue()));
-									}
-									itemCount++;
-								}
-							});
-//						long end = System.currentTimeMillis();
-//						System.out.println("Time : "+((int)(end-start)/1000.0));
-//						System.out.println("Number of items returned : "+itemCount);
-					}
-				}
-				else if (cmd.equals("ga") || cmd.equals("getattributes")) {
-					if (checkDomain(dom)) {
-						itemCount = 0;
-//						long start = System.currentTimeMillis();
-						String nextToken = null;
-						do {
-							QueryWithAttributesResult qwar = dom.listItemsWithAttributes("", null, nextToken, 250);
-							Map<String, List<ItemAttribute>> items = qwar.getItems();
-							for (String id : items.keySet()) {
-								System.out.println("Item : "+id);
-								for (ItemAttribute attr : items.get(id)) {
-									System.out.println("  "+attr.getName()+" = "+filter(attr.getValue()));
-								}
-								itemCount++;
-							}
-							nextToken = qwar.getNextToken();
-						} while (nextToken != null && !nextToken.trim().equals(""));
-//						long end = System.currentTimeMillis();
-//						System.out.println("Time : "+((int)(end-start)/1000.0));
-//						System.out.println("Number of items returned : "+itemCount);
 					}
 				}
 				else if (cmd.equals("select")) {
@@ -273,28 +193,28 @@ public class sdbShell {
 						itemCount = 0;
 //						long start = System.currentTimeMillis();
 						String nextToken = null;
-						do {
-							QueryWithAttributesResult qwar = dom.selectItems(line, nextToken);
-							Map<String, List<ItemAttribute>> items = qwar.getItems();
-							for (String id : items.keySet()) {
-								System.out.println("Item : "+id);
-								for (ItemAttribute attr : items.get(id)) {
-									System.out.println("  "+attr.getName()+" = "+filter(attr.getValue()));
+						try {
+							do {
+								SelectResult sr = dom.selectItems(line, nextToken);
+								List<Item> items = sr.getItems();
+								for (Item item : items) {
+									System.out.println("Item : "+item.getIdentifier());
+									for (String key : item.getAttributes().keySet()) {
+										String value = item.getAttributes().get(key);
+										System.out.println("  "+key+" = "+value);
+									}
+									itemCount++;
 								}
-								itemCount++;
-							}
-							nextToken = qwar.getNextToken();
-						} while (nextToken != null && !nextToken.trim().equals(""));
+								nextToken = sr.getNextToken();
+							} while (nextToken != null && !nextToken.trim().equals(""));
+						} catch (SDBException ex) {
+							System.out.println(line + " Failure: ");
+							ex.printStackTrace();
+						}
 //						long end = System.currentTimeMillis();
 //						System.out.println("Time : "+((int)(end-start)/1000.0));
 //						System.out.println("Number of items returned : "+itemCount);
 					}
-				}
-				else if (cmd.equals("l") || cmd.equals("list")) {
-					if (checkDomain(dom)) executeQuery(dom, null);
-				}
-				else {
-					if (checkDomain(dom)) executeQuery(dom, line);
 				}
 			}
 		} catch (Exception ex) {
@@ -325,10 +245,8 @@ public class sdbShell {
 		System.out.println("replaceattr(ra) <item id> <attr name> <attr value> : replace attribute to item in current domain");
 		System.out.println("deleteattr(da) <item id> <attr name> : delete attribute of item in current domain");
 		System.out.println("deleteitem(di) <item id> : delete item in current domain");
-		System.out.println("list(l) or <filter string> : lists items matching filter in current domain");
 		System.out.println("item(i) <item id> : shows item attributes");
 		System.out.println("select <expression> : runs a SQL like query against the domain specified");
-		System.out.println("getitems(gi) : shows attributes for multiple items");
 		System.out.println("help(h,?) : show help");
 		System.out.println("quit(q) : exit the shell");
 	}
