@@ -183,7 +183,7 @@ public class Domain extends AWSQueryConnection {
 		try {
 			GetAttributesResponse response =
 						makeRequestInt(method, "GetAttributes", params, GetAttributesResponse.class);
-			Item newItem = new Item(identifier);
+			Item newItem = new ItemVO(identifier);
 			for (Attribute a : response.getGetAttributesResult().getAttributes()) {
 				String name = a.getName().getValue();
 				String encoding = a.getName().getEncoding();
@@ -229,7 +229,7 @@ public class Domain extends AWSQueryConnection {
 				if (encoding != null && encoding.equals("base64")) {
 					iName = new String(Base64.decodeBase64(iName.getBytes()));
 				}
-				Item newItem = new Item(iName);
+				Item newItem = new ItemVO(iName);
 				for (Attribute a : i.getAttributes()) {
 					String name = a.getName().getValue();
 					encoding = a.getName().getEncoding();

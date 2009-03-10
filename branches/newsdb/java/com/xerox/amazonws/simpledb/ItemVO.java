@@ -17,24 +17,41 @@
 
 package com.xerox.amazonws.simpledb;
 
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
- * This class represents an item in SimpleDB. To modify this item,
- * use the interfaces in Domain.
+ * This class represents an item in SimpleDB. To modify this item, use the interfaces in Domain.
  *
  * @author D. Kavanagh
  * @author developer@dotech.com
  */
-public interface Item {
+public class ItemVO implements Item {
+    private static Log logger = LogFactory.getLog(Item.class);
+
+	private String identifier;
+	private Map<String, String> attributes;
+
+    ItemVO(String identifier) {
+		this.identifier = identifier;
+		attributes = new HashMap<String, String>();
+	}
 
 	/**
 	 * Gets the name of the identifier that is unique to this Item
 	 *
      * @return the id
 	 */
-	public String getIdentifier();
+	public String getIdentifier() {
+		return identifier;
+	}
 
 	/**
 	 * Gets a map of all attributes for this item
@@ -42,5 +59,7 @@ public interface Item {
      * @return the map of attributes
 	 * @throws SDBException wraps checked exceptions
 	 */
-	public Map<String, String> getAttributes();
+	public Map<String, String> getAttributes() {
+		return this.attributes;
+	}
 }
