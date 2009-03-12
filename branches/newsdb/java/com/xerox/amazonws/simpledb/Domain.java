@@ -57,6 +57,7 @@ public class Domain extends AWSQueryConnection {
     private static Log logger = LogFactory.getLog(Domain.class);
 
 	private String domainName;
+	private ItemCache cache;
 
     protected Domain(String domainName, String awsAccessId,
 							String awsSecretKey, boolean isSecure,
@@ -88,15 +89,17 @@ public class Domain extends AWSQueryConnection {
 		try {
 			DomainMetadataResponse response =
 						makeRequestInt(method, "DomainMetadata", params, DomainMetadataResponse.class);
+			com.xerox.amazonws.typica.sdb.jaxb.DomainMetadataResult result =
+									response.getDomainMetadataResult();
 			return new DomainMetadataResult(response.getResponseMetadata().getRequestId(),
 						response.getResponseMetadata().getBoxUsage(),
-						Integer.parseInt(response.getDomainMetadataResult().getItemCount()),
-						Integer.parseInt(response.getDomainMetadataResult().getAttributeValueCount()),
-						Integer.parseInt(response.getDomainMetadataResult().getAttributeNameCount()),
-						Long.parseLong(response.getDomainMetadataResult().getItemNamesSizeBytes()),
-						Long.parseLong(response.getDomainMetadataResult().getAttributeValuesSizeBytes()),
-						Long.parseLong(response.getDomainMetadataResult().getAttributeNamesSizeBytes()),
-						new Date(Long.parseLong(response.getDomainMetadataResult().getTimestamp())*1000));
+						Integer.parseInt(result.getItemCount()),
+						Integer.parseInt(result.getAttributeValueCount()),
+						Integer.parseInt(result.getAttributeNameCount()),
+						Long.parseLong(result.getItemNamesSizeBytes()),
+						Long.parseLong(result.getAttributeValuesSizeBytes()),
+						Long.parseLong(result.getAttributeNamesSizeBytes()),
+						new Date(Long.parseLong(result.getTimestamp())*1000));
 		} finally {
 			method.releaseConnection();
 		}
@@ -146,6 +149,41 @@ public class Domain extends AWSQueryConnection {
 			method.releaseConnection();
 		}
 	}
+
+	/**
+	 * Replace attributes on an item. Using this call will force attribute values to be
+	 * with the new ones supplied.
+	 *
+	 * @param identifier the name of the item to be added
+	 * @param attributes the attributes to associate with this item
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public SDBResult replaceAttributes(String identifier, Map<String, String> attributes) throws SDBException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("DomainName", domainName);
+		params.put("ItemName", identifier);
+		int i=1;
+		for (String key : attributes.keySet()) {
+			String val = attributes.get(key);
+			if (val != null) {
+				params.put("Attribute."+i+".Name", key);
+				params.put("Attribute."+i+".Value", val);
+				params.put("Attribute."+i+".Replace", "true");
+				i++;
+			}
+		}
+		GetMethod method = new GetMethod();
+		try {
+			PutAttributesResponse response =
+				makeRequestInt(method, "PutAttributes", params, PutAttributesResponse.class);
+			return new SDBResult(null, 
+						response.getResponseMetadata().getRequestId(),
+						response.getResponseMetadata().getBoxUsage());
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
 
 	/**
 	 * Deletes an item.
@@ -254,6 +292,14 @@ public class Domain extends AWSQueryConnection {
 		} finally {
 			method.releaseConnection();
 		}
+	}
+
+	public ItemCache getItemCache() {
+		return this.cache;
+	}
+
+	public void setCacheProvider(ItemCache cache) {
+		this.cache = cache;
 	}
 
 	static List<Domain> createList(String [] domainNames, String awsAccessKeyId,
