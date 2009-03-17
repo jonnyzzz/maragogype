@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -17,6 +18,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
+import javax.swing.text.BadLocationException;
 
 import com.xerox.amazonws.simpledb.Domain;
 import com.xerox.amazonws.simpledb.Item;
@@ -54,7 +56,6 @@ public class QueryTool extends JPanel implements ActionListener {
 		querySpace = new JTextArea();
 
 		results = new JTabbedPane();
-		//results.add("query1", new JTextArea());
 
 		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, querySpace, results);
 		querySpace.setMinimumSize(new Dimension(100, 100));
@@ -68,42 +69,66 @@ public class QueryTool extends JPanel implements ActionListener {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		final String query = querySpace.getText();
-		final JTextArea resultSpace = new JTextArea();
-		JScrollPane sp = new JScrollPane(resultSpace);
-		results.add("query", sp);
-		results.setSelectedComponent(sp);
-		new Thread(new Runnable() {
-			public void run() {
-				StringBuilder resText = new StringBuilder();
-				try {
-					int itemCount = 0;
-					long start = System.currentTimeMillis();
-					String nextToken = null;
-					do {
-						SelectResult sr = dom.selectItems(query, nextToken);
-						List<Item> items = sr.getItems();
-						for (Item item : items) {
-							resText.append("Item : "+item.getIdentifier()+"\n");
-							for (String key : item.getAttributes().keySet()) {
-								String value = item.getAttributes().get(key);
-								resText.append("  "+key+" = "+value+"\n");
-							}
-							itemCount++;
-						}
-						nextToken = sr.getNextToken();
-						resText.append("Box Usage :"+sr.getBoxUsage()+"\n");
-						updateResults(resultSpace, resText.toString());
-					} while (nextToken != null && !nextToken.trim().equals(""));
-					long end = System.currentTimeMillis();
-					resText.append("Time : "+((int)(end-start)/1000.0)+"\n");
-					resText.append("Number of items returned : "+itemCount+"\n");
-				} catch (SDBException ex) {
-					resText.append(ex.getMessage());
+		try {
+			int lineNum = querySpace.getLineOfOffset(querySpace.getCaretPosition())+1;
+			StringTokenizer st = new StringTokenizer(querySpace.getText(), "\n", true);
+			int lineCount = 0;
+			String val = "";
+			while (st.hasMoreTokens()) {
+				String tok = st.nextToken();
+				if (tok.equals("\n")) {
+					lineCount++;
 				}
-				updateResults(resultSpace, resText.toString());
+				else {
+					val = tok;
+				}
+				if (lineCount == lineNum) break;
 			}
-		}).start();
+			final String query = val;
+			final JTextArea resultSpace = new JTextArea();
+			JScrollPane sp = new JScrollPane(resultSpace);
+			results.add("query", sp);
+			results.setSelectedComponent(sp);
+			new Thread(new Runnable() {
+				public void run() {
+					StringBuilder resText = new StringBuilder();
+					try {
+						int itemCount = 0;
+						long start = System.currentTimeMillis();
+						String nextToken = null;
+						do {
+							SelectResult sr = dom.selectItems(query, nextToken);
+							List<Item> items = sr.getItems();
+							for (Item item : items) {
+								resText.append("Item : "+item.getIdentifier()+"\n");
+								for (String key : item.getAttributes().keySet()) {
+									String value = item.getAttributes().get(key);
+									resText.append("  "+key+" = "+value+"\n");
+								}
+								itemCount++;
+								if (itemCount > 1000) {
+									resText.append("\nquery terminated. max results hit\n");
+									break;
+								}
+							}
+							nextToken = sr.getNextToken();
+							resText.append("Box Usage :"+sr.getBoxUsage()+"\n");
+							updateResults(resultSpace, resText.toString());
+							if (itemCount > 1000) {
+								nextToken = null;
+							}
+						} while (nextToken != null && !nextToken.trim().equals(""));
+						long end = System.currentTimeMillis();
+						resText.append("Time : "+((int)(end-start)/1000.0)+"\n");
+						resText.append("Number of items returned : "+itemCount+"\n");
+					} catch (SDBException ex) {
+						resText.append(ex.getMessage());
+					}
+					updateResults(resultSpace, resText.toString());
+				}
+			}).start();
+		} catch (BadLocationException ex) {
+		}
 	}
 
 	void updateResults(final JTextArea area, final String data) {
