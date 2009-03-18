@@ -1,6 +1,6 @@
 //
 // typica - A client library for Amazon Web Services
-// Copyright (C) 2007,2008 Xerox Corporation
+// Copyright (C) 2007,2008,2009 Xerox Corporation
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -82,6 +82,10 @@ import com.xerox.amazonws.typica.jaxb.DescribeImagesResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseInfoType;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesResponseSetItemType;
+import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesOfferingsResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesOfferingsResponseSetItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsSetResponseType;
 import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsSetItemResponseType;
@@ -112,6 +116,7 @@ import com.xerox.amazonws.typica.jaxb.ProductCodeListType;
 import com.xerox.amazonws.typica.jaxb.ProductCodeItemType;
 import com.xerox.amazonws.typica.jaxb.ProductCodesSetType;
 import com.xerox.amazonws.typica.jaxb.ProductCodesSetItemType;
+import com.xerox.amazonws.typica.jaxb.PurchaseReservedInstancesOfferingResponse;
 import com.xerox.amazonws.typica.jaxb.RebootInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.RegionItemType;
 import com.xerox.amazonws.typica.jaxb.RegionSetType;
@@ -189,7 +194,7 @@ public class Jec2 extends AWSQueryConnection {
     {
 		super(awsAccessId, awsSecretKey, isSecure, server, port);
 		ArrayList<String> vals = new ArrayList<String>();
-		vals.add("2008-12-01");
+		vals.add("2009-03-01");
 		super.headers.put("Version", vals);
     }
 
@@ -1819,6 +1824,114 @@ public class Jec2 extends AWSQueryConnection {
 							task.getProgress(), task.getError()));
 			}
 			return ret;
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Returns a list of Reserved Instance offerings that are available for purchase.
+	 *
+	 * @param instanceIds specific reserved instance offering ids to return
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<ReservedInstances> describeReservedInstances(List<String> instanceIds) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		if (instanceIds != null) {
+			for (int i=0 ; i<instanceIds.size(); i++) {
+				params.put("ReservedInstanceId."+(i+1), instanceIds.get(i));
+			}
+		}
+		GetMethod method = new GetMethod();
+		try {
+			DescribeReservedInstancesResponse response =
+					makeRequestInt(method, "DescribeReservedInstances", params, DescribeReservedInstancesResponse.class);
+			List<ReservedInstances> ret = new ArrayList<ReservedInstances>();
+			Iterator task_iter = response.getReservedInstancesSet().getItems().iterator();
+			while (task_iter.hasNext()) {
+				DescribeReservedInstancesResponseSetItemType type =
+						(DescribeReservedInstancesResponseSetItemType) task_iter.next();
+				ret.add(new ReservedInstances(type.getReservedInstancesId(),
+							InstanceType.getTypeFromString(type.getInstanceType()),
+							type.getAvailabilityZone(),
+							type.getDuration(), type.getFixedPrice(), type.getUsagePrice(),
+							type.getProductDescription(),
+							type.getInstanceCount().intValue(), type.getState()));
+			}
+			return ret;
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Returns a list of Reserved Instance offerings that are available for purchase.
+	 *
+	 * @param offeringIds specific reserved instance offering ids to return
+	 * @param instanceType the type of instance offering to be returned
+	 * @param availabilityZone the availability zone to get offerings for
+	 * @param productDescription limit results to those with a matching product description
+	 * @return a list of product descriptions
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<ProductDescription> describeReservedInstancesOfferings(List<String> offeringIds,
+								InstanceType instanceType, String availabilityZone,
+								String productDescription) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		if (offeringIds != null) {
+			for (int i=0 ; i<offeringIds.size(); i++) {
+				params.put("ReservedInstancesOfferingId."+(i+1), offeringIds.get(i));
+			}
+		}
+		if (instanceType != null) {
+			params.put("InstanceType", instanceType.getTypeId());
+		}
+		if (availabilityZone != null) {
+			params.put("AvailabilityZone", availabilityZone);
+		}
+		if (productDescription != null) {
+			params.put("ProductDescription", productDescription);
+		}
+		GetMethod method = new GetMethod();
+		try {
+			DescribeReservedInstancesOfferingsResponse response =
+					makeRequestInt(method, "DescribeReservedInstancesOfferings", params, DescribeReservedInstancesOfferingsResponse.class);
+			List<ProductDescription> ret = new ArrayList<ProductDescription>();
+			Iterator task_iter = response.getReservedInstancesOfferingsSet().getItems().iterator();
+			while (task_iter.hasNext()) {
+				DescribeReservedInstancesOfferingsResponseSetItemType type =
+						(DescribeReservedInstancesOfferingsResponseSetItemType) task_iter.next();
+				ret.add(new ProductDescription(type.getReservedInstancesOfferingId(),
+							InstanceType.getTypeFromString(type.getInstanceType()),
+							type.getAvailabilityZone(),
+							type.getDuration(), type.getFixedPrice(), type.getUsagePrice(),
+							type.getProductDescription()));
+			}
+			return ret;
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * This method purchases a reserved instance offering.
+	 *
+	 * NOTE: Use With Caution!!! This can cost a lot of money!
+	 *
+	 * @param offeringId the id of the offering to purchase
+	 * @param instanceCount the number of instances to reserve
+	 * @return id of reserved instances
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public String purchaseReservedInstancesOffering(String offeringId, int instanceCount) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("ReservedInstanceOfferingId", offeringId);
+		params.put("InstanceCount", ""+instanceCount);
+		GetMethod method = new GetMethod();
+		try {
+			PurchaseReservedInstancesOfferingResponse response =
+					makeRequestInt(method, "PurchaseReservedInstancesOffering", params, PurchaseReservedInstancesOfferingResponse.class);
+			return response.getReservedInstancesId();
 		} finally {
 			method.releaseConnection();
 		}

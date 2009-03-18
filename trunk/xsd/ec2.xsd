@@ -2,8 +2,8 @@
 		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	 	   xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
 	 	   xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-		   xmlns:tns="http://ec2.amazonaws.com/doc/2008-12-01/"
-		   targetNamespace="http://ec2.amazonaws.com/doc/2008-12-01/"    
+		   xmlns:tns="http://ec2.amazonaws.com/doc/2009-03-01/"
+		   targetNamespace="http://ec2.amazonaws.com/doc/2009-03-01/"    
 		   jaxb:extensionBindingPrefixes="xjc"
 		   jaxb:version="2.0"
 		   elementFormDefault="qualified">
@@ -17,6 +17,7 @@
       </jaxb:globalBindings>
     </xs:appinfo>
   </xs:annotation>
+  
   
   <!-- RegisterImage request definitions -->
   
@@ -1497,5 +1498,138 @@
 	  <xs:element name="regionEndpoint" type="xs:string"/>
 	</xs:sequence>
   </xs:complexType>
+
+  <!-- DescribeReservedInstancesOfferings definitions -->
+  
+  <xs:element name="DescribeReservedInstancesOfferings" 
+			  type="tns:DescribeReservedInstancesOfferingsType"/>
+			  
+  <xs:complexType name="DescribeReservedInstancesOfferingsType">
+	<xs:sequence>
+	  <xs:element name="reservedInstancesOfferingsSet" type="tns:DescribeReservedInstancesOfferingsSetType"/>
+	  <xs:element name="instanceType" type="xs:string" minOccurs="0" />
+	  <xs:element name="availabilityZone" type="xs:string"  minOccurs="0" />
+	  <xs:element name="productDescription" type="xs:string"  minOccurs="0" />
+	</xs:sequence>
+  </xs:complexType>
+				
+  <xs:complexType name="DescribeReservedInstancesOfferingsSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:DescribeReservedInstancesOfferingsSetItemType" minOccurs="0" maxOccurs="unbounded"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeReservedInstancesOfferingsSetItemType">
+	<xs:sequence>
+	  <xs:element name="reservedInstancesOfferingId" type="xs:string"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- DescribeReservedInstancesOfferingsResponse definitions -->
+
+  <xs:element name="DescribeReservedInstancesOfferingsResponse" 
+			  type="tns:DescribeReservedInstancesOfferingsResponseType"/>
+
+  <xs:complexType name="DescribeReservedInstancesOfferingsResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>    
+	  <xs:element name="reservedInstancesOfferingsSet" type="tns:DescribeReservedInstancesOfferingsResponseSetType"/>
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="DescribeReservedInstancesOfferingsResponseSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:DescribeReservedInstancesOfferingsResponseSetItemType" minOccurs="0" maxOccurs="unbounded"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeReservedInstancesOfferingsResponseSetItemType">
+	<xs:sequence>
+	  <xs:element name="reservedInstancesOfferingId" type="xs:string" />
+	  <xs:element name="instanceType" type="xs:string" />
+	  <xs:element name="availabilityZone" type="xs:string" />
+	  <xs:element name="duration" type="xs:long" />
+	  <xs:element name="fixedPrice" type="xs:double" />
+	  <xs:element name="usagePrice" type="xs:double" />
+	  <xs:element name="productDescription" type="xs:string" />  
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- PurchaseReservedInstancesOffering definitions -->
+  <xs:element name="PurchaseReservedInstancesOffering" 
+			  type="tns:PurchaseReservedInstancesOfferingType"/>
+
+  <xs:complexType name="PurchaseReservedInstancesOfferingType">
+	<xs:sequence>
+	  <xs:element name="reservedInstancesOfferingId" type="xs:string" />
+	  <xs:element name="instanceCount" type="xs:int" />      
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- PurchaseReservedInstancesOfferingResponse definitions -->
+  <xs:element name="PurchaseReservedInstancesOfferingResponse" 
+			  type="tns:PurchaseReservedInstancesOfferingResponseType"/>
+
+  <xs:complexType name="PurchaseReservedInstancesOfferingResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>    
+	  <xs:element name="reservedInstancesId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- DescribeReservedInstances definitions -->
+  <xs:element name="DescribeReservedInstances" 
+			  type="tns:DescribeReservedInstancesType"/>
+
+  <xs:complexType name="DescribeReservedInstancesType">
+	<xs:sequence>
+	  <xs:element name="reservedInstancesSet" type="tns:DescribeReservedInstancesSetType" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeReservedInstancesSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:DescribeReservedInstancesSetItemType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeReservedInstancesSetItemType">
+	<xs:sequence>
+	  <xs:element name="reservedInstancesId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- DescribeReservedInstancesResponse definitions -->
+  <xs:element name="DescribeReservedInstancesResponse" 
+			  type="tns:DescribeReservedInstancesResponseType"/>
+
+  <xs:complexType name="DescribeReservedInstancesResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>    
+	  <xs:element name="reservedInstancesSet" type="tns:DescribeReservedInstancesResponseSetType" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeReservedInstancesResponseSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:DescribeReservedInstancesResponseSetItemType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeReservedInstancesResponseSetItemType">
+	<xs:sequence>
+	  <xs:element name="reservedInstancesId" type="xs:string" />
+	  <xs:element name="instanceType" type="xs:string" />
+	  <xs:element name="availabilityZone" type="xs:string" />
+	  <xs:element name="start" type="xs:dateTime" />
+	  <xs:element name="duration" type="xs:long" />
+	  <xs:element name="usagePrice" type="xs:double" />
+	  <xs:element name="fixedPrice" type="xs:double" />
+	  <xs:element name="instanceCount" type="xs:integer" />
+	  <xs:element name="productDescription" type="xs:string" />
+	  <xs:element name="state" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+
 
 </xs:schema>
