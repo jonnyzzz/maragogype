@@ -25,6 +25,13 @@ public interface ItemCache {
 	public void putItem(Item i);
 
 	/**
+	 * Removes an item from the cache.
+	 *
+	 * @param id the identifier for the item being removed
+	 */
+	public void removeItem(String id);
+
+	/**
 	 * Retrieves a complete list of items in the cache
 	 */
 	public List<Item> itemSet();

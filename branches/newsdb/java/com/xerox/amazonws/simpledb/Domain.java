@@ -132,9 +132,6 @@ public class Domain extends AWSQueryConnection {
 			if (val != null) {
 				params.put("Attribute."+i+".Name", key);
 				params.put("Attribute."+i+".Value", val);
-//				if (attr.isReplace()) {
-//					params.put("Attribute."+i+".Replace", "true");
-//				}
 				i++;
 			}
 		}
@@ -142,6 +139,20 @@ public class Domain extends AWSQueryConnection {
 		try {
 			PutAttributesResponse response =
 				makeRequestInt(method, "PutAttributes", params, PutAttributesResponse.class);
+			if (cache != null) {
+				// create new item object
+				Item newItem = new ItemVO(identifier);
+				Map<String, String> attrs = newItem.getAttributes();
+				// throw attrs into it
+				params.putAll(attributes);
+				Item old = cache.getItem(identifier);
+				if (old != null) {
+					// merge cached attrs with those just set
+					params.putAll(old.getAttributes());
+				}
+				// place/replace item in cache
+				cache.putItem(newItem);
+			}
 			return new SDBResult(null, 
 						response.getResponseMetadata().getRequestId(),
 						response.getResponseMetadata().getBoxUsage());
@@ -176,6 +187,24 @@ public class Domain extends AWSQueryConnection {
 		try {
 			PutAttributesResponse response =
 				makeRequestInt(method, "PutAttributes", params, PutAttributesResponse.class);
+			if (cache != null) {
+				// create new item object
+				Item newItem = new ItemVO(identifier);
+				Map<String, String> attrs = newItem.getAttributes();
+				// throw attrs into it
+				params.putAll(attributes);
+				Item old = cache.getItem(identifier);
+				if (old != null) {
+					// merge cached attrs, but strip replaced attrs out
+					Map<String, String> oldAttrs = old.getAttributes();
+					for (String key: attributes.keySet()) {
+						oldAttrs.remove(key);
+					}
+					params.putAll(oldAttrs);
+				}
+				// place/replace item in cache
+				cache.putItem(newItem);
+			}
 			return new SDBResult(null, 
 						response.getResponseMetadata().getRequestId(),
 						response.getResponseMetadata().getBoxUsage());
@@ -199,6 +228,9 @@ public class Domain extends AWSQueryConnection {
 		try {
 			DeleteAttributesResponse response =
 				makeRequestInt(method, "DeleteAttributes", params, DeleteAttributesResponse.class);
+			if (cache != null) {
+				cache.removeItem(identifier);
+			}
 			return new SDBResult(null, 
 						response.getResponseMetadata().getRequestId(),
 						response.getResponseMetadata().getBoxUsage());
@@ -214,6 +246,13 @@ public class Domain extends AWSQueryConnection {
 	 * @throws SDBException wraps checked exceptions
 	 */
 	public Item getItem(String identifier) throws SDBException {
+		if (cache != null) {
+			Item cached = cache.getItem(identifier);
+			if (cached != null) {
+				return cached;
+			}
+			// else, go fetch it anyway
+		}
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", domainName);
 		params.put("ItemName", identifier);
@@ -234,6 +273,9 @@ public class Domain extends AWSQueryConnection {
 					value = new String(Base64.decodeBase64(value.getBytes()));
 				}
 				newItem.getAttributes().put(name, value);
+			}
+			if (cache != null) {
+				cache.putItem(newItem);
 			}
 			return newItem;
 		} finally {

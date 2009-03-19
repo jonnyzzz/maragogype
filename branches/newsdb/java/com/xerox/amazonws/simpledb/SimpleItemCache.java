@@ -33,6 +33,15 @@ public class SimpleItemCache implements ItemCache {
 	}
 
 	/**
+	 * Removes an item from the cache.
+	 *
+	 * @param id the identifier for the item being removed
+	 */
+	public void removeItem(String id) {
+		_cache.remove(id);
+	}
+
+	/**
 	 * Retrieves a complete list of items in the cache
 	 */
 	public List<Item> itemSet() {

@@ -16,6 +16,7 @@ import com.xerox.amazonws.simpledb.ListDomainsResult;
 import com.xerox.amazonws.simpledb.SelectResult;
 import com.xerox.amazonws.simpledb.SDBException;
 import com.xerox.amazonws.simpledb.SimpleDB;
+import com.xerox.amazonws.simpledb.SimpleItemCache;
 
 /**
  * Sample application demonstrating various operations against SDS.  
@@ -103,6 +104,7 @@ public class sdbShell {
 						continue;
 					}
 					dom = sds.getDomain(st.nextToken());
+					dom.setCacheProvider(new SimpleItemCache());
 				}
 				else if (cmd.equals("dm") || cmd.equals("domainmetadata")) {
 					if (checkDomain(dom)) {
@@ -180,12 +182,15 @@ public class sdbShell {
 							System.out.println("Error: need item id.");
 							continue;
 						}
+						long start = System.currentTimeMillis();
 						Item item = dom.getItem(st.nextToken());
+						long end = System.currentTimeMillis();
 						System.out.println("Item : "+item.getIdentifier());
 						for (String key : item.getAttributes().keySet()) {
 							String value = item.getAttributes().get(key);
 							System.out.println("  "+key+" = "+value);
 						}
+						System.out.println("Time : "+((int)(end-start)/1000.0));
 					}
 				}
 				else if (cmd.equals("select")) {
