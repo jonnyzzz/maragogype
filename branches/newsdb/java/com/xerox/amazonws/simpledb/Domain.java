@@ -20,11 +20,15 @@ package com.xerox.amazonws.simpledb;
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 
@@ -122,17 +126,21 @@ public class Domain extends AWSQueryConnection {
 	 * @param attributes the attributes to associate with this item
 	 * @throws SDBException wraps checked exceptions
 	 */
-	public SDBResult addItem(String identifier, Map<String, String> attributes) throws SDBException {
+	public SDBResult addItem(String identifier, Map<String, Set<String>> attributes) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", domainName);
 		params.put("ItemName", identifier);
 		int i=1;
 		for (String key : attributes.keySet()) {
-			String val = attributes.get(key);
-			if (val != null) {
-				params.put("Attribute."+i+".Name", key);
-				params.put("Attribute."+i+".Value", val);
-				i++;
+			Set<String> vals = attributes.get(key);
+			if (vals != null && vals.size() > 0) {
+				Iterator<String> iter = vals.iterator();
+				while (iter.hasNext()) {
+					String val = iter.next();
+					params.put("Attribute."+i+".Name", key);
+					params.put("Attribute."+i+".Value", val);
+					i++;
+				}
 			}
 		}
 		GetMethod method = new GetMethod();
@@ -142,13 +150,22 @@ public class Domain extends AWSQueryConnection {
 			if (cache != null) {
 				// create new item object
 				Item newItem = new ItemVO(identifier);
-				Map<String, String> attrs = newItem.getAttributes();
+				Map<String, Set<String>> attrs = newItem.getAttributes();
 				// throw attrs into it
-				params.putAll(attributes);
+				attrs.putAll(attributes);
 				Item old = cache.getItem(identifier);
 				if (old != null) {
 					// merge cached attrs with those just set
-					params.putAll(old.getAttributes());
+					for (String key: old.getAttributes().keySet()) {
+						Set<String> oldAttrs = old.getAttributes().get(key);
+						Set<String> newAttrs = attrs.get(key);
+						if (newAttrs != null) {
+							newAttrs.addAll(oldAttrs);
+						}
+						else {
+							attrs.put(key, oldAttrs);
+						}
+					}
 				}
 				// place/replace item in cache
 				cache.putItem(newItem);
@@ -169,18 +186,22 @@ public class Domain extends AWSQueryConnection {
 	 * @param attributes the attributes to associate with this item
 	 * @throws SDBException wraps checked exceptions
 	 */
-	public SDBResult replaceAttributes(String identifier, Map<String, String> attributes) throws SDBException {
+	public SDBResult replaceAttributes(String identifier, Map<String, Set<String>> attributes) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", domainName);
 		params.put("ItemName", identifier);
 		int i=1;
 		for (String key : attributes.keySet()) {
-			String val = attributes.get(key);
-			if (val != null) {
-				params.put("Attribute."+i+".Name", key);
-				params.put("Attribute."+i+".Value", val);
-				params.put("Attribute."+i+".Replace", "true");
-				i++;
+			Set<String> vals = attributes.get(key);
+			if (vals != null && vals.size() > 0) {
+				Iterator<String> iter = vals.iterator();
+				while (iter.hasNext()) {
+					String val = iter.next();
+					params.put("Attribute."+i+".Name", key);
+					params.put("Attribute."+i+".Value", val);
+					params.put("Attribute."+i+".Replace", "true");
+					i++;
+				}
 			}
 		}
 		GetMethod method = new GetMethod();
@@ -190,17 +211,13 @@ public class Domain extends AWSQueryConnection {
 			if (cache != null) {
 				// create new item object
 				Item newItem = new ItemVO(identifier);
-				Map<String, String> attrs = newItem.getAttributes();
+				Map<String, Set<String>> attrs = newItem.getAttributes();
 				// throw attrs into it
-				params.putAll(attributes);
+				attrs.putAll(attributes);
 				Item old = cache.getItem(identifier);
 				if (old != null) {
-					// merge cached attrs, but strip replaced attrs out
-					Map<String, String> oldAttrs = old.getAttributes();
-					for (String key: attributes.keySet()) {
-						oldAttrs.remove(key);
-					}
-					params.putAll(oldAttrs);
+					// merge cached attrs
+					attrs.putAll(old.getAttributes());
 				}
 				// place/replace item in cache
 				cache.putItem(newItem);
@@ -213,6 +230,40 @@ public class Domain extends AWSQueryConnection {
 		}
 	}
 
+	/**
+	 * Deletes attributes from an item
+	 *
+	 * @param identifier the name of the item
+	 * @param attributes the names of the attributes to be deleted
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public SDBResult deleteAttributes(String identifier, Set<String> attributes) throws SDBException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("DomainName", domainName);
+		params.put("ItemName", identifier);
+		int i=1;
+		if (attributes != null && attributes.size() > 0) {
+			Iterator<String> iter = attributes.iterator();
+			while (iter.hasNext()) {
+				String val = iter.next();
+				params.put("Attribute."+i+".Name", val);
+				i++;
+			}
+		}
+		GetMethod method = new GetMethod();
+		try {
+			DeleteAttributesResponse response =
+				makeRequestInt(method, "DeleteAttributes", params, DeleteAttributesResponse.class);
+			if (cache != null) {
+				cache.removeItem(identifier);
+			}
+			return new SDBResult(null, 
+						response.getResponseMetadata().getRequestId(),
+						response.getResponseMetadata().getBoxUsage());
+		} finally {
+			method.releaseConnection();
+		}
+	}
 
 	/**
 	 * Deletes an item.
@@ -261,6 +312,7 @@ public class Domain extends AWSQueryConnection {
 			GetAttributesResponse response =
 						makeRequestInt(method, "GetAttributes", params, GetAttributesResponse.class);
 			Item newItem = new ItemVO(identifier);
+			Map<String, Set<String>> attrs = newItem.getAttributes();
 			for (Attribute a : response.getGetAttributesResult().getAttributes()) {
 				String name = a.getName().getValue();
 				String encoding = a.getName().getEncoding();
@@ -272,7 +324,12 @@ public class Domain extends AWSQueryConnection {
 				if (encoding != null && encoding.equals("base64")) {
 					value = new String(Base64.decodeBase64(value.getBytes()));
 				}
-				newItem.getAttributes().put(name, value);
+				Set<String> vals = attrs.get(name);
+				if (vals == null) {
+					vals = Collections.synchronizedSet(new HashSet<String>());
+					attrs.put(name, vals);
+				}
+				vals.add(value);
 			}
 			if (cache != null) {
 				cache.putItem(newItem);
@@ -310,6 +367,7 @@ public class Domain extends AWSQueryConnection {
 					iName = new String(Base64.decodeBase64(iName.getBytes()));
 				}
 				Item newItem = new ItemVO(iName);
+				Map<String, Set<String>> attrs = newItem.getAttributes();
 				for (Attribute a : i.getAttributes()) {
 					String name = a.getName().getValue();
 					encoding = a.getName().getEncoding();
@@ -321,7 +379,12 @@ public class Domain extends AWSQueryConnection {
 					if (encoding != null && encoding.equals("base64")) {
 						value = new String(Base64.decodeBase64(value.getBytes()));
 					}
-					newItem.getAttributes().put(name, value);
+					Set<String> vals = attrs.get(name);
+					if (vals == null) {
+						vals = Collections.synchronizedSet(new HashSet<String>());
+						attrs.put(name, vals);
+					}
+					vals.add(value);
 				}
 				results.add(newItem);
 			}

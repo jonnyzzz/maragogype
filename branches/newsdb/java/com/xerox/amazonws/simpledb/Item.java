@@ -19,6 +19,7 @@ package com.xerox.amazonws.simpledb;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This class represents an item in SimpleDB. To modify this item,
@@ -40,7 +41,21 @@ public interface Item {
 	 * Gets a map of all attributes for this item
 	 *
      * @return the map of attributes
-	 * @throws SDBException wraps checked exceptions
 	 */
-	public Map<String, String> getAttributes();
+	public Map<String, Set<String>> getAttributes();
+
+	/**
+	 * Gets a single attribute value. If multiple values exist, only the first
+	 * will be returned. Calling getAttributeValues(String) should be used instead.
+	 *
+     * @return the attribute value
+	 */
+	public String getAttribute(String name);
+
+	/**
+	 * Gets a Set of values for the named attribute.
+	 *
+     * @return the set of attribute values
+	 */
+	public Set<String> getAttributeValues(String name);
 }
