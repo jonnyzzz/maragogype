@@ -24,12 +24,12 @@ public class TestBundle {
 		Properties props = new Properties();
 		props.load(TestJec2.class.getClassLoader().getResourceAsStream("aws.properties"));
 
-		Jec2 ec2 = new Jec2(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"), false, "localhost");
+		Jec2 ec2 = new Jec2(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
 		List<String> params = new ArrayList<String>();
 		ConsoleOutput cons = ec2.getConsoleOutput(args[0]);
 		logger.info("console output = "+cons.getOutput());
 		BundleInstanceInfo info = ec2.bundleInstance(args[0], props.getProperty("aws.accessId"), 
-								args[1], args[2], new UploadPolicy(60*12, args[1], "ec2-bundle-read"));
+								args[1], args[2], new UploadPolicy(60*12, args[1], "ec2-bundle-read", args[2]));
 		logger.info("Bunding instance "+args[0]);
 
 		List<BundleInstanceInfo> tasks = ec2.describeBundleTasks(new String [] {});
@@ -38,8 +38,8 @@ public class TestBundle {
 			logger.info("state : "+task.getState());
 			logger.info("state : "+task.getState());
 		}
-		info = ec2.cancelBundleInstance(info.getBundleId());
-		logger.info("Cancelled bundle task : "+info.getBundleId());
+//		info = ec2.cancelBundleInstance(info.getBundleId());
+//		logger.info("Cancelled bundle task : "+info.getBundleId());
 	}
 }
 

@@ -284,6 +284,7 @@ public class sdbShell {
 								itemCount++;
 							}
 							nextToken = qwar.getNextToken();
+							System.out.println("Box Usage :"+qwar.getBoxUsage());
 						} while (nextToken != null && !nextToken.trim().equals(""));
 //						long end = System.currentTimeMillis();
 //						System.out.println("Time : "+((int)(end-start)/1000.0));
