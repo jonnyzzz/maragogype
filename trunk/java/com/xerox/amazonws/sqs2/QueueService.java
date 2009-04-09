@@ -112,6 +112,21 @@ public class QueueService extends AWSQueryConnection {
 	 * @return object representing the message queue
 	 */
     public MessageQueue getOrCreateMessageQueue(String queueName) throws SQSException {
+		return getOrCreateMessageQueue(queueName, -1);
+	}
+
+	/**
+	 * Creates a new message queue. The queue name must be unique within the scope of the
+	 * queues you own. Optionaly, you can supply a queue that might be one that belongs to
+	 * another user that has granted you access to the queue. In that case, supply the fully
+	 * qualified queue name (i.e. "/A98KKI3K0RJ7Q/grantedQueue").
+	 *
+	 * @param queueName name of queue to be created
+	 * @param timeout the duration (in seconds) the retrieved message is hidden from
+	 *                          subsequent calls to retrieve.
+	 * @return object representing the message queue
+	 */
+    public MessageQueue getOrCreateMessageQueue(String queueName, int timeout) throws SQSException {
 		if ((queueName.charAt(0) == '/' && queueName.lastIndexOf('/') > 0) ||
 				queueName.startsWith("http")) {
 			return getMessageQueue(queueName);
@@ -119,6 +134,9 @@ public class QueueService extends AWSQueryConnection {
 		else {
 			Map<String, String> params = new HashMap<String, String>();
 			params.put("QueueName", queueName);
+			if (timeout >= 0) {
+				params.put("DefaultVisibilityTimeout", ""+timeout);
+			}
 			GetMethod method = new GetMethod();
 			try {
 				CreateQueueResponse response =
@@ -202,7 +220,7 @@ public class QueueService extends AWSQueryConnection {
 
 	static void setVersionHeader(AWSQueryConnection connection) {
 		ArrayList vals = new ArrayList();
-		vals.add("2008-01-01");
+		vals.add("2009-02-01");
 		connection.getHeaders().put("Version", vals);
 	}
 }

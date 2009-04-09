@@ -283,7 +283,9 @@ public class AWSQueryConnection extends AWSConnection {
 			// see if there is something after the host:port/ in the URL
 			if (reqURL.lastIndexOf('/') < (reqURL.length()-1)) {
 				// if so, put that here in the string to sign
-				resource.append(reqURL.substring(reqURL.lastIndexOf('/')+1));
+				// make sure we slice and dice at the right '/'
+				int idx = reqURL.lastIndexOf(':');
+				resource.append(reqURL.substring(reqURL.indexOf('/', idx)+1));
 			}
 			resource.append("\n");
 			boolean first = true;
@@ -304,7 +306,7 @@ public class AWSQueryConnection extends AWSConnection {
 				resource.append(qParams.get(key));
 			}
 		}
-//		System.err.println("String to sign :"+resource.toString());
+		//System.err.println("String to sign :"+resource.toString());
 
 		// calculate signature
         String encoded = encode(getSecretAccessKey(), resource.toString(), true);
@@ -434,7 +436,7 @@ public class AWSQueryConnection extends AWSConnection {
 				ErrorResponse resp = JAXBuddy.deserializeXMLStream(ErrorResponse.class, bais);
 				List<Error> errs = resp.getErrors();
 				errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
-				requestId = resp.getRequestID();
+				requestId = resp.getRequestId();
 				errors = new ArrayList<AWSError>();
 				for (Error e : errs) {
 					errors.add(new AWSError(AWSError.ErrorType.getTypeFromString(e.getType()),
