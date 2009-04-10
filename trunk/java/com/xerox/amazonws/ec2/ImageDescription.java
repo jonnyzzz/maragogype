@@ -36,10 +36,12 @@ public class ImageDescription {
 	private String imageType;
 	private String kernelId;
 	private String ramdiskId;
+	private String platform;
 
 	public ImageDescription(String id, String loc, String owner,
 			String state, Boolean isPublic, List<String> productCodes,
-			String architecture, String imageType, String kernelId, String ramdiskId) {
+			String architecture, String imageType, String kernelId, String ramdiskId,
+			String platform) {
 		this.imageId = id;
 		this.imageLocation = loc;
 		this.imageOwnerId = owner;
@@ -50,6 +52,7 @@ public class ImageDescription {
 		this.imageType = imageType;
 		this.kernelId = kernelId;
 		this.ramdiskId = ramdiskId;
+		this.platform = platform;
 	}
 
 	public String getImageId() {
@@ -92,12 +95,16 @@ public class ImageDescription {
 		return ramdiskId;
 	}
 
+	public String getPlatform() {
+		return platform;
+	}
+
 	public String toString() {
 		return "Image[ID=" + imageId + ", Loc=" + imageLocation + ", own="
 				+ imageOwnerId + ", state=" + imageState + " isPublic="
 				+ isPublic + ", arch=" + architecture + ", imgTyp="
 				+ imageType + ", kernelId=" + kernelId + ", ramdiskId="
-				+ ramdiskId + "]";
+				+ ramdiskId + ", platform=" + platform + "]";
 	}
 }
 
