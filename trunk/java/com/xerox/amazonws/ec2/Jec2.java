@@ -1925,7 +1925,7 @@ public class Jec2 extends AWSQueryConnection {
 	 */
 	public String purchaseReservedInstancesOffering(String offeringId, int instanceCount) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("ReservedInstanceOfferingId", offeringId);
+		params.put("ReservedInstancesOfferingId", offeringId);
 		params.put("InstanceCount", ""+instanceCount);
 		GetMethod method = new GetMethod();
 		try {
