@@ -6,7 +6,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import javax.swing.JButton;
@@ -102,8 +104,11 @@ public class QueryTool extends JPanel implements ActionListener {
 							for (Item item : items) {
 								resText.append("Item : "+item.getIdentifier()+"\n");
 								for (String key : item.getAttributes().keySet()) {
-									String value = item.getAttributes().get(key);
-									resText.append("  "+key+" = "+value+"\n");
+									Set<String> values = item.getAttributes().get(key);
+									Iterator iter = values.iterator();
+									while (iter.hasNext()) {
+										resText.append("  "+key+" = "+iter.next()+"\n");
+									}
 								}
 								itemCount++;
 								if (itemCount > 1000) {
