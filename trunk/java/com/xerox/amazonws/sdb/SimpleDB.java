@@ -121,7 +121,7 @@ public class SimpleDB extends AWSQueryConnection {
 
 
 	/**
-	 * Terminates a selection of running instances.
+	 * Returns a list of domains for this account.
 	 * 
 	 * @return A list of {@link Domain} instances.
 	 * @throws SDBException wraps checked exceptions
@@ -131,7 +131,7 @@ public class SimpleDB extends AWSQueryConnection {
 	}
 
 	/**
-	 * Terminates a selection of running instances.
+	 * Returns a list of domains for this account.
 	 * 
 	 * @param nextToken token to use when retrieving next results
 	 * @return A list of {@link Domain} instances.
