@@ -255,7 +255,7 @@ public class Domain extends AWSQueryConnection {
 			DeleteAttributesResponse response =
 				makeRequestInt(method, "DeleteAttributes", params, DeleteAttributesResponse.class);
 			if (cache != null) {
-				cache.removeItem(identifier);
+			//	cache.removeItem(identifier);
 			}
 			return new SDBResult(null, 
 						response.getResponseMetadata().getRequestId(),

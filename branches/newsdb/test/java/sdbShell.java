@@ -5,8 +5,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import com.xerox.amazonws.simpledb.Domain;
@@ -126,13 +129,15 @@ public class sdbShell {
 							continue;
 						}
 						String itemId = st.nextToken();
-						Map<String, String> map = new HashMap<String, String>();
+						Map<String, Set<String>> map = new HashMap<String, Set<String>>();
 						String key = st.nextToken();
 						String value = st.nextToken();
 						if (line.indexOf('"') > -1) {
 							value = line.substring(line.indexOf('"')+1, line.lastIndexOf('"'));
 						}
-						map.put(key, value);
+						HashSet<String> vals = new HashSet<String>();
+						vals.add(value);
+						map.put(key, vals);
 						dom.addItem(itemId, map);
 					}
 				}
@@ -187,8 +192,11 @@ public class sdbShell {
 						long end = System.currentTimeMillis();
 						System.out.println("Item : "+item.getIdentifier());
 						for (String key : item.getAttributes().keySet()) {
-							String value = item.getAttributes().get(key);
-							System.out.println("  "+key+" = "+value);
+							Set<String> values = item.getAttributes().get(key);
+							Iterator iter = values.iterator();
+							while (iter.hasNext()) {
+								System.out.println("  "+key+" = "+iter.next());
+							}
 						}
 						System.out.println("Time : "+((int)(end-start)/1000.0));
 					}
@@ -205,8 +213,11 @@ public class sdbShell {
 								for (Item item : items) {
 									System.out.println("Item : "+item.getIdentifier());
 									for (String key : item.getAttributes().keySet()) {
-										String value = item.getAttributes().get(key);
-										System.out.println("  "+key+" = "+value);
+										Set<String> values = item.getAttributes().get(key);
+										Iterator iter = values.iterator();
+										while (iter.hasNext()) {
+											System.out.println("  "+key+" = "+iter.next());
+										}
 									}
 									itemCount++;
 								}

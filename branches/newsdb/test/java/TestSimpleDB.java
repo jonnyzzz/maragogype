@@ -24,7 +24,7 @@ public class TestSimpleDB {
 		Properties props = new Properties();
 		props.load(TestSimpleDB.class.getClassLoader().getResourceAsStream("aws.properties"));
 
-		SimpleDB sdb = new SimpleDB(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"), false, "localhost");
+		SimpleDB sdb = new SimpleDB(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
 		//sdb.setSignatureVersion(0);
 
 		logger.info("domains:");
@@ -34,8 +34,14 @@ public class TestSimpleDB {
 			List<Domain> domains = result.getDomainList();
 			for (Domain dom : domains) {
 				logger.info(dom.getName());
+				if (dom.getName().startsWith("geoTest")) {
+					sdb.deleteDomain(dom.getName());
+				}
 			}
 			nextToken = result.getNextToken();
+		}
+		if (args.length < 1) {
+			return;
 		}
 		Domain dom = sdb.createDomain(args[0]);
 		QueryResult qr = dom.listItems();
