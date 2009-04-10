@@ -1,6 +1,7 @@
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -46,12 +47,20 @@ public class TestQueueService {
 				msgids.add(msgid);
 				logger.info("send message, id = "+msgid);
 			}
+			ArrayList<String> attrs = new ArrayList<String>();
+			attrs.add("SenderId");
+			attrs.add("SentTimestamp");
 			for (int j=0; j<5; j++) {
-				Message msg = mq.receiveMessage();
-				if (msg == null) { continue; }
-				msgids.remove(msg.getMessageId());
-				logger.info("Message "+(j+1)+" = "+msg.getMessageBody());
-				mq.deleteMessage(msg);
+				Message [] msg = mq.receiveMessages(1, 30, attrs);
+				if (msg.length == 0) { continue; }
+				msgids.remove(msg[0].getMessageId());
+				logger.info("Message "+(j+1)+" = "+msg[0].getMessageBody());
+				Map<String, String> rcvdAttrs = msg[0].getAttributes();
+				for (String name : rcvdAttrs.keySet()) {
+					String value = rcvdAttrs.get(name);
+					logger.info("Attr: "+name+"="+value);
+				}
+				mq.deleteMessage(msg[0]);
 			}
 			logger.info("messages not received : "+msgids.size());
 /* test grants

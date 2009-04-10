@@ -146,7 +146,7 @@ public class MessageQueue extends AWSQueryConnection {
 	 * @throws SQSException wraps checked exceptions
 	 */
     public Message receiveMessage() throws SQSException {
-        Message amessage[] = receiveMessages(BigInteger.valueOf(1L), ((BigInteger) (null)));
+        Message amessage[] = receiveMessages(BigInteger.valueOf(1L), ((BigInteger) (null)), null);
         if(amessage.length > 0)
             return amessage[0];
         else
@@ -162,7 +162,7 @@ public class MessageQueue extends AWSQueryConnection {
 	 * @throws SQSException wraps checked exceptions
 	 */
     public Message receiveMessage(int visibilityTimeout) throws SQSException {
-        Message amessage[] = receiveMessages(BigInteger.valueOf(1L), BigInteger.valueOf(visibilityTimeout));
+        Message amessage[] = receiveMessages(BigInteger.valueOf(1L), BigInteger.valueOf(visibilityTimeout), null);
         if(amessage.length > 0)
             return amessage[0];
         else
@@ -179,7 +179,7 @@ public class MessageQueue extends AWSQueryConnection {
 	 * @throws SQSException wraps checked exceptions
 	 */
     public Message[] receiveMessages(int numMessages) throws SQSException {
-        return receiveMessages(BigInteger.valueOf(numMessages), ((BigInteger) (null)));
+        return receiveMessages(BigInteger.valueOf(numMessages), ((BigInteger) (null)), null);
 	}
 
 	/**
@@ -194,7 +194,24 @@ public class MessageQueue extends AWSQueryConnection {
 	 * @throws SQSException wraps checked exceptions
 	 */
     public Message[] receiveMessages(int numMessages, int visibilityTimeout) throws SQSException {
-        return receiveMessages(BigInteger.valueOf(numMessages), BigInteger.valueOf(visibilityTimeout));
+        return receiveMessages(BigInteger.valueOf(numMessages), BigInteger.valueOf(visibilityTimeout), null);
+	}
+
+	/**
+	 * Attempts to retrieve a number of messages from the queue. If less than that are availble,
+	 * the max returned is the number of messages in the queue, but not necessarily all messages
+	 * in the queue will be returned.
+	 *
+	 * @param numMessages the maximum number of messages to return
+	 * @param visibilityTimeout the duration (in seconds) the retrieved message is hidden from
+	 *                          subsequent calls to retrieve.
+	 * @param attributes the attributes you'd like to get (SenderId, SentTimestamp)
+	 * @return an array of message objects
+	 * @throws SQSException wraps checked exceptions
+	 */
+    public Message[] receiveMessages(int numMessages, int visibilityTimeout, List<String> attributes)
+			throws SQSException {
+        return receiveMessages(BigInteger.valueOf(numMessages), BigInteger.valueOf(visibilityTimeout), attributes);
 	}
 
 	/**
@@ -203,16 +220,25 @@ public class MessageQueue extends AWSQueryConnection {
 	 * @param numMessages the maximum number of messages to return
 	 * @param visibilityTimeout the duration (in seconds) the retrieved message is hidden from
 	 *                          subsequent calls to retrieve.
+	 * @param attributes the attributes you'd like to get (SenderId, SentTimestamp)
 	 * @return an array of message objects
 	 * @throws SQSException wraps checked exceptions
 	 */
-    protected Message[] receiveMessages(BigInteger numMessages, BigInteger visibilityTimeout) throws SQSException {
+    protected Message[] receiveMessages(BigInteger numMessages, BigInteger visibilityTimeout, List<String> attributes)
+			throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
 		if (numMessages != null) {
 			params.put("MaxNumberOfMessages", numMessages.toString());
 		}
 		if (visibilityTimeout != null) {
 			params.put("VisibilityTimeout", visibilityTimeout.toString());
+		}
+		if (attributes != null) {
+			int i=1;
+			for (String attr : attributes) {
+				params.put("AttributeName."+i, attr);
+				i++;
+			}
 		}
 		GetMethod method = new GetMethod();
 		try {
@@ -227,7 +253,11 @@ public class MessageQueue extends AWSQueryConnection {
 					String decodedMsg = enableEncoding?
 								new String(Base64.decodeBase64(msg.getBody().getBytes())):
 											msg.getBody();
-					msgs.add(new Message(msg.getMessageId(), msg.getReceiptHandle(), decodedMsg, msg.getMD5OfBody()));
+					Message newMsg = new Message(msg.getMessageId(), msg.getReceiptHandle(), decodedMsg, msg.getMD5OfBody());
+					for (Attribute attr : msg.getAttributes()) {
+						newMsg.setAttribute(attr.getName(), attr.getValue());
+					}
+					msgs.add(newMsg);
 				}
 				return msgs.toArray(new Message [msgs.size()]);
 			}

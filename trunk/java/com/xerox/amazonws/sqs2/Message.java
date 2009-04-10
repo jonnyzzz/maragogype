@@ -17,6 +17,9 @@
 
 package com.xerox.amazonws.sqs2;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * This class is a wrapper for a message received from a queue.
  *
@@ -28,12 +31,14 @@ public class Message {
 	private String receiptHandle;
 	private String messageBody;
 	private String bodyMD5;
+	private Map<String, String> attributes;
 
 	protected Message(String messageId, String receiptHandle, String messageBody, String bodyMD5) {
 		this.messageId = messageId;
 		this.receiptHandle = receiptHandle;
 		this.messageBody = messageBody;
 		this.bodyMD5 = bodyMD5;
+		this.attributes = new HashMap<String, String>();
 	}
 
 	public String getMessageId() {
@@ -66,6 +71,18 @@ public class Message {
 
 	public void setBodyMD5(String bodyMD5) {
 		this.bodyMD5 = bodyMD5;
+	}
+
+	public Map<String, String> getAttributes() {
+		return this.attributes;
+	}
+
+	public String getAttribute(String name) {
+		return this.attributes.get(name);
+	}
+
+	public void setAttribute(String name, String value) {
+		this.attributes.put(name, value);
 	}
 
 	public String toString() {
