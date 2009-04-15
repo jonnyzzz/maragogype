@@ -43,6 +43,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.typica.sdb.jaxb.Attribute;
+import com.xerox.amazonws.typica.sdb.jaxb.BatchPutAttributesResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.DeleteAttributesResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.DomainMetadataResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.GetAttributesResponse;
@@ -170,6 +171,46 @@ public class Domain extends AWSQueryConnection {
 				// place/replace item in cache
 				cache.putItem(newItem);
 			}
+			return new SDBResult(null, 
+						response.getResponseMetadata().getRequestId(),
+						response.getResponseMetadata().getBoxUsage());
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Batch inserts multiple items w/ attributes
+	 *
+	 * @param attributes list of attributes to add
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public SDBResult batchPutAttributes(List<Item> items) throws SDBException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("DomainName", domainName);
+		int k=1;
+		for (Item item : items) {
+			params.put("Item."+k+".ItemName", item.getIdentifier());
+			int i=1;
+			for (String attr : item.getAttributes().keySet()) {
+				Set<String> vals = item.getAttributeValues(attr);
+				if (vals != null && vals.size() > 0) {
+					for (String val : vals) {
+						params.put("Item."+k+".Attribute."+i+".Name", attr);
+						params.put("Item."+k+".Attribute."+i+".Value", val);
+						i++;
+//						if (attr.isReplace()) {
+//							params.put("Item."+k+".Attribute."+i+".Replace", "true");
+//						}
+					}
+				}
+			}
+			k++;
+		}
+		GetMethod method = new GetMethod();
+		try {
+			BatchPutAttributesResponse response =
+				makeRequestInt(method, "BatchPutAttributes", params, BatchPutAttributesResponse.class);
 			return new SDBResult(null, 
 						response.getResponseMetadata().getRequestId(),
 						response.getResponseMetadata().getBoxUsage());

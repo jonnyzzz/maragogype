@@ -5,11 +5,10 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.xerox.amazonws.sqs.Grant;
-import com.xerox.amazonws.sqs.Message;
-import com.xerox.amazonws.sqs.MessageQueue;
-import com.xerox.amazonws.sqs.QueueService;
-import com.xerox.amazonws.sqs.SQSException;
+import com.xerox.amazonws.sqs2.Message;
+import com.xerox.amazonws.sqs2.MessageQueue;
+import com.xerox.amazonws.sqs2.QueueService;
+import com.xerox.amazonws.sqs2.SQSException;
 
 public class DeleteQueue {
     private static Log logger = LogFactory.getLog(TestQueueService.class);
@@ -18,10 +17,16 @@ public class DeleteQueue {
 		Properties props = new Properties();
 		props.load(TestJec2.class.getClassLoader().getResourceAsStream("aws.properties"));
 
-		QueueService qs = new QueueService(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
-		MessageQueue msgQueue = qs.getOrCreateMessageQueue(args[0]);
 		try {
-			msgQueue.deleteQueue(true);
+			QueueService qs = new QueueService(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
+			MessageQueue msgQueue = null;
+			if (args.length > 1) {
+				msgQueue = qs.getOrCreateMessageQueue(args[0], Integer.parseInt(args[1]));
+			}
+			else {
+				msgQueue = qs.getOrCreateMessageQueue(args[0]);
+			}
+			msgQueue.deleteQueue();
 		} catch (SQSException ex) {
 			ex.printStackTrace();
 		}

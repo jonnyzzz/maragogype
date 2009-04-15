@@ -44,6 +44,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.typica.sdb.jaxb.Attribute;
+import com.xerox.amazonws.typica.sdb.jaxb.BatchPutAttributesResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.DomainMetadataResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.QueryResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.QueryResult.ItemName;
@@ -471,6 +472,45 @@ public class Domain extends AWSQueryConnection {
 			method.releaseConnection();
 		}
 	}
+
+	/**
+	 * Batch inserts multiple items w/ attributes
+	 *
+	 * @param attributes list of attributes to add
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public SDBResult batchPutAttributes(Map<String, List<ItemAttribute>> items) throws SDBException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("DomainName", domainName);
+		int k=1;
+		for (String item : items.keySet()) {
+			params.put("Item."+k+".ItemName", item);
+			int i=1;
+			for (ItemAttribute attr : items.get(item)) {
+				String val = attr.getValue();
+				if (val != null) {
+					params.put("Item."+k+".Attribute."+i+".Name", attr.getName());
+					params.put("Item."+k+".Attribute."+i+".Value", val);
+					if (attr.isReplace()) {
+						params.put("Item."+k+".Attribute."+i+".Replace", "true");
+					}
+					i++;
+				}
+			}
+			k++;
+		}
+		GetMethod method = new GetMethod();
+		try {
+			BatchPutAttributesResponse response =
+				makeRequestInt(method, "BatchPutAttributes", params, BatchPutAttributesResponse.class);
+			return new SDBResult(null, 
+						response.getResponseMetadata().getRequestId(),
+						response.getResponseMetadata().getBoxUsage());
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
 
 	static List<Domain> createList(String [] domainNames, String awsAccessKeyId,
 									String awsSecretAccessKey, boolean isSecure,

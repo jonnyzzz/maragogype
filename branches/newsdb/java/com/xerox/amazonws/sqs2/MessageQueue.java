@@ -45,11 +45,14 @@ import org.apache.commons.httpclient.methods.StringRequestEntity;
 
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
+import com.xerox.amazonws.typica.sqs2.jaxb.AddPermissionResponse;
 import com.xerox.amazonws.typica.sqs2.jaxb.Attribute;
+import com.xerox.amazonws.typica.sqs2.jaxb.ChangeMessageVisibilityResponse;
 import com.xerox.amazonws.typica.sqs2.jaxb.DeleteMessageResponse;
 import com.xerox.amazonws.typica.sqs2.jaxb.DeleteQueueResponse;
 import com.xerox.amazonws.typica.sqs2.jaxb.GetQueueAttributesResponse;
 import com.xerox.amazonws.typica.sqs2.jaxb.ReceiveMessageResponse;
+import com.xerox.amazonws.typica.sqs2.jaxb.RemovePermissionResponse;
 import com.xerox.amazonws.typica.sqs2.jaxb.SendMessageResponse;
 import com.xerox.amazonws.typica.sqs2.jaxb.SetQueueAttributesResponse;
 
@@ -119,6 +122,7 @@ public class MessageQueue extends AWSQueryConnection {
 	 * Sends a message to a specified queue. The message must be between 1 and 256K bytes long.
 	 *
 	 * @param msg the message to be sent
+	 * @throws SQSException wraps checked exceptions
 	 */
     public String sendMessage(String msg) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
@@ -139,9 +143,10 @@ public class MessageQueue extends AWSQueryConnection {
 	 * is used.
 	 *
 	 * @return the message object
+	 * @throws SQSException wraps checked exceptions
 	 */
     public Message receiveMessage() throws SQSException {
-        Message amessage[] = receiveMessages(BigInteger.valueOf(1L), ((BigInteger) (null)));
+        Message amessage[] = receiveMessages(BigInteger.valueOf(1L), ((BigInteger) (null)), null);
         if(amessage.length > 0)
             return amessage[0];
         else
@@ -154,9 +159,10 @@ public class MessageQueue extends AWSQueryConnection {
 	 * @param visibilityTimeout the duration (in seconds) the retrieved message is hidden from
 	 *                          subsequent calls to retrieve.
 	 * @return the message object
+	 * @throws SQSException wraps checked exceptions
 	 */
     public Message receiveMessage(int visibilityTimeout) throws SQSException {
-        Message amessage[] = receiveMessages(BigInteger.valueOf(1L), BigInteger.valueOf(visibilityTimeout));
+        Message amessage[] = receiveMessages(BigInteger.valueOf(1L), BigInteger.valueOf(visibilityTimeout), null);
         if(amessage.length > 0)
             return amessage[0];
         else
@@ -170,9 +176,10 @@ public class MessageQueue extends AWSQueryConnection {
 	 *
 	 * @param numMessages the maximum number of messages to return
 	 * @return an array of message objects
+	 * @throws SQSException wraps checked exceptions
 	 */
     public Message[] receiveMessages(int numMessages) throws SQSException {
-        return receiveMessages(BigInteger.valueOf(numMessages), ((BigInteger) (null)));
+        return receiveMessages(BigInteger.valueOf(numMessages), ((BigInteger) (null)), null);
 	}
 
 	/**
@@ -184,9 +191,27 @@ public class MessageQueue extends AWSQueryConnection {
 	 * @param visibilityTimeout the duration (in seconds) the retrieved message is hidden from
 	 *                          subsequent calls to retrieve.
 	 * @return an array of message objects
+	 * @throws SQSException wraps checked exceptions
 	 */
     public Message[] receiveMessages(int numMessages, int visibilityTimeout) throws SQSException {
-        return receiveMessages(BigInteger.valueOf(numMessages), BigInteger.valueOf(visibilityTimeout));
+        return receiveMessages(BigInteger.valueOf(numMessages), BigInteger.valueOf(visibilityTimeout), null);
+	}
+
+	/**
+	 * Attempts to retrieve a number of messages from the queue. If less than that are availble,
+	 * the max returned is the number of messages in the queue, but not necessarily all messages
+	 * in the queue will be returned.
+	 *
+	 * @param numMessages the maximum number of messages to return
+	 * @param visibilityTimeout the duration (in seconds) the retrieved message is hidden from
+	 *                          subsequent calls to retrieve.
+	 * @param attributes the attributes you'd like to get (SenderId, SentTimestamp)
+	 * @return an array of message objects
+	 * @throws SQSException wraps checked exceptions
+	 */
+    public Message[] receiveMessages(int numMessages, int visibilityTimeout, List<String> attributes)
+			throws SQSException {
+        return receiveMessages(BigInteger.valueOf(numMessages), BigInteger.valueOf(visibilityTimeout), attributes);
 	}
 
 	/**
@@ -195,15 +220,25 @@ public class MessageQueue extends AWSQueryConnection {
 	 * @param numMessages the maximum number of messages to return
 	 * @param visibilityTimeout the duration (in seconds) the retrieved message is hidden from
 	 *                          subsequent calls to retrieve.
+	 * @param attributes the attributes you'd like to get (SenderId, SentTimestamp)
 	 * @return an array of message objects
+	 * @throws SQSException wraps checked exceptions
 	 */
-    protected Message[] receiveMessages(BigInteger numMessages, BigInteger visibilityTimeout) throws SQSException {
+    protected Message[] receiveMessages(BigInteger numMessages, BigInteger visibilityTimeout, List<String> attributes)
+			throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
 		if (numMessages != null) {
 			params.put("MaxNumberOfMessages", numMessages.toString());
 		}
 		if (visibilityTimeout != null) {
 			params.put("VisibilityTimeout", visibilityTimeout.toString());
+		}
+		if (attributes != null) {
+			int i=1;
+			for (String attr : attributes) {
+				params.put("AttributeName."+i, attr);
+				i++;
+			}
 		}
 		GetMethod method = new GetMethod();
 		try {
@@ -218,7 +253,11 @@ public class MessageQueue extends AWSQueryConnection {
 					String decodedMsg = enableEncoding?
 								new String(Base64.decodeBase64(msg.getBody().getBytes())):
 											msg.getBody();
-					msgs.add(new Message(msg.getMessageId(), msg.getReceiptHandle(), decodedMsg, msg.getMD5OfBody()));
+					Message newMsg = new Message(msg.getMessageId(), msg.getReceiptHandle(), decodedMsg, msg.getMD5OfBody());
+					for (Attribute attr : msg.getAttributes()) {
+						newMsg.setAttribute(attr.getName(), attr.getValue());
+					}
+					msgs.add(newMsg);
 				}
 				return msgs.toArray(new Message [msgs.size()]);
 			}
@@ -231,6 +270,7 @@ public class MessageQueue extends AWSQueryConnection {
 	 * Deletes the message identified by message object on the queue this object represents.
 	 *
 	 * @param msg the message to be deleted
+	 * @throws SQSException wraps checked exceptions
 	 */
     public void deleteMessage(Message msg) throws SQSException {
 		deleteMessage(msg.getReceiptHandle());
@@ -240,6 +280,7 @@ public class MessageQueue extends AWSQueryConnection {
 	 * Deletes the message identified by receiptHandle on the queue this object represents.
 	 *
 	 * @param receiptHandle the handle of the message to be deleted
+	 * @throws SQSException wraps checked exceptions
 	 */
     public void deleteMessage(String receiptHandle) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
@@ -255,6 +296,8 @@ public class MessageQueue extends AWSQueryConnection {
 
 	/**
 	 * Deletes the message queue represented by this object. Will delete non-empty queue.
+	 *
+	 * @throws SQSException wraps checked exceptions
 	 */
     public void deleteQueue() throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
@@ -268,7 +311,41 @@ public class MessageQueue extends AWSQueryConnection {
 	}
 
 	/**
+	 * Sets the message visibility timeout. 
+	 *
+	 * @param msg the message
+	 * @param timeout the duration (in seconds) the retrieved message is hidden from
+	 *                          subsequent calls to retrieve.
+	 * @throws SQSException wraps checked exceptions
+	 */
+    public void setMessageVisibilityTimeout(Message msg, int timeout) throws SQSException {
+		setMessageVisibilityTimeout(msg.getReceiptHandle(), timeout);
+	}
+
+	/**
+	 * Sets the message visibility timeout. 
+	 *
+	 * @param receiptHandle the handle of the message to be deleted
+	 * @param timeout the duration (in seconds) the retrieved message is hidden from
+	 *                          subsequent calls to retrieve.
+	 * @throws SQSException wraps checked exceptions
+	 */
+    public void setMessageVisibilityTimeout(String receiptHandle, int timeout) throws SQSException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("ReceiptHandle", receiptHandle);
+		params.put("VisibilityTimeout", ""+timeout);
+		GetMethod method = new GetMethod();
+		try {
+			makeRequestInt(method, "ChangeMessageVisibility", params, ChangeMessageVisibilityResponse.class);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
 	 * Gets the visibility timeout for the queue. Uses {@link #getQueueAttributes(QueueAttribute)}.
+	 *
+	 * @throws SQSException wraps checked exceptions
 	 */
     public int getVisibilityTimeout() throws SQSException {
 		return Integer.parseInt(getQueueAttributes(QueueAttribute.VISIBILITY_TIMEOUT)
@@ -277,6 +354,8 @@ public class MessageQueue extends AWSQueryConnection {
 
 	/**
 	 * Gets the visibility timeout for the queue. Uses {@link #getQueueAttributes(QueueAttribute)}.
+	 *
+	 * @throws SQSException wraps checked exceptions
 	 */
     public int getApproximateNumberOfMessages() throws SQSException {
 		return Integer.parseInt(getQueueAttributes(QueueAttribute.APPROXIMATE_NUMBER_OF_MESSAGES)
@@ -285,9 +364,16 @@ public class MessageQueue extends AWSQueryConnection {
 
 	/**
 	 * Gets queue attributes. This is provided to expose the underlying functionality.
-	 * Currently supported attributes are ApproximateNumberOfMessages and VisibilityTimeout.
+	 * Currently supported attributes are;
+	 *   ApproximateNumberOfMessages
+	 *   CreatedTimestamp
+	 *   LastModifiedTimestamp
+	 *   VisibilityTimeout
+	 *   RequestPayer
+	 *   Policy
 	 *
 	 * @return a map of attributes and their values
+	 * @throws SQSException wraps checked exceptions
 	 */
 	public Map<String,String> getQueueAttributes(QueueAttribute qAttr) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
@@ -312,6 +398,7 @@ public class MessageQueue extends AWSQueryConnection {
 	 *
 	 * @param timeout the duration (in seconds) the retrieved message is hidden from
 	 *                          subsequent calls to retrieve.
+	 * @throws SQSException wraps checked exceptions
 	 */
     public void setVisibilityTimeout(int timeout) throws SQSException {
 		setQueueAttribute("VisibilityTimeout", ""+timeout);
@@ -323,6 +410,7 @@ public class MessageQueue extends AWSQueryConnection {
 	 *
 	 * @param attribute name of the attribute being set
 	 * @param value the value being set for this attribute
+	 * @throws SQSException wraps checked exceptions
 	 */
     public void setQueueAttribute(String attribute, String value) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
@@ -338,8 +426,50 @@ public class MessageQueue extends AWSQueryConnection {
 	}
 
 	/**
+	 * Adds a permission to this message queue.
+	 *
+	 * @param label a name for this permission
+	 * @param accountId the AWS account ID for the account to share this queue with
+	 * @param action a value to indicate how much to share (SendMessage, ReceiveMessage, ChangeMessageVisibility, DeleteMessage, GetQueueAttributes)
+	 * @throws SQSException wraps checked exceptions
+	 */
+	public void addPermission(String label, String accountId, String action) throws SQSException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("Label", label);
+		params.put("AWSAccountId", accountId);
+		params.put("ActionName", action);
+		GetMethod method = new GetMethod();
+		try {
+			AddPermissionResponse response =
+				makeRequestInt(method, "AddPermission", params, AddPermissionResponse.class);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Removes a permission from this message queue.
+	 *
+	 * @param label a name for the permission to be removed
+	 * @throws SQSException wraps checked exceptions
+	 */
+	public void removePermission(String label) throws SQSException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("Label", label);
+		GetMethod method = new GetMethod();
+		try {
+			RemovePermissionResponse response =
+				makeRequestInt(method, "RemovePermission", params, RemovePermissionResponse.class);
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
 	 * Overriding this because the queue name is baked into the URL and QUERY
 	 * assembles the URL within the baseclass.
+	 *
+	 * @throws SQSException wraps checked exceptions
 	 */
 	protected URL makeURL(String resource) throws MalformedURLException {
 		return super.makeURL(queueId+resource);
