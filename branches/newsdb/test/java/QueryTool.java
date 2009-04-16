@@ -3,8 +3,11 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.FileInputStream;
@@ -89,6 +92,7 @@ public class QueryTool extends JPanel implements ActionListener {
 			domainNames = tmp.toArray(domainNames);
 		} catch (SDBException ex) {
 			System.err.println("problem communicating with SimpleDB: "+ex.getMessage());
+			System.err.println(ex.getCause().getMessage());
 		}
 		domainList = new JComboBox(domainNames);
 		domainList.addActionListener(new ActionListener() {
@@ -132,6 +136,13 @@ public class QueryTool extends JPanel implements ActionListener {
 		add(metadata, gbc);
 
 		querySpace = new JTextArea();
+		querySpace.addKeyListener(new KeyAdapter() {
+			public void keyTyped(KeyEvent evt) {
+				if (evt.isControlDown() && evt.getKeyChar() == '\r') {
+					executeQuery();
+				}
+			}
+		});
 
 		results = new JDesktopPane();
 
@@ -147,6 +158,10 @@ public class QueryTool extends JPanel implements ActionListener {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
+		executeQuery();
+	}
+
+	private void executeQuery() {
 		try {
 			int lineNum = querySpace.getLineOfOffset(querySpace.getCaretPosition())+1;
 			StringTokenizer st = new StringTokenizer(querySpace.getText(), "\n", true);
@@ -171,70 +186,10 @@ public class QueryTool extends JPanel implements ActionListener {
 			} catch (java.beans.PropertyVetoException ex) { }
 			resultFrame.show();
 
-			new Thread(new Runnable() {
-				public void run() {
-					StringBuilder resText = new StringBuilder();
-					try {
-						int itemCount = 0;
-						long start = System.currentTimeMillis();
-						String nextToken = null;
-						do {
-							SelectResult sr = dom.selectItems(query, nextToken);
-							List<Item> items = sr.getItems();
-							nextToken = sr.getNextToken();
-							itemCount += items.size();
-							updateResults(resultFrame, items);
-							updateBoxUsage(resultFrame, sr.getBoxUsage());
-							updateItemCount(resultFrame, itemCount);
-							if (itemCount > 1000) {
-								nextToken = null;
-								ArrayList<Item> trunc = new ArrayList<Item>();
-								trunc.add(dom.getItem("- truncated -"));
-								updateResults(resultFrame, trunc);
-							}
-						} while (nextToken != null && !nextToken.trim().equals(""));
-						long end = System.currentTimeMillis();
-						updateTime(resultFrame, ((int)(end-start)/1000.0)+" seconds");
-					} catch (SDBException ex) {
-						resText.append(ex.getMessage());
-					}
-					//updateResults(resultSpace, resText.toString());
-				}
-			}).start();
+			// start fetching the data
+			resultFrame.reload();
 		} catch (BadLocationException ex) {
 		}
-	}
-
-	void updateResults(final ResultsFrame resultsFrame, final List<Item> data) {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				resultsFrame.addItems(data);
-			}
-		});
-	}
-
-	void updateBoxUsage(final ResultsFrame resultsFrame, final String boxUsage) {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				resultsFrame.addBoxUsage(boxUsage);
-			}
-		});
-	}
-
-	void updateTime(final ResultsFrame resultsFrame, final String time) {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				resultsFrame.setTime(time);
-			}
-		});
-	}
-
-	void updateItemCount(final ResultsFrame resultsFrame, final int count) {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				resultsFrame.addItemCount(count);
-			}
-		});
 	}
 
 	private void loadPrefs() {
@@ -266,7 +221,7 @@ public class QueryTool extends JPanel implements ActionListener {
 		final JFrame frame = new JFrame("SimpleDB Query Tool");
 		final QueryTool controls = new QueryTool(frame, args[0], args[1]);
 		Dimension size = controls.getPreferredSize();
-		frame.setSize(600, 600);
+		frame.setSize(800, 600);
 		frame.addWindowListener(new WindowAdapter() {
 				public void windowClosing(WindowEvent event) {
 					controls.shutdown();
@@ -283,9 +238,7 @@ public class QueryTool extends JPanel implements ActionListener {
 		private ArrayList<Item> items;
 
 		public ItemTableModel() {
-			columns = new ArrayList<String>();
-			columns.add("itemName()");
-			items = new ArrayList<Item>();
+			clearData();
 		}
 
 		public void addItems(List<Item> newItems) {
@@ -305,6 +258,12 @@ public class QueryTool extends JPanel implements ActionListener {
 				fireTableStructureChanged();
 			}
 			fireTableRowsInserted(firstRow, items.size());
+		}
+
+		public void clearData() {
+			columns = new ArrayList<String>();
+			columns.add("itemName()");
+			items = new ArrayList<Item>();
 		}
 
 		public int getRowCount() {
@@ -353,12 +312,12 @@ public class QueryTool extends JPanel implements ActionListener {
 		}
 	}
 
-	public class ResultsFrame extends JInternalFrame {
+	public class ResultsFrame extends JInternalFrame implements Runnable {
 		private ItemTableModel tm;
 		private double boxUsage = 0.0;
-		private String time = "0 seconds";
-		private int itemCount = 0;
+		private String time = "0";
 		private JLabel stats;
+		private JButton reload;
 
 		public ResultsFrame(String title) {
 			super(title);
@@ -366,43 +325,120 @@ public class QueryTool extends JPanel implements ActionListener {
 			setIconifiable(true);
 			setMaximizable(true);
 			setResizable(true);
-			setBounds(0, 0, 400, 300);
-
+			setBounds(0, 0, 550, 300);
 			setLayout(new BorderLayout());
+
+			JPanel topPan = new JPanel(new GridBagLayout());
+			
+			reload = new JButton("reload") {
+				public int getWidth() { return getPreferredSize().width; }
+				public int getHeight() { return getPreferredSize().height; }
+			};
+			reload.setEnabled(false);
+			reload.setMargin(new Insets(0, 0, 0, 0));
+			reload.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					reload();
+				}
+			});
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.weightx = 1.0;
+			gbc.insets = new Insets(0, 0, 0, 0);
+			topPan.add(reload, gbc);
+
 			stats = new JLabel("-");
-			add(stats, BorderLayout.NORTH);
+			gbc = new GridBagConstraints();
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.gridwidth = GridBagConstraints.REMAINDER;
+			gbc.weightx = 0.0;
+			gbc.insets = new Insets(0, 0, 0, 5);
+			topPan.add(stats, gbc);
+
+			add(topPan, BorderLayout.NORTH);
 			tm = new ItemTableModel();
 			JTable resultSpace = new JTable(tm);
 			JScrollPane sp = new JScrollPane(resultSpace);
 			add(sp, BorderLayout.CENTER);
 		}
 
-		public void addItems(List<Item> items) {
-			tm.addItems(items);
+		public void reload() {
+			reload.setEnabled(false);
+			boxUsage = 0.0;
+			time = "0";
+			updateStats();
+			tm.clearData();
+			new Thread(this).start();
 		}
 
-		public void addBoxUsage(String usage) {
+		public void run() {
+			StringBuilder resText = new StringBuilder();
 			try {
-				double newUsage = Double.parseDouble(usage);
-				boxUsage += newUsage;
-				updateStats();
-			} catch (NumberFormatException ex) {
-				System.err.println("error parsing box usage : "+ex.getMessage());
+				int itemCount = 0;
+				long start = System.currentTimeMillis();
+				String nextToken = null;
+				do {
+					SelectResult sr = dom.selectItems(getTitle(), nextToken);
+					List<Item> items = sr.getItems();
+					nextToken = sr.getNextToken();
+					itemCount += items.size();
+					updateResults(items);
+					updateBoxUsage(sr.getBoxUsage());
+					if (itemCount > 1000) {
+						nextToken = null;
+						ArrayList<Item> trunc = new ArrayList<Item>();
+						trunc.add(dom.getItem("- truncated -"));
+						updateResults(trunc);
+					}
+				} while (nextToken != null && !nextToken.trim().equals(""));
+				long end = System.currentTimeMillis();
+				updateTime((end-start)/1000.0);
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						reload.setEnabled(true);
+					}
+				});
+			} catch (SDBException ex) {
+				resText.append(ex.getMessage());
 			}
 		}
 
-		public void addItemCount(int count) {
-			itemCount += count;
-			updateStats();
+		void updateResults(final List<Item> data) {
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					tm.addItems(data);
+					updateStats();
+				}
+			});
 		}
 
-		public void setTime(String time) {
-			this.time = time;
-			updateStats();
+		void updateBoxUsage(final String usage) {
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					try {
+						double newUsage = Double.parseDouble(usage);
+						boxUsage += newUsage;
+						updateStats();
+					} catch (NumberFormatException ex) {
+						System.err.println("error parsing box usage : "+ex.getMessage());
+					}
+				}
+			});
+		}
+
+		void updateTime(final double timeVal) {
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					time = ""+timeVal;
+					updateStats();
+				}
+			});
 		}
 
 		private void updateStats() {
-			stats.setText("Box Usage: "+boxUsage+"  Item Count: "+itemCount+"  Time To Run: "+time);
+			String usage = ""+boxUsage;
+			if (usage.length() > 10) usage = usage.substring(0, 10);
+			stats.setText("Box Usage:"+usage+"  Items:"+tm.getRowCount()+"  Time To Run:"+time+" secs");
 		}
 	}
 }
