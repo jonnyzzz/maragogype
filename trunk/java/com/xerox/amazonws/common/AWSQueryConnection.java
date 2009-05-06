@@ -296,7 +296,7 @@ public class AWSQueryConnection extends AWSConnection {
 				else { first = false; }
 				resource.append(key);
 				resource.append("=");
-				resource.append(SignerEncoder.encode(qParams.get(key)));
+				resource.append(urlencode(qParams.get(key)));
 //				System.err.println("encoded params "+key+" :"+(urlencode(qParams.get(key))));
 			}
 		}

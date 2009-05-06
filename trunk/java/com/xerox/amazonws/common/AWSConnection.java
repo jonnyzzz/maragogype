@@ -227,22 +227,8 @@ public abstract class AWSConnection {
             // should never happen
             throw new RuntimeException("Could not url encode to UTF-8", e);
         }
-		if (sigVersion == 2) {	// convert "+" to "%20"
-			StringBuilder tmp = new StringBuilder();
-			StringTokenizer st = new StringTokenizer(encoded, "+*", true);
-			while (st.hasMoreTokens()) {
-				String tok = st.nextToken();
-				if (tok.equals("+")) {
-					tmp.append("%20");
-				}
-				else if (tok.equals("*")) {
-					tmp.append("%2A");
-				}
-				else {
-					tmp.append(tok);
-				}
-			}
-			encoded = tmp.toString();
+		if (sigVersion == 2) {
+			encoded = URLEncoder.encode(unencoded).replace("+", "%20").replace("*", "%2A").replace("%7E", "~");
 		}
 		return encoded;
     }
