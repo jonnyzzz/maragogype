@@ -190,7 +190,7 @@ public class QueueService extends AWSQueryConnection {
 			ListQueuesResponse response =
 				makeRequestInt(method, "ListQueues", params, ListQueuesResponse.class);
 			List<String> urls = response.getListQueuesResult().getQueueUrls();
-			if (urls == null) {
+			if (urls == null || urls.size() == 0) {
 				return new ArrayList<MessageQueue>();
 			}
 			else {
