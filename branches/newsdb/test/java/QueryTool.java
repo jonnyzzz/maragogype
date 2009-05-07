@@ -15,6 +15,7 @@ import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -40,6 +41,7 @@ import javax.swing.text.BadLocationException;
 import com.xerox.amazonws.simpledb.Domain;
 import com.xerox.amazonws.simpledb.DomainMetadataResult;
 import com.xerox.amazonws.simpledb.Item;
+import com.xerox.amazonws.simpledb.ItemVO;
 import com.xerox.amazonws.simpledb.ListDomainsResult;
 import com.xerox.amazonws.simpledb.SDBException;
 import com.xerox.amazonws.simpledb.SelectResult;
@@ -318,6 +320,7 @@ public class QueryTool extends JPanel implements ActionListener {
 		private String time = "0";
 		private JLabel stats;
 		private JButton reload;
+		private boolean countMode;
 
 		public ResultsFrame(String title) {
 			super(title);
@@ -377,11 +380,16 @@ public class QueryTool extends JPanel implements ActionListener {
 				int itemCount = 0;
 				long start = System.currentTimeMillis();
 				String nextToken = null;
+				countMode = (getTitle().indexOf("count(*)") > -1);
+				long total = 0;
 				do {
 					SelectResult sr = dom.selectItems(getTitle(), nextToken);
 					List<Item> items = sr.getItems();
 					nextToken = sr.getNextToken();
 					itemCount += items.size();
+					if (countMode) {
+						total += Long.parseLong(items.get(0).getAttribute("Count"));
+					}
 					updateResults(items);
 					updateBoxUsage(sr.getBoxUsage());
 					if (itemCount > 1000) {
@@ -398,6 +406,15 @@ public class QueryTool extends JPanel implements ActionListener {
 						reload.setEnabled(true);
 					}
 				});
+				if (countMode) {
+					List<Item> tmp = new ArrayList<Item>();
+					Item i = new ItemVO("Total");
+					HashSet<String> vals = new HashSet<String>();
+					vals.add(""+total);
+					i.getAttributes().put("Count", vals);
+					tmp.add(i);
+					updateResults(tmp);
+				}
 			} catch (SDBException ex) {
 				resText.append(ex.getMessage());
 			}

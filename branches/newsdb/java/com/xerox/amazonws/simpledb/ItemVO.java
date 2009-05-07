@@ -42,7 +42,7 @@ public class ItemVO implements Item {
 	private String identifier;
 	private Map<String, Set<String>> attributes;
 
-    ItemVO(String identifier) {
+    public ItemVO(String identifier) {
 		this.identifier = identifier;
 		attributes = Collections.synchronizedMap(new HashMap<String, Set<String>>());
 	}
