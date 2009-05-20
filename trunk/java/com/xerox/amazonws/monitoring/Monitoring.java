@@ -157,7 +157,9 @@ public class Monitoring extends AWSQueryConnection {
 			List<Datapoint> dpList = ret.getDatapoints();
 			List<com.xerox.amazonws.typica.monitor.jaxb.Datapoint> dps = result.getDatapoints().getMembers();
 			for (com.xerox.amazonws.typica.monitor.jaxb.Datapoint dp : dps) {
-				dpList.add(new Datapoint(dp.getTimestamp().toGregorianCalendar(), dp.getSamples()));
+				dpList.add(new Datapoint(dp.getTimestamp().toGregorianCalendar(), dp.getSamples(),
+								dp.getAverage(), dp.getSum(), dp.getMinimum(), dp.getMaximum(),
+								dp.getUnit(), dp.getCustomUnit()));
 			}
 			return ret;
 		} finally {
@@ -171,7 +173,7 @@ public class Monitoring extends AWSQueryConnection {
 	 * @return A list of {@link Metric}.
 	 * @throws MonitoringException wraps checked exceptions
 	 */
-	public List<Metric> getMetricStatistics() throws MonitoringException {
+	public List<Metric> listMetricStatistics() throws MonitoringException {
 		Map<String, String> params = new HashMap<String, String>();
 		GetMethod method = new GetMethod();
 		try {

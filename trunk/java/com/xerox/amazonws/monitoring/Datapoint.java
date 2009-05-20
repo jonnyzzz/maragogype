@@ -27,10 +27,23 @@ import java.util.List;
 public class Datapoint {
 	private Calendar timestamp;
 	private double samples;
+	private Double average;
+	private Double sum;
+	private Double minimum;
+	private Double maximum;
+	private String unit;
+	private String customUnit;
 
-	public Datapoint(Calendar timestamp, double samples) {
+	public Datapoint(Calendar timestamp, double samples, Double averag, Double sum, Double minimum,
+					Double maximum, String unit, String customUnit) {
 		this.timestamp = timestamp;
 		this.samples = samples;
+		this.average = average;
+		this.sum = sum;
+		this.minimum = minimum;
+		this.maximum = maximum;
+		this.unit = unit;
+		this.customUnit = customUnit;
 	}
 
 	public Calendar getTimestamp() {
@@ -39,6 +52,30 @@ public class Datapoint {
 
 	public double getSamples() {
 		return samples;
+	}
+
+	public Double getAverage() {
+		return average;
+	}
+
+	public Double getSum() {
+		return sum;
+	}
+
+	public Double getMinimum() {
+		return minimum;
+	}
+
+	public Double getMaximum() {
+		return maximum;
+	}
+
+	public String getUnit() {
+		return unit;
+	}
+
+	public String getCustomUnit() {
+		return customUnit;
 	}
 
 	public String toString() {
