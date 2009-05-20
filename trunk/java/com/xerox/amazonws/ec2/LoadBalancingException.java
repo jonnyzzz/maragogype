@@ -20,22 +20,22 @@ package com.xerox.amazonws.ec2;
 import com.xerox.amazonws.common.AWSException;
 
 /**
- * A wrapper exception to simplify catching errors related to ec2 activity.
+ * A wrapper exception to simplify catching errors related to load balancing activity.
  *
  * @author D. Kavanagh
  * @author developer@dotech.com
  */
-public class EC2Exception extends AWSException {
+public class LoadBalancingException extends AWSException {
 
-    public EC2Exception(String s) {
+    public LoadBalancingException(String s) {
         super(s);
     }
 
-    public EC2Exception(String s, Exception ex) {
+    public LoadBalancingException(String s, Exception ex) {
         super(s, ex);
     }
 
-    public EC2Exception(AWSException ex) {
+    public LoadBalancingException(AWSException ex) {
         super(ex);
     }
 }

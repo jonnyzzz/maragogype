@@ -15,27 +15,33 @@
 // limitations under the License.
 //
 
-package com.xerox.amazonws.ec2;
+package com.xerox.amazonws.monitoring;
 
-import com.xerox.amazonws.common.AWSException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * A wrapper exception to simplify catching errors related to ec2 activity.
- *
- * @author D. Kavanagh
- * @author developer@dotech.com
+ * An instance of this class represents a staticics result
  */
-public class EC2Exception extends AWSException {
+public class MetricStatisticsResult {
+	private String label;
+	private List<Datapoint> points;
 
-    public EC2Exception(String s) {
-        super(s);
-    }
+	public MetricStatisticsResult(String label) {
+		this.label = label;
+		this.points = new ArrayList<Datapoint>();
+	}
 
-    public EC2Exception(String s, Exception ex) {
-        super(s, ex);
-    }
+	public String getLabel() {
+		return label;
+	}
 
-    public EC2Exception(AWSException ex) {
-        super(ex);
-    }
+	public List<Datapoint> getDatapoints() {
+		return points;
+	}
+
+	public String toString() {
+		return "MetricStatsResult[label=" + this.label + ", numPoints=" + this.points.size() + "]";
+	}
 }
+

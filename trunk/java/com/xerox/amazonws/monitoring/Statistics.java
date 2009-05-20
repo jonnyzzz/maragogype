@@ -15,27 +15,33 @@
 // limitations under the License.
 //
 
-package com.xerox.amazonws.ec2;
-
-import com.xerox.amazonws.common.AWSException;
+package com.xerox.amazonws.monitoring;
 
 /**
- * A wrapper exception to simplify catching errors related to ec2 activity.
- *
- * @author D. Kavanagh
- * @author developer@dotech.com
+ * This enumeration represents different image types that can be launched.
  */
-public class EC2Exception extends AWSException {
+public enum Statistics {
+	AVERAGE ("Average"),
+	SUM ("Sum"),
+	MINIMUM ("Minimum"),
+	MAXIMUM ("Maximum");
 
-    public EC2Exception(String s) {
-        super(s);
-    }
+	private final String statId;
 
-    public EC2Exception(String s, Exception ex) {
-        super(s, ex);
-    }
+	Statistics(String statId) {
+		this.statId = statId;
+	}
 
-    public EC2Exception(AWSException ex) {
-        super(ex);
-    }
+	public String getStatId() {
+		return statId;
+	}
+
+	public static Statistics getTypeFromString(String val) {
+		for (Statistics t : Statistics.values()) {
+			if (t.getStatId().equals(val)) {
+				return t;
+			}
+		}
+		return null;
+	}
 }

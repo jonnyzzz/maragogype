@@ -432,7 +432,7 @@ public class AWSQueryConnection extends AWSConnection {
 		ByteArrayInputStream bais = new ByteArrayInputStream(errorResponse.getBytes());
 		if (errorResponse.indexOf("<ErrorResponse") > -1) {
 			try {
-				// this comes form the SQS2 schema, and is the standard new response
+				// this comes from the SQS2 schema, and is the standard new response
 				ErrorResponse resp = JAXBuddy.deserializeXMLStream(ErrorResponse.class, bais);
 				List<Error> errs = resp.getErrors();
 				errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
@@ -443,16 +443,30 @@ public class AWSQueryConnection extends AWSConnection {
 											e.getCode(), e.getMessage()));
 				}
 			} catch (UnmarshalException ex) {
-				// this comes form the DevpayLS schema, duplicated because of the different namespace
-				bais = new ByteArrayInputStream(errorResponse.getBytes());
-				com.xerox.amazonws.typica.jaxb.ErrorResponse resp = JAXBuddy.deserializeXMLStream(com.xerox.amazonws.typica.jaxb.ErrorResponse.class, bais);
-				List<com.xerox.amazonws.typica.jaxb.Error> errs = resp.getErrors();
-				errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
-				requestId = resp.getRequestID();
-				errors = new ArrayList<AWSError>();
-				for (com.xerox.amazonws.typica.jaxb.Error e : errs) {
-					errors.add(new AWSError(AWSError.ErrorType.getTypeFromString(e.getType()),
-											e.getCode(), e.getMessage()));
+				try {
+					// this comes from the DevpayLS schema, duplicated because of the different namespace
+					bais = new ByteArrayInputStream(errorResponse.getBytes());
+					com.xerox.amazonws.typica.jaxb.ErrorResponse resp = JAXBuddy.deserializeXMLStream(com.xerox.amazonws.typica.jaxb.ErrorResponse.class, bais);
+					List<com.xerox.amazonws.typica.jaxb.Error> errs = resp.getErrors();
+					errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
+					requestId = resp.getRequestID();
+					errors = new ArrayList<AWSError>();
+					for (com.xerox.amazonws.typica.jaxb.Error e : errs) {
+						errors.add(new AWSError(AWSError.ErrorType.getTypeFromString(e.getType()),
+												e.getCode(), e.getMessage()));
+					}
+				} catch (UnmarshalException ex2) {
+					// this comes from the Monitoring schema, duplicated because of the different namespace
+					bais = new ByteArrayInputStream(errorResponse.getBytes());
+					com.xerox.amazonws.typica.monitor.jaxb.ErrorResponse resp = JAXBuddy.deserializeXMLStream(com.xerox.amazonws.typica.monitor.jaxb.ErrorResponse.class, bais);
+					List<com.xerox.amazonws.typica.monitor.jaxb.Error> errs = resp.getErrors();
+					errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
+					requestId = resp.getRequestId();
+					errors = new ArrayList<AWSError>();
+					for (com.xerox.amazonws.typica.monitor.jaxb.Error e : errs) {
+						errors.add(new AWSError(AWSError.ErrorType.getTypeFromString(e.getType()),
+												e.getCode(), e.getMessage()));
+					}
 				}
 			}
 		}

@@ -15,27 +15,27 @@
 // limitations under the License.
 //
 
-package com.xerox.amazonws.ec2;
+package com.xerox.amazonws.monitoring;
 
 import com.xerox.amazonws.common.AWSException;
 
 /**
- * A wrapper exception to simplify catching errors related to ec2 activity.
+ * A wrapper exception to simplify catching errors related to monitoring activity.
  *
  * @author D. Kavanagh
  * @author developer@dotech.com
  */
-public class EC2Exception extends AWSException {
+public class MonitoringException extends AWSException {
 
-    public EC2Exception(String s) {
+    public MonitoringException(String s) {
         super(s);
     }
 
-    public EC2Exception(String s, Exception ex) {
+    public MonitoringException(String s, Exception ex) {
         super(s, ex);
     }
 
-    public EC2Exception(AWSException ex) {
+    public MonitoringException(AWSException ex) {
         super(ex);
     }
 }

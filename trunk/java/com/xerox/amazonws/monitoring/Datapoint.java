@@ -15,27 +15,34 @@
 // limitations under the License.
 //
 
-package com.xerox.amazonws.ec2;
+package com.xerox.amazonws.monitoring;
 
-import com.xerox.amazonws.common.AWSException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 /**
- * A wrapper exception to simplify catching errors related to ec2 activity.
- *
- * @author D. Kavanagh
- * @author developer@dotech.com
+ * An instance of this class represents a Datapoint for some metrics
  */
-public class EC2Exception extends AWSException {
+public class Datapoint {
+	private Calendar timestamp;
+	private double samples;
 
-    public EC2Exception(String s) {
-        super(s);
-    }
+	public Datapoint(Calendar timestamp, double samples) {
+		this.timestamp = timestamp;
+		this.samples = samples;
+	}
 
-    public EC2Exception(String s, Exception ex) {
-        super(s, ex);
-    }
+	public Calendar getTimestamp() {
+		return timestamp;
+	}
 
-    public EC2Exception(AWSException ex) {
-        super(ex);
-    }
+	public double getSamples() {
+		return samples;
+	}
+
+	public String toString() {
+		return "Datapoint[timestamp=" + this.timestamp.toString() + ", Samples=" + this.samples + "]";
+	}
 }
+

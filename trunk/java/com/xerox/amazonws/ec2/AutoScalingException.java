@@ -20,22 +20,22 @@ package com.xerox.amazonws.ec2;
 import com.xerox.amazonws.common.AWSException;
 
 /**
- * A wrapper exception to simplify catching errors related to ec2 activity.
+ * A wrapper exception to simplify catching errors related to auto scaling activity.
  *
  * @author D. Kavanagh
  * @author developer@dotech.com
  */
-public class EC2Exception extends AWSException {
+public class AutoScalingException extends AWSException {
 
-    public EC2Exception(String s) {
+    public AutoScalingException(String s) {
         super(s);
     }
 
-    public EC2Exception(String s, Exception ex) {
+    public AutoScalingException(String s, Exception ex) {
         super(s, ex);
     }
 
-    public EC2Exception(AWSException ex) {
+    public AutoScalingException(AWSException ex) {
         super(ex);
     }
 }

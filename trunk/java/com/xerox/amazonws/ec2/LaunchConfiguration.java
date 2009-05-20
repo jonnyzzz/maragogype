@@ -25,6 +25,9 @@ import java.util.List;
  * @author Moritz Post <mpost@innoopract.com>
  */
 public class LaunchConfiguration {
+	/** A name given to this launch config */
+	private String configName;
+
 	/** The ID of the AMI to launch. */
 	private String imageId;
 
@@ -41,7 +44,7 @@ public class LaunchConfiguration {
 	private List<String> securityGroup;
 
 	/** The availability AvailabilityZone to launch the AMI in. */
-	private String AvailabilityZone;
+	private String availabilityZone;
 
 	/** Custom User Data to init the AMI with. */
 	private byte[] userData;
@@ -78,6 +81,35 @@ public class LaunchConfiguration {
 		this.imageId = imageId;
 		this.minCount = minCount;
 		this.maxCount = maxCount;
+	}
+
+	/**
+	 * The launch parameter with the name being supplied.
+	 *
+	 * @param configName the name given to this launch config
+	 * @param imageId the id of the AMI to launch
+	 * @param minCount the minimum required number of instances
+	 * @param maxCount the maximum number of AMIs desired
+	 */
+	public LaunchConfiguration(final String configName, final String imageId, final int minCount, final int maxCount) {
+		this.configName = configName;
+		this.imageId = imageId;
+		this.minCount = minCount;
+		this.maxCount = maxCount;
+	}
+
+	/**
+	 * @return the configName
+	 */
+	public String getConfigName() {
+		return this.configName;
+	}
+
+	/**
+	 * @param configName the configName to set
+	 */
+	public void setConfigName(final String configName) {
+		this.configName = configName;
 	}
 
 	/**
@@ -154,14 +186,14 @@ public class LaunchConfiguration {
 	 * @return the AvailabilityZone
 	 */
 	public String getAvailabilityZone() {
-		return this.AvailabilityZone;
+		return this.availabilityZone;
 	}
 
 	/**
 	 * @param availabilityZone the AvailabilityZone to set
 	 */
 	public void setAvailabilityZone(final String availabilityZone) {
-		this.AvailabilityZone = availabilityZone;
+		this.availabilityZone = availabilityZone;
 	}
 
 	/**

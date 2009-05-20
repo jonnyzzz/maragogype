@@ -42,7 +42,7 @@
         <mkdir dir="${typica.generated}/com/xerox/amazonws/typica/jaxb"/>
 		<echo>compiling the schema files in xsd to java files in ${typica.generated}/com/xerox/amazonws/typica/jaxb</echo>
 		<xjc destdir="${typica.generated}" extension="true" removeOldOutput="yes" package="com.xerox.amazonws.typica.jaxb">
-			<schema dir="xsd" includes="**/*.xsd" excludes="**/sdb.xsd, **/QueueService2.xsd, **/AmazonFPS.xsd"/>
+			<schema dir="xsd" includes="**/*.xsd" excludes="**/sdb.xsd, **/QueueService2.xsd, **/AmazonFPS.xsd, **/CloudWatch.xsd, **/AutoScaling.xsd, **/ElasticLoadBalancing.xsd"/>
 			<produces dir="${typica.generated}/com/xerox/amazonws/typica/jaxb" includes="**/"/>
 		</xjc>
         <mkdir dir="${typica.generated}/com/xerox/amazonws/typica/sdb/jaxb"/>
@@ -59,6 +59,21 @@
 		<xjc destdir="${typica.generated}" extension="true" removeOldOutput="yes" package="com.xerox.amazonws.typica.fps.jaxb">
 			<schema dir="xsd" includes="**/AmazonFPS.xsd"/>
 			<produces dir="${typica.generated}/com/xerox/amazonws/typica/fps/jaxb" includes="**/"/>
+		</xjc>
+        <mkdir dir="${typica.generated}/com/xerox/amazonws/typica/monitor/jaxb"/>
+		<xjc destdir="${typica.generated}" extension="true" removeOldOutput="yes" package="com.xerox.amazonws.typica.monitor.jaxb">
+			<schema dir="xsd" includes="**/CloudWatch.xsd"/>
+			<produces dir="${typica.generated}/com/xerox/amazonws/typica/monitor/jaxb" includes="**/"/>
+		</xjc>
+        <mkdir dir="${typica.generated}/com/xerox/amazonws/typica/autoscale/jaxb"/>
+		<xjc destdir="${typica.generated}" extension="true" removeOldOutput="yes" package="com.xerox.amazonws.typica.autoscale.jaxb">
+			<schema dir="xsd" includes="**/AutoScaling.xsd"/>
+			<produces dir="${typica.generated}/com/xerox/amazonws/typica/autoscale/jaxb" includes="**/"/>
+		</xjc>
+        <mkdir dir="${typica.generated}/com/xerox/amazonws/typica/loadbalance/jaxb"/>
+		<xjc destdir="${typica.generated}" extension="true" removeOldOutput="yes" package="com.xerox.amazonws.typica.loadbalance.jaxb">
+			<schema dir="xsd" includes="**/ElasticLoadBalancing.xsd"/>
+			<produces dir="${typica.generated}/com/xerox/amazonws/typica/loadbalance/jaxb" includes="**/"/>
 		</xjc>
 	</target>
 
