@@ -9,6 +9,7 @@
 	<property name="typica.jar" value="${typica.build}/jar" />
 	<property name="typica.jar.file" value="${typica.jar}/typica.jar" />
 	<property name="typica.sdbshell.jar.file" value="${typica.jar}/sdbShell" />
+	<property name="typica.querytool.jar.file" value="${typica.jar}/QueryTool" />
     <property name="typica.classes" value="${typica.build}/classes" />
     <property name="typica.jar.classes" value="${typica.jar}/classes" />
     <property name="typica.generated" value="${typica.build}/generated" />
@@ -175,6 +176,32 @@
 			<fileset dir="${typica.jar.classes}" includes="**/*" />
 			<manifest>
 				<attribute name="Main-Class" value="sdbShell"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="querytool" depends="compile, test.compile">
+		<input message="Enter the version # : " addproperty="rel.version"/>
+		<antcall target="test.compile">
+			<param name="test.src.path" value="test/java/sdbShell.java"/>
+		</antcall>
+		<mkdir dir="${typica.jar.classes}"/>
+		<unzip dest="${typica.jar.classes}">
+			<fileset dir="${typica.lib}">
+				<include name="activation.jar"/>
+				<include name="jaxb-api.jar"/>
+				<include name="jaxb-impl.jar"/>
+				<include name="jsr173_1.0_api.jar"/>
+				<include name="commons-logging-1.1.jar"/>
+				<include name="commons-codec-1.3.jar"/>
+				<include name="commons-httpclient-3.1.jar"/>
+			</fileset>
+		</unzip>
+		<jar destfile="${typica.querytool.jar.file}${rel.version}.jar">
+			<fileset dir="${typica.classes}" includes="**/*" excludes="**/ec2/*, **/sqs/*" />
+			<fileset dir="${typica.jar.classes}" includes="**/*" />
+			<manifest>
+				<attribute name="Main-Class" value="QueryTool"/>
 			</manifest>
 		</jar>
 	</target>

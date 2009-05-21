@@ -57,7 +57,7 @@ public class QueryTool extends JPanel implements ActionListener {
 
 	public QueryTool(JFrame parent, String accessId, String secretKey) {
 		this.parent = parent;
-		sdb = new SimpleDB(accessId, secretKey);
+		sdb = new SimpleDB(accessId, secretKey, true, "sdb-preview.amazonpmi.com");
 		layoutGUI();
 		loadPrefs();
 	}
