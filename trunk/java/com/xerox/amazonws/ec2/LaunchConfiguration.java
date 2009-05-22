@@ -61,6 +61,8 @@ public class LaunchConfiguration {
 	/** The block device mapping to use. */
 	private List<BlockDeviceMapping> blockDeviceMappings;
 
+	private boolean monitoring;
+
 	/**
 	 * Launches the given AMI one time. The min and max values are '1'.
 	 *
@@ -264,5 +266,19 @@ public class LaunchConfiguration {
 	 */
 	public void setBlockDevicemappings(List<BlockDeviceMapping> blockDeviceMappings) {
 		this.blockDeviceMappings = blockDeviceMappings;
+	}
+
+	/**
+	 * @return state of instance monitoring
+	 */
+	public Boolean isMonitoring() {
+		return monitoring;
+	}
+
+	/**
+	 * @param sets the state of instance monitoring
+	 */
+	public void setMonitoring(boolean set) {
+		monitoring = set;
 	}
 }

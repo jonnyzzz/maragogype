@@ -110,6 +110,8 @@ import com.xerox.amazonws.typica.jaxb.IpRangeSetType;
 import com.xerox.amazonws.typica.jaxb.LaunchPermissionItemType;
 import com.xerox.amazonws.typica.jaxb.LaunchPermissionListType;
 import com.xerox.amazonws.typica.jaxb.ModifyImageAttributeResponse;
+import com.xerox.amazonws.typica.jaxb.MonitorInstancesResponseType;
+import com.xerox.amazonws.typica.jaxb.MonitorInstancesResponseSetItemType;
 import com.xerox.amazonws.typica.jaxb.NullableAttributeValueType;
 import com.xerox.amazonws.typica.jaxb.ObjectFactory;
 import com.xerox.amazonws.typica.jaxb.ProductCodeListType;
@@ -562,6 +564,9 @@ public class Jec2 extends AWSQueryConnection {
 				bdm.getDeviceName());
 			}
 		}
+		if (lc.isMonitoring()) {
+			params.put("Monitoring.Enabled", "true");
+		}
 
 		GetMethod method = new GetMethod();
 		try {
@@ -592,7 +597,8 @@ public class Jec2 extends AWSQueryConnection {
 								InstanceType.getTypeFromString(rsp_item.getInstanceType()),
 								rsp_item.getPlacement().getAvailabilityZone(),
 								rsp_item.getKernelId(), rsp_item.getRamdiskId(),
-								rsp_item.getPlatform());
+								rsp_item.getPlatform(),
+								rsp_item.getMonitoring().getState().equals("true"));
 			}
 			return res;
 		} finally {
@@ -707,7 +713,8 @@ public class Jec2 extends AWSQueryConnection {
                             InstanceType.getTypeFromString(rsp_item.getInstanceType()),
                             rsp_item.getPlacement().getAvailabilityZone(),
                             rsp_item.getKernelId(), rsp_item.getRamdiskId(),
-							rsp_item.getPlatform());
+							rsp_item.getPlatform(),
+							rsp_item.getMonitoring().getState().equals("true"));
                 }
                 result.add(res);
             }
@@ -1932,6 +1939,42 @@ public class Jec2 extends AWSQueryConnection {
 			PurchaseReservedInstancesOfferingResponse response =
 					makeRequestInt(method, "PurchaseReservedInstancesOffering", params, PurchaseReservedInstancesOfferingResponse.class);
 			return response.getReservedInstancesId();
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	public List<MonitoredInstanceInfo> monitorInstances(String instanceId) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("InstanceId", ""+instanceId);
+		GetMethod method = new GetMethod();
+		try {
+			MonitorInstancesResponseType response =
+					makeRequestInt(method, "MonitorInstances", params, MonitorInstancesResponseType.class);
+			List<MonitoredInstanceInfo> ret = new ArrayList<MonitoredInstanceInfo>();
+			for (MonitorInstancesResponseSetItemType item : response.getInstancesSet().getItems()) {
+				ret.add(new MonitoredInstanceInfo(item.getInstanceId(),
+								item.getMonitoring().getState()));
+			}
+			return ret;
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	public List<MonitoredInstanceInfo> unmonitorInstances(String instanceId) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("InstanceId", ""+instanceId);
+		GetMethod method = new GetMethod();
+		try {
+			MonitorInstancesResponseType response =
+					makeRequestInt(method, "UnmonitorInstances", params, MonitorInstancesResponseType.class);
+			List<MonitoredInstanceInfo> ret = new ArrayList<MonitoredInstanceInfo>();
+			for (MonitorInstancesResponseSetItemType item : response.getInstancesSet().getItems()) {
+				ret.add(new MonitoredInstanceInfo(item.getInstanceId(),
+								item.getMonitoring().getState()));
+			}
+			return ret;
 		} finally {
 			method.releaseConnection();
 		}

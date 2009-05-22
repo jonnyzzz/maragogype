@@ -173,7 +173,7 @@ public class Monitoring extends AWSQueryConnection {
 	 * @return A list of {@link Metric}.
 	 * @throws MonitoringException wraps checked exceptions
 	 */
-	public List<Metric> listMetricStatistics() throws MonitoringException {
+	public List<Metric> listMetrics() throws MonitoringException {
 		Map<String, String> params = new HashMap<String, String>();
 		GetMethod method = new GetMethod();
 		try {
@@ -185,6 +185,7 @@ public class Monitoring extends AWSQueryConnection {
 				}
 				ListMetricsResponse response =
 						makeRequestInt(method, "ListMetrics", params, ListMetricsResponse.class);
+			System.err.println("request id = "+response.getResponseMetadata().getRequestId());
 				ListMetricsResult result = response.getListMetricsResult();
 				Metrics mtrx = result.getMetrics();
 				for (com.xerox.amazonws.typica.monitor.jaxb.Metric m : mtrx.getMembers()) {

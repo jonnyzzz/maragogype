@@ -34,7 +34,7 @@ public class Metric {
 		this.namespace = namespace;
 	}
 
-	public String getNamme() {
+	public String getName() {
 		return name;
 	}
 

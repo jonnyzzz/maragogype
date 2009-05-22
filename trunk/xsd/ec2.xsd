@@ -2,8 +2,8 @@
 		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	 	   xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
 	 	   xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-		   xmlns:tns="http://ec2.amazonaws.com/doc/2009-03-01/"
-		   targetNamespace="http://ec2.amazonaws.com/doc/2009-03-01/"    
+		   xmlns:tns="http://ec2.amazonaws.com/doc/2009-04-04/"
+		   targetNamespace="http://ec2.amazonaws.com/doc/2009-04-04/"    
 		   jaxb:extensionBindingPrefixes="xjc"
 		   jaxb:version="2.0"
 		   elementFormDefault="qualified">
@@ -17,7 +17,6 @@
       </jaxb:globalBindings>
     </xs:appinfo>
   </xs:annotation>
-  
   
   <!-- RegisterImage request definitions -->
   
@@ -169,6 +168,7 @@
 	  <xs:element name="kernelId" type="xs:string" minOccurs="0" maxOccurs="1"/>
 	  <xs:element name="ramdiskId" type="xs:string" minOccurs="0" maxOccurs="1"/>
 	  <xs:element name="blockDeviceMapping" type="tns:BlockDeviceMappingType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="monitoring" type="tns:MonitoringInstanceType" minOccurs="0" maxOccurs="1" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -211,6 +211,12 @@
 	</xs:sequence> 
   </xs:complexType> 
 
+  <xs:complexType name="MonitoringInstanceType"> 
+	<xs:sequence> 
+	  <xs:element name="enabled" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+	</xs:sequence> 
+  </xs:complexType>
+  
   <!-- RunInstances response definitions -->
 
   <xs:element name="RunInstancesResponse" type="tns:RunInstancesResponseType"/>
@@ -259,6 +265,7 @@
 	  <xs:element name="kernelId" type="xs:string" minOccurs="0"/>
 	  <xs:element name="ramdiskId" type="xs:string" minOccurs="0"/>
 	  <xs:element name="platform" type="xs:string" minOccurs="0"/>
+	  <xs:element name="monitoring" type="tns:InstanceMonitoringStateType" minOccurs="0" maxOccurs="1" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -1506,7 +1513,7 @@
 			  
   <xs:complexType name="DescribeReservedInstancesOfferingsType">
 	<xs:sequence>
-	  <xs:element name="reservedInstancesOfferingsSet" type="tns:DescribeReservedInstancesOfferingsSetType"/>
+	  <xs:element name="reservedInstancesOfferingsSet" type="tns:DescribeReservedInstancesOfferingsSetType" minOccurs="0"/>
 	  <xs:element name="instanceType" type="xs:string" minOccurs="0" />
 	  <xs:element name="availabilityZone" type="xs:string"  minOccurs="0" />
 	  <xs:element name="productDescription" type="xs:string"  minOccurs="0" />
@@ -1583,7 +1590,7 @@
 
   <xs:complexType name="DescribeReservedInstancesType">
 	<xs:sequence>
-	  <xs:element name="reservedInstancesSet" type="tns:DescribeReservedInstancesSetType" />
+	  <xs:element name="reservedInstancesSet" type="tns:DescribeReservedInstancesSetType" minOccurs="0" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -1623,8 +1630,8 @@
 	  <xs:element name="availabilityZone" type="xs:string" />
 	  <xs:element name="start" type="xs:dateTime" />
 	  <xs:element name="duration" type="xs:long" />
-	  <xs:element name="usagePrice" type="xs:double" />
 	  <xs:element name="fixedPrice" type="xs:double" />
+	  <xs:element name="usagePrice" type="xs:double" />
 	  <xs:element name="instanceCount" type="xs:integer" />
 	  <xs:element name="productDescription" type="xs:string" />
 	  <xs:element name="state" type="xs:string" />
@@ -1632,4 +1639,65 @@
   </xs:complexType>
 
 
+  <!-- MonitorInstances / UnmonitorInstances definitions -->
+  
+  <xs:element name="MonitorInstances" 
+			  type="tns:MonitorInstancesType" />
+  
+  <xs:element name="UnmonitorInstances" 
+			  type="tns:MonitorInstancesType" />
+			  
+  <xs:complexType name="MonitorInstancesType">
+	<xs:sequence>
+	  <xs:element name="instancesSet" type="tns:MonitorInstancesSetType" />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="MonitorInstancesSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:MonitorInstancesSetItemType" minOccurs="1" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="MonitorInstancesSetItemType">
+	<xs:sequence>
+	  <xs:element name="instanceId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  
+  
+  <!-- MonitorInstancesResponse definitions -->
+  
+  <xs:element name="MonitorInstancesResponse" 
+			  type="tns:MonitorInstancesResponseType"/>
+
+  <xs:element name="UnmonitorInstancesResponse" 
+			  type="tns:MonitorInstancesResponseType"/>
+			  
+  <xs:complexType name="MonitorInstancesResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>    
+	  <xs:element name="instancesSet" type="tns:MonitorInstancesResponseSetType" />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="MonitorInstancesResponseSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:MonitorInstancesResponseSetItemType" minOccurs="1" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="MonitorInstancesResponseSetItemType">
+	<xs:sequence>
+	  <xs:element name="instanceId" type="xs:string" />
+	  <xs:element name="monitoring" type="tns:InstanceMonitoringStateType" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="InstanceMonitoringStateType">
+	<xs:sequence>
+	  <xs:element name="state" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  
 </xs:schema>

@@ -59,10 +59,10 @@ public class ReservationDescription {
 	public Instance addInstance(String imageId, String instanceId,
 			String privateDnsName, String dnsName, InstanceStateType state,
 			String reason, String keyName, Calendar launchTime, InstanceType instanceType,
-			String availabilityZone, String kernelId, String ramdiskId, String platform) {
+			String availabilityZone, String kernelId, String ramdiskId, String platform, boolean monitoring) {
 		Instance instance = new Instance(imageId, instanceId, privateDnsName,
 				dnsName, state.getName(), state.getCode(), reason, keyName,
-				instanceType, launchTime, availabilityZone, kernelId, ramdiskId, platform);
+				instanceType, launchTime, availabilityZone, kernelId, ramdiskId, platform, monitoring);
 		instances.add(instance);
 		return instance;
 	}
@@ -112,11 +112,13 @@ public class ReservationDescription {
 		 */
 		private String state;
 		private int stateCode;
+		private boolean monitoring;
 
 		public Instance(String imageId, String instanceId, String privateDnsName,
 				String dnsName, String stateName, int stateCode, String reason,
 				String keyName, InstanceType instanceType, Calendar launchTime,
-				String availabilityZone, String kernelId, String ramdiskId, String platform) {
+				String availabilityZone, String kernelId, String ramdiskId, String platform,
+				boolean monitoring) {
 			this.imageId = imageId;
 			this.instanceId = instanceId;
 			this.privateDnsName = privateDnsName;
@@ -131,6 +133,7 @@ public class ReservationDescription {
 			this.kernelId = kernelId;
 			this.ramdiskId = ramdiskId;
 			this.platform = platform;
+			this.monitoring = monitoring;
 		}
 
 		public String getImageId() {
@@ -203,6 +206,10 @@ public class ReservationDescription {
 
 		public String getPlatform() {
 			return platform;
+		}
+
+		public boolean isMonitoring() {
+			return monitoring;
 		}
 
 		public String toString() {
