@@ -27,8 +27,7 @@ public class TestMonitoring {
 		Properties props = new Properties();
 		props.load(TestMonitoring.class.getClassLoader().getResourceAsStream("aws.properties"));
 
-		Monitoring mon = new Monitoring(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"), false, "localhost");
-		mon.setSignatureVersion(1);
+		Monitoring mon = new Monitoring(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
 		List<Metric> metrix = mon.listMetrics();
 		for (Metric m : metrix) {
 			logger.info("name = "+m.getName()+":"+m.getNamespace());
