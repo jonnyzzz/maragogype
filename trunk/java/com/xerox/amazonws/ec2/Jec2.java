@@ -1944,9 +1944,18 @@ public class Jec2 extends AWSQueryConnection {
 		}
 	}
 
-	public List<MonitoredInstanceInfo> monitorInstances(String instanceId) throws EC2Exception {
+	/**
+	 * This method enables monitoring for some instances
+	 *
+	 * @param instanceIds the id of the instances to enable monitoring for
+	 * @return information about the monitoring state of those instances
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<MonitoredInstanceInfo> monitorInstances(List<String> instanceIds) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("InstanceId", ""+instanceId);
+		for (int i=0 ; i<instanceIds.size(); i++) {
+			params.put("InstanceId."+(i+1), instanceIds.get(i));
+		}
 		GetMethod method = new GetMethod();
 		try {
 			MonitorInstancesResponseType response =
@@ -1962,9 +1971,18 @@ public class Jec2 extends AWSQueryConnection {
 		}
 	}
 
-	public List<MonitoredInstanceInfo> unmonitorInstances(String instanceId) throws EC2Exception {
+	/**
+	 * This method disables monitoring for some instances
+	 *
+	 * @param instanceIds the id of the instances to disable monitoring for
+	 * @return information about the monitoring state of those instances
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<MonitoredInstanceInfo> unmonitorInstances(List<String> instanceIds) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("InstanceId", ""+instanceId);
+		for (int i=0 ; i<instanceIds.size(); i++) {
+			params.put("InstanceId."+(i+1), instanceIds.get(i));
+		}
 		GetMethod method = new GetMethod();
 		try {
 			MonitorInstancesResponseType response =
