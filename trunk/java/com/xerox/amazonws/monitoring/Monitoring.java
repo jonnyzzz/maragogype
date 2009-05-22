@@ -111,6 +111,7 @@ public class Monitoring extends AWSQueryConnection {
 	 * Describe the AMIs that match the intersection of the criteria supplied
 	 * 
 	 * @param period granularity in seconds for the returned data points
+	 * @param namespace
 	 * @param statistics
 	 * @param dimensions one or more dimension along which to aggregate the data
 	 * @param startTime timestamp of the first datapoint
@@ -121,11 +122,13 @@ public class Monitoring extends AWSQueryConnection {
 	 * @return A list of {@link Datapoint}.
 	 * @throws MonitoringException wraps checked exceptions
 	 */
-	public MetricStatisticsResult getMetricStatistics(int period, List<Statistics> statistics,
+	public MetricStatisticsResult getMetricStatistics(int period,
+										List<Statistics> statistics, String namespace,
 										Map<String, String> dimensions, Date startTime, Date endTime,
 										String measureName, StandardUnit unit, String customUnit) throws MonitoringException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("Period", ""+period);
+		params.put("Namespace", namespace);
         SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormat);
 		params.put("StartTime", dateFormatter.format(startTime));
 		params.put("EndTime", dateFormatter.format(endTime));

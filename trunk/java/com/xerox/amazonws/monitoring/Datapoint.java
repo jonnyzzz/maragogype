@@ -34,7 +34,7 @@ public class Datapoint {
 	private String unit;
 	private String customUnit;
 
-	public Datapoint(Calendar timestamp, double samples, Double averag, Double sum, Double minimum,
+	public Datapoint(Calendar timestamp, double samples, Double average, Double sum, Double minimum,
 					Double maximum, String unit, String customUnit) {
 		this.timestamp = timestamp;
 		this.samples = samples;
