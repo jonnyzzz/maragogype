@@ -4,10 +4,14 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.FileInputStream;
@@ -22,18 +26,23 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.text.BadLocationException;
@@ -57,7 +66,7 @@ public class QueryTool extends JPanel implements ActionListener {
 
 	public QueryTool(JFrame parent, String accessId, String secretKey) {
 		this.parent = parent;
-		sdb = new SimpleDB(accessId, secretKey, true, "sdb-preview.amazonpmi.com");
+		sdb = new SimpleDB(accessId, secretKey);
 		layoutGUI();
 		loadPrefs();
 	}
@@ -84,19 +93,27 @@ public class QueryTool extends JPanel implements ActionListener {
 		gbc.anchor = GridBagConstraints.WEST;
 		add(runQuery, gbc);
 
-		String [] domainNames = new String [] {"no domains found"};
-		try {
-			ListDomainsResult list = sdb.listDomains();
-			ArrayList<String> tmp = new ArrayList<String>();
-			for (Domain d : list.getDomainList()) {
-				tmp.add(d.getName());
+		JButton sponsor = new JButton("Sponsored by:", new ImageIcon("build/classes/dtlogo150.png"));
+		sponsor.setHorizontalTextPosition(SwingConstants.LEFT);
+		sponsor.setBorderPainted(false);
+		sponsor.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				JOptionPane.showInternalMessageDialog(results, 
+							"<html><center>Work on QueryTool has been generously sponsored by directThought.<br>Please consider using them for your next project.<br>See <a href=\"http://directThought.com/\">directThought.com</a> for more information.</center></html>",
+							dom.getName()+" metadata",
+							JOptionPane.PLAIN_MESSAGE);
 			}
-			domainNames = tmp.toArray(domainNames);
-		} catch (SDBException ex) {
-			System.err.println("problem communicating with SimpleDB: "+ex.getMessage());
-			System.err.println(ex.getCause().getMessage());
-		}
-		domainList = new JComboBox(domainNames);
+		});
+		gbc = new GridBagConstraints();
+		add(sponsor, gbc);
+
+		JLabel domLab = new JLabel("Domain:");
+		gbc = new GridBagConstraints();
+		gbc.anchor = GridBagConstraints.EAST;
+		gbc.weightx = 1.0;
+		add(domLab, gbc);
+
+		domainList = new JComboBox();
 		domainList.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				setDomain((String)domainList.getSelectedItem());
@@ -104,8 +121,8 @@ public class QueryTool extends JPanel implements ActionListener {
 		});
 		gbc = new GridBagConstraints();
 		gbc.anchor = GridBagConstraints.EAST;
-		gbc.weightx = 1.0;
 		add(domainList, gbc);
+		populateDomainList();
 
 		JButton metadata = new JButton("Get Metadata");
 		metadata.addActionListener(new ActionListener() {
@@ -125,17 +142,48 @@ public class QueryTool extends JPanel implements ActionListener {
 					dmOutput.append(dm.getAttributeNamesSizeBytes());
 					dmOutput.append("\nAttribute Value Size : ");
 					dmOutput.append(dm.getAttributeValuesSizeBytes());
-					JOptionPane.showInternalMessageDialog(results, dmOutput.toString(),
-								dom.getName()+" metadata",
-								JOptionPane.PLAIN_MESSAGE);
+					int result = JOptionPane.showInternalOptionDialog(results, dmOutput.toString(),
+								dom.getName()+" Domain",
+								JOptionPane.YES_NO_OPTION,
+								JOptionPane.PLAIN_MESSAGE,
+								null, new String [] {"Delete", "Close"}, "Close");
+					if (result == 0) {
+						result = JOptionPane.showInternalConfirmDialog(results,
+									"Do you really want to delete domain : "+dom.getName(),
+									"Delete "+dom.getName(),
+									JOptionPane.YES_NO_OPTION);
+						if (result == JOptionPane.YES_OPTION) {
+							sdb.deleteDomain(dom);
+							dom = null;
+							populateDomainList();
+						}
+					}
 				} catch (SDBException ex) {
-					System.err.println("Problem fetching metadata : "+ex.getMessage());
+					System.err.println("Problem fetching metadata or deleting domain: "+ex.getMessage());
+				}
+			}
+		});
+		gbc = new GridBagConstraints();
+		add(metadata, gbc);
+
+		JButton newDom = new JButton("New Domain");
+		newDom.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				try {
+					String result = JOptionPane.showInternalInputDialog(results,
+								"Enter the name of the domain you'd like to create.");
+					if (result != null) {
+						dom = sdb.createDomain(result);
+						populateDomainList();
+					}
+				} catch (SDBException ex) {
+					System.err.println("Problem creating domain : "+ex.getMessage());
 				}
 			}
 		});
 		gbc = new GridBagConstraints();
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		add(metadata, gbc);
+		add(newDom, gbc);
 
 		querySpace = new JTextArea();
 		querySpace.addKeyListener(new KeyAdapter() {
@@ -157,6 +205,22 @@ public class QueryTool extends JPanel implements ActionListener {
 		gbc.weighty = 1.0;
 		gbc.fill = GridBagConstraints.BOTH;
 		add(split, gbc);
+	}
+
+	public void populateDomainList() {
+		String [] domainNames = new String [] {"no domains found"};
+		try {
+			ListDomainsResult list = sdb.listDomains();
+			ArrayList<String> tmp = new ArrayList<String>();
+			for (Domain d : list.getDomainList()) {
+				tmp.add(d.getName());
+			}
+			domainNames = tmp.toArray(domainNames);
+		} catch (SDBException ex) {
+			System.err.println("problem communicating with SimpleDB: "+ex.getMessage());
+			System.err.println(ex.getCause().getMessage());
+		}
+		domainList.setModel(new DefaultComboBoxModel(domainNames));
 	}
 
 	public void actionPerformed(ActionEvent evt) {
@@ -321,6 +385,9 @@ public class QueryTool extends JPanel implements ActionListener {
 		private JLabel stats;
 		private JButton reload;
 		private boolean countMode;
+		public JPopupMenu menu;
+		public int row;
+		public int col;
 
 		public ResultsFrame(String title) {
 			super(title);
@@ -360,9 +427,44 @@ public class QueryTool extends JPanel implements ActionListener {
 
 			add(topPan, BorderLayout.NORTH);
 			tm = new ItemTableModel();
-			JTable resultSpace = new JTable(tm);
+			final JTable resultSpace = new JTable(tm);
+			resultSpace.addMouseListener(new MouseAdapter() {
+				public void mousePressed(MouseEvent evt) {
+					row = resultSpace.rowAtPoint(evt.getPoint());
+					col = resultSpace.columnAtPoint(evt.getPoint());
+					menu.show(resultSpace, evt.getX(), evt.getY());
+				}
+			});
 			JScrollPane sp = new JScrollPane(resultSpace);
 			add(sp, BorderLayout.CENTER);
+
+			menu = new JPopupMenu();
+			JMenuItem copy1 = new JMenuItem("copy cell");
+			copy1.addActionListener(new ActionListener () {
+				public void actionPerformed(ActionEvent evt) {
+					copyValue((String)resultSpace.getModel().getValueAt(row, col));
+				}
+			});
+			JMenuItem copy2 = new JMenuItem("copy row");
+			copy2.addActionListener(new ActionListener () {
+				public void actionPerformed(ActionEvent evt) {
+					StringBuilder sb = new StringBuilder();
+					AbstractTableModel tm = (AbstractTableModel)resultSpace.getModel();
+					for (int i=0; i<tm.getColumnCount(); i++) {
+						if (i > 0) sb.append("\t");
+						sb.append(tm.getValueAt(row, i));
+					}
+					copyValue(sb.toString());
+				}
+			});
+			menu.add(copy1);
+			menu.add(copy2);
+		}
+
+		public void copyValue(String value) {
+			Clipboard clip = getToolkit().getSystemClipboard();
+			StringSelection newData = new StringSelection(value);
+			clip.setContents(newData, newData);
 		}
 
 		public void reload() {
