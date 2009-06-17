@@ -188,7 +188,6 @@ public class Monitoring extends AWSQueryConnection {
 				}
 				ListMetricsResponse response =
 						makeRequestInt(method, "ListMetrics", params, ListMetricsResponse.class);
-			System.err.println("request id = "+response.getResponseMetadata().getRequestId());
 				ListMetricsResult result = response.getListMetricsResult();
 				Metrics mtrx = result.getMetrics();
 				for (com.xerox.amazonws.typica.monitor.jaxb.Metric m : mtrx.getMembers()) {
