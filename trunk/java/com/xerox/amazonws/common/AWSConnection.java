@@ -222,14 +222,16 @@ public abstract class AWSConnection {
     protected String urlencode(String unencoded) {
 		String encoded = unencoded;
         try {
-            encoded = URLEncoder.encode(unencoded, "UTF-8");
+			if (sigVersion == 2) {
+				encoded = URLEncoder.encode(unencoded, "UTF-8").replace("+", "%20").replace("*", "%2A").replace("%7E", "~");
+			}
+			else {
+            	encoded = URLEncoder.encode(unencoded, "UTF-8");
+			}
         } catch (UnsupportedEncodingException e) {
             // should never happen
             throw new RuntimeException("Could not url encode to UTF-8", e);
         }
-		if (sigVersion == 2) {
-			encoded = URLEncoder.encode(unencoded).replace("+", "%20").replace("*", "%2A").replace("%7E", "~");
-		}
 		return encoded;
     }
 }

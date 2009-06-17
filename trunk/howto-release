@@ -21,6 +21,6 @@ tag release
 upload release to google code downloads. feature it, remove feature tag from older release 
 
 publish javadoc
-  and upload
+  ant upload
 
 post anouncement in SQS forum, EC2 forum, etc. as appropriate

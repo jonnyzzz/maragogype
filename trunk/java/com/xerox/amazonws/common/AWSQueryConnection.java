@@ -83,6 +83,9 @@ public class AWSQueryConnection extends AWSConnection {
 	private String proxyUser;
 	private String proxyPassword;
 	private String proxyDomain;	// for ntlm authentication
+	private int connectionManagerTimeout = 0;
+	private int soTimeout = 0;
+	private int connectionTimeout = 0;
 
     /**
 	 * Initializes the queue service with your AWS login information.
@@ -206,6 +209,65 @@ public class AWSQueryConnection extends AWSConnection {
 		this.proxyUser = System.getProperty("http.proxyUser");
 		this.proxyPassword = System.getProperty("http.proxyPassword");
 		this.proxyDomain = System.getProperty("http.proxyDomain");
+		hc = null;
+	}
+
+ 	/**
+	 * @see org.apache.commons.httpclient.params.HttpClientParams.getConnectionManagerTimeout()
+	 * @return connection manager timeout in milliseconds
+	 */
+	public int getConnectionManagerTimeout()
+	{
+		return connectionManagerTimeout;
+	}
+
+	/**
+	 * @see org.apache.commons.httpclient.params.HttpClientParams.getConnectionManagerTimeout()
+	 * @param connection manager timeout in milliseconds
+	 */
+	public void setConnectionManagerTimeout(int timeout)
+	{
+		connectionManagerTimeout = timeout;
+		hc = null;
+	}
+
+	/**
+	 * @see org.apache.commons.httpclient.params.HttpConnectionParams.getSoTimeout()
+	 * @see org.apache.commons.httpclient.params.HttpMethodParams.getSoTimeout()
+	 * @return socket timeout in milliseconds
+	 */
+	public int getSoTimeout()
+	{
+		return soTimeout;
+	}
+
+	/**
+	 * @see org.apache.commons.httpclient.params.HttpConnectionParams.getSoTimeout()
+	 * @see org.apache.commons.httpclient.params.HttpMethodParams.getSoTimeout()
+	 * @param socket timeout in milliseconds
+	 */
+	public void setSoTimeout(int timeout)
+	{
+		soTimeout = timeout;
+		hc = null;
+	}
+
+	/**
+	 * @see org.apache.commons.httpclient.params.HttpConnectionParams.getConnectionTimeout()
+	 * @return connection timeout in milliseconds
+	 */
+	public int getConnectionTimeout()
+	{
+		return connectionTimeout;
+	}
+
+	/**
+	 * @see org.apache.commons.httpclient.params.HttpConnectionParams.getConnectionTimeout()
+	 * @param connection timeout in milliseconds
+	 */
+	public void setConnectionTimeout(int timeout)
+	{
+		connectionTimeout = timeout;
 		hc = null;
 	}
 
@@ -385,11 +447,15 @@ public class AWSQueryConnection extends AWSConnection {
 		HttpConnectionManagerParams connParams = connMgr.getParams();
 		connParams.setMaxTotalConnections(maxConnections);
 		connParams.setMaxConnectionsPerHost(HostConfiguration.ANY_HOST_CONFIGURATION, maxConnections);
+		connParams.setConnectionTimeout(connectionTimeout);
+		connParams.setSoTimeout(soTimeout);
 		connMgr.setParams(connParams);
 		hc = new HttpClient(connMgr);
 // NOTE: These didn't seem to help in my initial testing
 //			hc.getParams().setParameter("http.tcp.nodelay", true);
 //			hc.getParams().setParameter("http.connection.stalecheck", false); 
+		hc.getParams().setConnectionManagerTimeout(connectionManagerTimeout);
+		hc.getParams().setSoTimeout(soTimeout);
 		if (proxyHost != null) {
 			HostConfiguration hostConfig = new HostConfiguration();
 			hostConfig.setProxy(proxyHost, proxyPort);
