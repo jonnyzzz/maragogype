@@ -56,6 +56,7 @@ public abstract class AWSConnection {
     private boolean isSecure;
     private String server;
     private int port;
+	private String resourcePrefix = "/";
 	private int sigVersion = 2;
 	protected Map <String, List<String>> headers;
 	// used for caching last used Mac obj.. to save time 99.99% of the time
@@ -120,6 +121,14 @@ public abstract class AWSConnection {
 		return this.port;
 	}
 
+	public String getResourcePrefix() {
+		return this.resourcePrefix;
+	}
+
+	public void setResourcePrefix(String prefix) {
+		this.resourcePrefix = prefix;
+	}
+
 	/**
 	 * This method returns the signature version
 	 *
@@ -148,7 +157,7 @@ public abstract class AWSConnection {
      */
     protected URL makeURL(String resource) throws MalformedURLException {
         String protocol = this.isSecure ? "https" : "http";
-        return new URL(protocol, this.server, this.port, "/"+resource);
+        return new URL(protocol, this.server, this.port, resourcePrefix+resource);
     }
 
     /**
