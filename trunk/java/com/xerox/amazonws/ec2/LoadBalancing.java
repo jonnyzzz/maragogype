@@ -123,7 +123,7 @@ public class LoadBalancing extends AWSQueryConnection {
 	/**
 	 * Add availability zones.
 	 * 
-	 * @param loadBalancerName the name of the access point
+	 * @param loadBalancerName the name of the load balancer
 	 * @param availabilityZones a list of availability zones to add
 	 * @throws LoadBalancingException wraps checked exceptions
 	 */
@@ -147,18 +147,16 @@ public class LoadBalancing extends AWSQueryConnection {
 	}
 
 	/**
-	 * Create access point.
+	 * Create load balancer.
 	 * 
-	 * @param accessPointName the name of the access point
+	 * @param loadBalancerName the name of the load balancer
 	 * @param listeners the definition of protocol and ports
 	 * @param availabilityZones a list of availability zones
-	 * @param dnsName the DNS name for the access point
-	 * @return dns name to use for this access point
+	 * @return dns the DNS name for the load balancer
 	 * @throws LoadBalancingException wraps checked exceptions
 	 */
 	public String createLoadBalancer(String loadBalancerName, List<Listener> listeners,
-								List<String> availabilityZones,
-								String dnsName) throws LoadBalancingException {
+								List<String> availabilityZones) throws LoadBalancingException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("LoadBalancerName", loadBalancerName);
 		int i=1;
@@ -172,7 +170,6 @@ public class LoadBalancing extends AWSQueryConnection {
 			params.put("AvailabilityZones.member."+i, zone);
 			i++;
 		}
-		params.put("DNSName", dnsName);
 		GetMethod method = new GetMethod();
 		try {
 			CreateLoadBalancerResponse response =
@@ -234,8 +231,9 @@ public class LoadBalancing extends AWSQueryConnection {
 	/**
 	 * Deregister instances from load balancer.
 	 * 
-	 * @param loadBalancerName the name of the access point
-	 * @param instances a list of instances to describe (null for all)
+	 * @param loadBalancerName the name of the load balancer
+	 * @param instances a list of instances to deregister from the load balancer
+     * @return the updated list of instances registered with the load balancer
 	 * @throws LoadBalancingException wraps checked exceptions
 	 */
 	public List<String> deregisterInstancesFromLoadBalancer(String loadBalancerName,
@@ -263,10 +261,22 @@ public class LoadBalancing extends AWSQueryConnection {
 	}
 
 
+
+
+	/**
+	 * Describe all load balancers.
+	 *
+	 * @throws LoadBalancingException wraps checked exceptions
+	 */
+	public List<LoadBalancer> describeLoadBalancers() throws LoadBalancingException {
+        return describeLoadBalancers(null);
+    }
+
+
 	/**
 	 * Describe load balancers.
 	 * 
-	 * @param loadBalancerNames a list of access points to describe (null for all)
+	 * @param loadBalancerNames a list of load balancers to describe
 	 * @throws LoadBalancingException wraps checked exceptions
 	 */
 	public List<LoadBalancer> describeLoadBalancers(List<String> loadBalancerNames) throws LoadBalancingException {
@@ -318,6 +328,16 @@ public class LoadBalancing extends AWSQueryConnection {
 		}
 	}
 
+    /**
+	 * Describe the current state of the instances registered with the load balancer.
+	 *
+	 * @param loadBalancerName the name of the load balancer
+	 * @throws LoadBalancingException wraps checked exceptions
+	 */
+	public List<InstanceState> describeInstanceHealth(String loadBalancerName) throws LoadBalancingException {
+        return describeInstanceHealth(loadBalancerName, null);
+    }
+
 	/**
 	 * Describe the current state of the instances specified
 	 * 
@@ -325,7 +345,7 @@ public class LoadBalancing extends AWSQueryConnection {
 	 * @param instances a list of instances to describe (null for all)
 	 * @throws LoadBalancingException wraps checked exceptions
 	 */
-	public List<InstanceState> describeLoadBalancers(String loadBalancerName, List<String> instances) throws LoadBalancingException {
+	public List<InstanceState> describeInstanceHealth(String loadBalancerName, List<String> instances) throws LoadBalancingException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("LoadBalancerName", loadBalancerName);
 		if (instances != null && instances.size() > 0) {
@@ -358,11 +378,11 @@ public class LoadBalancing extends AWSQueryConnection {
 	/**
 	 * Register instance(s) with a load balancer.
 	 * 
-	 * @param loadBalancerName the name of the access point
-	 * @param instances a list of end points to describe (null for all)
+	 * @param loadBalancerName the name of the load balancer
+	 * @param instances a list of instance IDs registered with the load balancer
 	 * @throws LoadBalancingException wraps checked exceptions
 	 */
-	public List<String> registerEndPoints(String loadBalancerName,
+	public List<String> registerInstancesWithLoadBalancer(String loadBalancerName,
 								List<String> instances) throws LoadBalancingException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("LoadBalancerName", loadBalancerName);
@@ -389,11 +409,11 @@ public class LoadBalancing extends AWSQueryConnection {
 	/**
 	 * Disable availability zones.
 	 * 
-	 * @param loadBalancerName the name of the access point
+	 * @param loadBalancerName the name of the load balancer
 	 * @param availabilityZones a list of availability zones to disable
 	 * @throws LoadBalancingException wraps checked exceptions
 	 */
-	public List<String> disableAvailabilityZones(String loadBalancerName,
+	public List<String> disableAvailabilityZonesForLoadBalancer(String loadBalancerName,
 								List<String> availabilityZones) throws LoadBalancingException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("LoadBalancerName", loadBalancerName);
