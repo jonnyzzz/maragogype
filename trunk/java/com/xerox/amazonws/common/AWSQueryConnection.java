@@ -537,13 +537,25 @@ public class AWSQueryConnection extends AWSConnection {
 			}
 		}
 		else {
-			Response resp = JAXBuddy.deserializeXMLStream(Response.class, bais);
-			String errorCode = resp.getErrors().getError().getCode();
-			errorMsg = resp.getErrors().getError().getMessage();
-			requestId = resp.getRequestID();
-			if (errorCode != null && !errorCode.trim().equals("")) {
+			// this clause to parse Eucalyptus errors, until they get with the program!
+			if (errorResponse.indexOf("<soapenv:Reason") > -1) {
+				int idx = errorResponse.indexOf("Text xml:lang=\"en-US\">");
+				errorMsg = errorResponse.substring(idx+22);	// this number tied to string in line above
+				int idx2 = errorMsg.indexOf("<");
+				errorMsg = errorMsg.substring(0, idx2);
+				requestId = "NA";
 				errors = new ArrayList<AWSError>();
-				errors.add(new AWSError(AWSError.ErrorType.SENDER, errorCode, errorMsg));
+				errors.add(new AWSError(AWSError.ErrorType.SENDER, "unknown", errorMsg));
+			}
+			else {
+				Response resp = JAXBuddy.deserializeXMLStream(Response.class, bais);
+				String errorCode = resp.getErrors().getError().getCode();
+				errorMsg = resp.getErrors().getError().getMessage();
+				requestId = resp.getRequestID();
+				if (errorCode != null && !errorCode.trim().equals("")) {
+					errors = new ArrayList<AWSError>();
+					errors.add(new AWSError(AWSError.ErrorType.SENDER, errorCode, errorMsg));
+				}
 			}
 		}
 		return new AWSException(msgPrefix + errorMsg, requestId, errors);
