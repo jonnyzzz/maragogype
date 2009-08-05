@@ -1,6 +1,7 @@
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -123,6 +124,7 @@ public class QueryTool extends JPanel implements ActionListener {
 		gbc.anchor = GridBagConstraints.EAST;
 		add(domainList, gbc);
 		populateDomainList();
+		setDomain((String)domainList.getSelectedItem());
 
 		JButton metadata = new JButton("Get Metadata");
 		metadata.addActionListener(new ActionListener() {
@@ -156,6 +158,7 @@ public class QueryTool extends JPanel implements ActionListener {
 							sdb.deleteDomain(dom);
 							dom = null;
 							populateDomainList();
+							setDomain((String)domainList.getSelectedItem());
 						}
 					}
 				} catch (SDBException ex) {
@@ -186,6 +189,7 @@ public class QueryTool extends JPanel implements ActionListener {
 		add(newDom, gbc);
 
 		querySpace = new JTextArea();
+		querySpace.setFont(new Font("monospaced", Font.PLAIN, 14));
 		querySpace.addKeyListener(new KeyAdapter() {
 			public void keyTyped(KeyEvent evt) {
 				if (evt.isControlDown() && evt.getKeyChar() == '\r') {
@@ -244,7 +248,7 @@ public class QueryTool extends JPanel implements ActionListener {
 				if (lineCount == lineNum) break;
 			}
 			final String query = val;
-			final ResultsFrame resultFrame = new ResultsFrame(query);
+			final ResultsFrame resultFrame = new ResultsFrame(query, dom);
 
 			results.add(resultFrame, 1);
 			try {
@@ -285,6 +289,10 @@ public class QueryTool extends JPanel implements ActionListener {
 
 	public static void main(String [] args) {
 		final JFrame frame = new JFrame("SimpleDB Query Tool");
+		if (args.length != 2) {
+			System.err.println("You must supply your access id and secret key on the command line");
+			System.exit(-1);
+		}
 		final QueryTool controls = new QueryTool(frame, args[0], args[1]);
 		Dimension size = controls.getPreferredSize();
 		frame.setSize(800, 600);
@@ -388,9 +396,11 @@ public class QueryTool extends JPanel implements ActionListener {
 		public JPopupMenu menu;
 		public int row;
 		public int col;
+		public Domain domain;
 
-		public ResultsFrame(String title) {
+		public ResultsFrame(String title, Domain domain) {
 			super(title);
+			this.domain = domain;
 			setClosable(true);
 			setIconifiable(true);
 			setMaximizable(true);
@@ -485,7 +495,7 @@ public class QueryTool extends JPanel implements ActionListener {
 				countMode = (getTitle().indexOf("count(*)") > -1);
 				long total = 0;
 				do {
-					SelectResult sr = dom.selectItems(getTitle(), nextToken);
+					SelectResult sr = domain.selectItems(getTitle(), nextToken);
 					List<Item> items = sr.getItems();
 					nextToken = sr.getNextToken();
 					itemCount += items.size();
@@ -497,7 +507,7 @@ public class QueryTool extends JPanel implements ActionListener {
 					if (itemCount > 1000) {
 						nextToken = null;
 						ArrayList<Item> trunc = new ArrayList<Item>();
-						trunc.add(dom.getItem("- truncated -"));
+						trunc.add(domain.getItem("- truncated -"));
 						updateResults(trunc);
 					}
 				} while (nextToken != null && !nextToken.trim().equals(""));
