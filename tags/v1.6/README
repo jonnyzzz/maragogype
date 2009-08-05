@@ -1,0 +1,66 @@
+typica 1.6
+05-August-2009
+
+http://code.google.com/p/typica
+
+This is a simple API to access Amazon's SQS, EC2, SimpleDB, FPS and DevPay web services. It uses the QUERY interface. This code is thread-safe and works very reliably to the best of my knowledge. I've been using it on a system where sending messages in SQS is critical and we manage pools of servers in EC2.
+
+Distribution files;
+README      - this file
+LICENSE.txt - full version of the Apache 2.0 license
+Log4J.xml   - a Log4J config file you can include in your classpath
+typica.jar  - the classes for this release
+apidocs     - JavaDoc for this release
+
+Test files
+In subversion, the test directory contains some java test files. Sample code is also documented on the wiki @ http://code.google.com/p/typica/wiki/TypicaSampleCode. These can be used as sample files and to test various features of the client code. There is a target "test.main". To invoke the sample code, you can use this target like this;
+ant test.main -Dclass=TestQueueService -Dargs=testQueue
+
+Change history for this release;
+------------------------------------------------------------------------
+r272 | dkavanagh | 2009-07-30 12:00:04 -0400 (Thu, 30 Jul 2009) | 2 lines
+
+parses error messages that eucalyptus generates
+------------------------------------------------------------------------
+r271 | jerome.bernard | 2009-07-21 14:04:21 -0400 (Tue, 21 Jul 2009) | 2 lines
+
+Renamed some methods in order to match with the ones of AWS service.
+Fixed JavaDoc.
+------------------------------------------------------------------------
+r270 | dkavanagh | 2009-07-15 10:45:04 -0400 (Wed, 15 Jul 2009) | 3 lines
+
+added ability to set resource prefix. Defaults to "/", but for eucalyptus, set it to "/services/Eucalyptus"
+------------------------------------------------------------------------
+r268 | dkavanagh | 2009-06-17 12:28:35 -0400 (Wed, 17 Jun 2009) | 2 lines
+
+small vers2 signing fix, patch to allow setting of connection timeout params (thanks to Scott Vlaminck)
+------------------------------------------------------------------------
+r267 | dkavanagh | 2009-06-16 21:56:41 -0400 (Tue, 16 Jun 2009) | 2 lines
+
+remove comment from monitoring code, fixed version string for ec2 API
+------------------------------------------------------------------------
+r265 | dkavanagh | 2009-05-22 13:45:19 -0400 (Fri, 22 May 2009) | 2 lines
+
+removed debug connection used for packet sniffing
+------------------------------------------------------------------------
+r264 | dkavanagh | 2009-05-22 13:44:27 -0400 (Fri, 22 May 2009) | 2 lines
+
+fixes for monitoring, and test code that produces results
+------------------------------------------------------------------------
+r263 | dkavanagh | 2009-05-22 09:45:07 -0400 (Fri, 22 May 2009) | 2 lines
+
+fixed parms for monitor/unmonitor instances based on authorative response from AWS
+------------------------------------------------------------------------
+r262 | dkavanagh | 2009-05-21 20:23:31 -0400 (Thu, 21 May 2009) | 2 lines
+
+update new ec2 API for turning monitoring on and off
+------------------------------------------------------------------------
+r260 | dkavanagh | 2009-05-20 19:13:07 -0400 (Wed, 20 May 2009) | 2 lines
+
+fixed up a few wrong strings (params, etc.)
+------------------------------------------------------------------------
+r259 | dkavanagh | 2009-05-20 12:45:33 -0400 (Wed, 20 May 2009) | 2 lines
+
+the initial code for support of monitoring, auto scaling and load balancing
+------------------------------------------------------------------------
+
