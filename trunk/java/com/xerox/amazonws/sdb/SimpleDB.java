@@ -155,7 +155,7 @@ public class SimpleDB extends AWSQueryConnection {
 			CreateDomainResponse response =
 						makeRequestInt(method, "CreateDomain", params, CreateDomainResponse.class);
 			Domain ret = new Domain(name, getAwsAccessKeyId(), getSecretAccessKey(),
-									isSecure(), getServer());
+									isSecure(), getServer(), getPort());
 			ret.setSignatureVersion(getSignatureVersion());
 			ret.setHttpClient(getHttpClient());
 			return ret;
@@ -200,7 +200,7 @@ public class SimpleDB extends AWSQueryConnection {
 	 */
 	public Domain getDomain(String domainName) throws SDBException {
 		Domain ret = new Domain(domainName, getAwsAccessKeyId(), getSecretAccessKey(),
-								isSecure(), getServer());
+								isSecure(), getServer(), getPort());
 		ret.setSignatureVersion(getSignatureVersion());
 		ret.setHttpClient(getHttpClient());
 		return ret;
@@ -230,7 +230,7 @@ public class SimpleDB extends AWSQueryConnection {
 							response.getResponseMetadata().getBoxUsage(),
 							Domain.createList(response.getListDomainsResult().getDomainNames().toArray(new String[] {}),
 								getAwsAccessKeyId(), getSecretAccessKey(),
-								isSecure(), getServer(), getSignatureVersion(), getHttpClient()));
+								isSecure(), getServer(), getPort(), getSignatureVersion(), getHttpClient()));
 		} finally {
 			method.releaseConnection();
 		}

@@ -68,8 +68,8 @@ public class Domain extends AWSQueryConnection {
 
     protected Domain(String domainName, String awsAccessId,
 							String awsSecretKey, boolean isSecure,
-							String server) throws SDBException {
-        super(awsAccessId, awsSecretKey, isSecure, server, isSecure ? 443 : 80);
+							String server, int port) throws SDBException {
+        super(awsAccessId, awsSecretKey, isSecure, server, port);
 		this.domainName = domainName;
 		SimpleDB.setVersionHeader(this);
     }
@@ -514,11 +514,11 @@ public class Domain extends AWSQueryConnection {
 
 	static List<Domain> createList(String [] domainNames, String awsAccessKeyId,
 									String awsSecretAccessKey, boolean isSecure,
-									String server, int signatureVersion, HttpClient hc)
+									String server, int port, int signatureVersion, HttpClient hc)
 			throws SDBException {
 		ArrayList<Domain> ret = new ArrayList<Domain>();
 		for (int i=0; i<domainNames.length; i++) {
-			Domain dom = new Domain(domainNames[i], awsAccessKeyId, awsSecretAccessKey, isSecure, server);
+			Domain dom = new Domain(domainNames[i], awsAccessKeyId, awsSecretAccessKey, isSecure, server, port);
 			dom.setSignatureVersion(signatureVersion);
 			dom.setHttpClient(hc);
 			ret.add(dom);
