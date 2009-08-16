@@ -102,7 +102,12 @@ public class AWSQueryConnection extends AWSConnection {
 		String version = "?";
 		try {
 			Properties props = new Properties();
-			props.load(this.getClass().getClassLoader().getResourceAsStream("version.properties"));
+			InputStream verStream = this.getClass().getClassLoader().getResourceAsStream("version.properties");
+			try {
+				props.load(verStream);
+			} finally {
+				verStream.close();
+			}
 			version = props.getProperty("version");
 		} catch (Exception ex) { }
 		userAgent = userAgent + version + " ("+ System.getProperty("os.arch") + "; " + System.getProperty("os.name") + ")";
