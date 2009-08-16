@@ -305,12 +305,11 @@ public class Jec2 extends AWSQueryConnection {
 	 * @param imageIds A list of AMI IDs as returned by {@link #registerImage(String)}.
 	 * @param owners A list of owners.
 	 * @param users A list of users.
-	 * @param type An image type.
 	 * @return A list of {@link ImageDescription} instances describing each AMI ID.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<ImageDescription> describeImages(List<String> imageIds, List<String> owners,
-										List<String> users, ImageType type) throws EC2Exception {
+										List<String> users) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		for (int i=0 ; i<imageIds.size(); i++) {
 			params.put("ImageId."+(i+1), imageIds.get(i));
@@ -320,9 +319,6 @@ public class Jec2 extends AWSQueryConnection {
 		}
 		for (int i=0 ; i<users.size(); i++) {
 			params.put("ExecutableBy."+(i+1), users.get(i));
-		}
-		if (type != null) {
-			params.put("ImageType", type.getTypeId());
 		}
 		return describeImages(params);
 	}
