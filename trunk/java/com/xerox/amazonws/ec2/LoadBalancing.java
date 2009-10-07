@@ -84,7 +84,7 @@ public class LoadBalancing extends AWSQueryConnection {
      * @param isSecure True if the data should be encrypted on the wire on the way to or from EC2.
 	 */
     public LoadBalancing(String awsAccessId, String awsSecretKey, boolean isSecure) {
-        this(awsAccessId, awsSecretKey, isSecure, "lbs.amazonaws.com");
+        this(awsAccessId, awsSecretKey, isSecure, "elasticloadbalancing.amazonaws.com");
     }
 
 	/**
