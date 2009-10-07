@@ -232,7 +232,7 @@ public abstract class AWSConnection {
 		String encoded = unencoded;
         try {
 			if (sigVersion == 2) {
-				encoded = URLEncoder.encode(unencoded, "UTF-8").replace("+", "%20").replace("*", "%2A").replace("%7E", "~");
+				encoded = URLEncoder.encode(unencoded, "UTF-8").replace("+", "%20").replace("*", "%2A").replaceAll("%7E", "~");
 			}
 			else {
             	encoded = URLEncoder.encode(unencoded, "UTF-8");
