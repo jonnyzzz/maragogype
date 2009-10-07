@@ -150,6 +150,13 @@
 		</zip>
 	</target>
 
+	<target name="source-jar" depends="compile">
+		<zip destfile="${typica.jar}/typica-sources.jar">
+			<fileset dir="${typica.src}" />
+			<fileset dir="${typica.generated}" />
+		</zip>
+	</target>
+
 	<target name="upload">
 		<taskdef name="S3Upload" classname="dak.ant.taskdefs.S3Upload">
 			<classpath refid="typica.compile.classpath" />
