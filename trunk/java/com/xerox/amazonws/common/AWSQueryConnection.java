@@ -548,16 +548,44 @@ public class AWSQueryConnection extends AWSConnection {
 												e.getCode(), e.getMessage()));
 					}
 				} catch (UnmarshalException ex2) {
-					// this comes from the Monitoring schema, duplicated because of the different namespace
-					bais = new ByteArrayInputStream(errorResponse.getBytes());
-					com.xerox.amazonws.typica.monitor.jaxb.ErrorResponse resp = JAXBuddy.deserializeXMLStream(com.xerox.amazonws.typica.monitor.jaxb.ErrorResponse.class, bais);
-					List<com.xerox.amazonws.typica.monitor.jaxb.Error> errs = resp.getErrors();
-					errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
-					requestId = resp.getRequestId();
-					errors = new ArrayList<AWSError>();
-					for (com.xerox.amazonws.typica.monitor.jaxb.Error e : errs) {
-						errors.add(new AWSError(AWSError.ErrorType.getTypeFromString(e.getType()),
-												e.getCode(), e.getMessage()));
+					try {
+						// this comes from the Monitoring schema, duplicated because of the different namespace
+						bais = new ByteArrayInputStream(errorResponse.getBytes());
+						com.xerox.amazonws.typica.monitor.jaxb.ErrorResponse resp = JAXBuddy.deserializeXMLStream(com.xerox.amazonws.typica.monitor.jaxb.ErrorResponse.class, bais);
+						List<com.xerox.amazonws.typica.monitor.jaxb.Error> errs = resp.getErrors();
+						errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
+						requestId = resp.getRequestId();
+						errors = new ArrayList<AWSError>();
+						for (com.xerox.amazonws.typica.monitor.jaxb.Error e : errs) {
+							errors.add(new AWSError(AWSError.ErrorType.getTypeFromString(e.getType()),
+													e.getCode(), e.getMessage()));
+						}
+					} catch (UnmarshalException ex3) {
+						try {
+							// this comes from the ELB schema, duplicated because of the different namespace
+							bais = new ByteArrayInputStream(errorResponse.getBytes());
+							com.xerox.amazonws.typica.loadbalance.jaxb.ErrorResponse resp = JAXBuddy.deserializeXMLStream(com.xerox.amazonws.typica.loadbalance.jaxb.ErrorResponse.class, bais);
+							List<com.xerox.amazonws.typica.loadbalance.jaxb.Error> errs = resp.getErrors();
+							errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
+							requestId = resp.getRequestId();
+							errors = new ArrayList<AWSError>();
+							for (com.xerox.amazonws.typica.loadbalance.jaxb.Error e : errs) {
+								errors.add(new AWSError(AWSError.ErrorType.getTypeFromString(e.getType()),
+														e.getCode(), e.getMessage()));
+							}
+						} catch (UnmarshalException ex4) {
+							// this comes from the scaling schema, duplicated because of the different namespace
+							bais = new ByteArrayInputStream(errorResponse.getBytes());
+							com.xerox.amazonws.typica.autoscale.jaxb.ErrorResponse resp = JAXBuddy.deserializeXMLStream(com.xerox.amazonws.typica.autoscale.jaxb.ErrorResponse.class, bais);
+							List<com.xerox.amazonws.typica.autoscale.jaxb.Error> errs = resp.getErrors();
+							errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
+							requestId = resp.getRequestId();
+							errors = new ArrayList<AWSError>();
+							for (com.xerox.amazonws.typica.autoscale.jaxb.Error e : errs) {
+								errors.add(new AWSError(AWSError.ErrorType.getTypeFromString(e.getType()),
+														e.getCode(), e.getMessage()));
+							}
+						}
 					}
 				}
 			}
