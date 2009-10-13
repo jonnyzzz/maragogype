@@ -184,8 +184,8 @@ public class Item extends AWSQueryConnection {
 					vals = new ArrayList<String>();
 					ret.put(name, vals);
 				}
-				String value = attr.getName().getValue();
-				encoding = attr.getName().getEncoding();
+				String value = attr.getValue().getValue();
+				encoding = attr.getValue().getEncoding();
 				if (encoding != null && encoding.equals("base64")) {
 					value = new String(Base64.decodeBase64(value.getBytes()));
 				}
