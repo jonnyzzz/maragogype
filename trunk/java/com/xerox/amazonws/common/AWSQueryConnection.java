@@ -86,6 +86,7 @@ public class AWSQueryConnection extends AWSConnection {
 	private int connectionManagerTimeout = 0;
 	private int soTimeout = 0;
 	private int connectionTimeout = 0;
+	private TimeZone serverTimeZone = TimeZone.getTimeZone("GMT");
 
     /**
 	 * Initializes the queue service with your AWS login information.
@@ -285,6 +286,26 @@ public class AWSQueryConnection extends AWSConnection {
 		return headers;
 	}
 
+	/**
+	 * Returns timezone used when creating requests. This is helpful when talking to servers
+	 * running in different timezones. Specifically when typica talks with a private Eucalyptus
+	 * cluster.
+	 *
+	 * @return server timezone setting
+	 */
+	public TimeZone getServerTimeZone() {
+		return serverTimeZone;
+	}
+
+	/**
+	 * Allows setting non-standard server timezone.	(see getter comments)
+	 *
+	 * @param serverTimeZone new timezone of server
+	 */
+	public void setServerTimeZone(TimeZone serverTimeZone) {
+		this.serverTimeZone = serverTimeZone;
+	}
+
 	protected HttpClient getHttpClient() {
 		if (hc == null) {
 			configureHttpClient();
@@ -312,7 +333,7 @@ public class AWSQueryConnection extends AWSConnection {
 		qParams.put("Action", action);
 		qParams.put("AWSAccessKeyId", getAwsAccessKeyId());
 		qParams.put("SignatureVersion", ""+getSignatureVersion());
-		qParams.put("Timestamp", httpDate());
+		qParams.put("Timestamp", httpDate(serverTimeZone));
 		if (getSignatureVersion() == 2) {
 			qParams.put("SignatureMethod", getAlgorithm());
 		}
@@ -569,10 +590,10 @@ public class AWSQueryConnection extends AWSConnection {
     /**
      * Generate an rfc822 date for use in the Date HTTP header.
      */
-    private static String httpDate() {
+    private static String httpDate(TimeZone serverTimeZone) {
         final String DateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
         SimpleDateFormat format = new SimpleDateFormat( DateFormat, Locale.US );
-        format.setTimeZone( TimeZone.getTimeZone( "GMT" ) );
+        format.setTimeZone(serverTimeZone);
         return format.format( new Date() );
     }
 }
