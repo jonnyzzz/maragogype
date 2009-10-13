@@ -20,6 +20,7 @@ package com.xerox.amazonws.sqs2;
 public enum QueueAttribute {
 	ALL ("All"),
 	APPROXIMATE_NUMBER_OF_MESSAGES ("ApproximateNumberOfMessages"),
+	APPROXIMATE_NUMBER_OF_MESSAGES_NOT_VISIBLE ("ApproximateNumberOfMessagesNotVisible"),
 	CREATED_TIMESTAMP ("CreatedTimestamp"),
 	LAST_MODIFIED_TIMESTAMP ("LastModifiedTimestamp"),
 	VISIBILITY_TIMEOUT ("VisibilityTimeout"),

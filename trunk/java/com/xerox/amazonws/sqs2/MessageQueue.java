@@ -205,7 +205,7 @@ public class MessageQueue extends AWSQueryConnection {
 	 * @param numMessages the maximum number of messages to return
 	 * @param visibilityTimeout the duration (in seconds) the retrieved message is hidden from
 	 *                          subsequent calls to retrieve.
-	 * @param attributes the attributes you'd like to get (SenderId, SentTimestamp)
+	 * @param attributes the attributes you'd like to get (SenderId, SentTimestamp, All, ApproximateReceiveCount, ApproximateFirstReceiveTimestamp)
 	 * @return an array of message objects
 	 * @throws SQSException wraps checked exceptions
 	 */
