@@ -93,7 +93,7 @@ public class AutoScaling extends AWSQueryConnection {
      * @param isSecure True if the data should be encrypted on the wire on the way to or from EC2.
 	 */
     public AutoScaling(String awsAccessId, String awsSecretKey, boolean isSecure) {
-        this(awsAccessId, awsSecretKey, isSecure, "csls.amazonaws.com");
+        this(awsAccessId, awsSecretKey, isSecure, "autoscaling.amazonaws.com");
     }
 
 	/**
@@ -102,7 +102,7 @@ public class AutoScaling extends AWSQueryConnection {
      * @param awsAccessId The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
      * @param isSecure True if the data should be encrypted on the wire on the way to or from EC2.
-     * @param server Which host to connect to.  Usually, this will be csls.amazonaws.com
+     * @param server Which host to connect to.  Usually, this will be autoscaling.amazonaws.com
 	 */
     public AutoScaling(String awsAccessId, String awsSecretKey, boolean isSecure,
                              String server)
@@ -117,7 +117,7 @@ public class AutoScaling extends AWSQueryConnection {
      * @param awsAccessId The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
      * @param isSecure True if the data should be encrypted on the wire on the way to or from EC2.
-     * @param server Which host to connect to.  Usually, this will be csls.amazonaws.com
+     * @param server Which host to connect to.  Usually, this will be autoscaling.amazonaws.com
      * @param port Which port to use.
      */
     public AutoScaling(String awsAccessId, String awsSecretKey, boolean isSecure,

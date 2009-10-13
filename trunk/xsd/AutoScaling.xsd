@@ -2,8 +2,8 @@
 		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	 	   xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
 	 	   xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-		   xmlns:tns="http://csls.amazonaws.com/doc/2009-05-15/"
-  		   targetNamespace="http://csls.amazonaws.com/doc/2009-05-15/"
+		   xmlns:tns="http://autoscaling.amazonaws.com/doc/2009-05-15/"
+  		   targetNamespace="http://autoscaling.amazonaws.com/doc/2009-05-15/"
 		   jaxb:extensionBindingPrefixes="xjc"
 		   jaxb:version="2.0"
 		   elementFormDefault="qualified">

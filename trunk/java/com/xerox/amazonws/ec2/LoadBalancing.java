@@ -93,7 +93,7 @@ public class LoadBalancing extends AWSQueryConnection {
      * @param awsAccessId The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
      * @param isSecure True if the data should be encrypted on the wire on the way to or from EC2.
-     * @param server Which host to connect to.  Usually, this will be lbs.amazonaws.com
+     * @param server Which host to connect to.  Usually, this will be elasticloadbalancing.amazonaws.com
 	 */
     public LoadBalancing(String awsAccessId, String awsSecretKey, boolean isSecure,
                              String server)
@@ -108,7 +108,7 @@ public class LoadBalancing extends AWSQueryConnection {
      * @param awsAccessId The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
      * @param isSecure True if the data should be encrypted on the wire on the way to or from EC2.
-     * @param server Which host to connect to.  Usually, this will be lbs.amazonaws.com
+     * @param server Which host to connect to.  Usually, this will be elasticloadbalancing.amazonaws.com
      * @param port Which port to use.
      */
     public LoadBalancing(String awsAccessId, String awsSecretKey, boolean isSecure,
