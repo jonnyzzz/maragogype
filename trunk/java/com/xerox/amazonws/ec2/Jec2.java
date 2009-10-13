@@ -502,6 +502,7 @@ public class Jec2 extends AWSQueryConnection {
 		lc.setKernelId(kernelId);
 		lc.setRamdiskId(ramdiskId);
 		lc.setBlockDevicemappings(blockDeviceMappings);
+		lc.setPublicAddressing(publicAddr);
 		return runInstances(lc);
 	}
 
@@ -530,7 +531,9 @@ public class Jec2 extends AWSQueryConnection {
 			params.put("UserData",
 			new String(Base64.encodeBase64(userData)));
 		}
-		params.put("AddressingType", "public");
+		if (lc.isPublicAddressing()) {
+			params.put("AddressingType", "true");
+		}
 		String keyName = lc.getKeyName();
 		if (keyName != null && !keyName.trim().equals("")) {
 			params.put("KeyName", keyName);

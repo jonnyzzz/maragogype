@@ -63,6 +63,8 @@ public class LaunchConfiguration {
 
 	private boolean monitoring;
 
+	private boolean addressingType = true;
+
 	/**
 	 * Launches the given AMI one time. The min and max values are '1'.
 	 *
@@ -280,5 +282,21 @@ public class LaunchConfiguration {
 	 */
 	public void setMonitoring(boolean set) {
 		monitoring = set;
+	}
+
+	/**
+	 * @return if addressing is set to public
+	 */
+	public Boolean isPublicAddressing() {
+		return addressingType;
+	}
+
+	/**
+	 * For some eucaluptus clusters, need to set this false (=private)
+	 *
+	 * @param sets the public addressing mode (true by default)
+	 */
+	public void setPublicAddressing(boolean set) {
+		addressingType = set;
 	}
 }
