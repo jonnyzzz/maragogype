@@ -1859,7 +1859,7 @@ public class Jec2 extends AWSQueryConnection {
 						(DescribeReservedInstancesResponseSetItemType) task_iter.next();
 				ret.add(new ReservedInstances(type.getReservedInstancesId(),
 							InstanceType.getTypeFromString(type.getInstanceType()),
-							type.getAvailabilityZone(),
+							type.getAvailabilityZone(), type.getStart().toGregorianCalendar(),
 							type.getDuration(), type.getFixedPrice(), type.getUsagePrice(),
 							type.getProductDescription(),
 							type.getInstanceCount().intValue(), type.getState()));

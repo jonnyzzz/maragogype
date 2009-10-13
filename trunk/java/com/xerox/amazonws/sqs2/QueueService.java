@@ -194,7 +194,7 @@ public class QueueService extends AWSQueryConnection {
 				return new ArrayList<MessageQueue>();
 			}
 			else {
-				return MessageQueue.createList(urls.toArray(new String[] {}),
+				return MessageQueue.createList(urls.toArray(new String[urls.size()]),
 								getAwsAccessKeyId(), getSecretAccessKey(),
 								isSecure(), getServer(), getHttpClient());
 			}

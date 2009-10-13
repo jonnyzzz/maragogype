@@ -17,18 +17,27 @@
 
 package com.xerox.amazonws.ec2;
 
+import java.util.Calendar;
+
 public class ReservedInstances extends ProductDescription {
+	private Calendar start;
 	private int instanceCount;
 	private String state;
 
 	public ReservedInstances(String reservedInstancesId, InstanceType instanceType,
-						String availabilityZone, long duration, double fixedPrice,
-						double usagePrice, String productDescription, int instanceCount,
+						String availabilityZone, Calendar start, long duration,
+						double fixedPrice, double usagePrice,
+						String productDescription, int instanceCount,
 						String state) {
 		super(reservedInstancesId, instanceType, availabilityZone,
 				duration, fixedPrice, usagePrice, productDescription);
+		this.start = start;
 		this.instanceCount = instanceCount;
 		this.state = state;
+	}
+
+	public Calendar getStart() {
+		return start;
 	}
 
 	public int getInstanceCount() {
@@ -41,7 +50,8 @@ public class ReservedInstances extends ProductDescription {
 
 	public String toString() {
 		return "ReservedInstances[id=" + getId() + ", type=" + getInstanceType().getTypeId() +
-				", zone=" + getAvailabilityZone() + ", duration=" + getDuration() + ", fixedPrice=" + getFixedPrice() +
+				", zone=" + getAvailabilityZone() + ", start=" + start.toString() +
+				", duration=" + getDuration() + ", fixedPrice=" + getFixedPrice() +
 				", usagePrice=" + getUsagePrice() + ", description=" + getProductDescription() +
 				", instanceCount=" + instanceCount + ", state=" + state;
 	}
