@@ -242,7 +242,7 @@ public class LoadBalancing extends AWSQueryConnection {
 		params.put("LoadBalancerName", loadBalancerName);
 		int i=1;
 		for (String inst : instances) {
-			params.put("Instances.member."+i, inst);
+			params.put("Instances.member."+i+".InstanceId", inst);
 			i++;
 		}
 		GetMethod method = new GetMethod();
