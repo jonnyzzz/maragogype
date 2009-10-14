@@ -349,9 +349,9 @@ public class LoadBalancing extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("LoadBalancerName", loadBalancerName);
 		if (instances != null && instances.size() > 0) {
-			int i = 0;
+			int i = 1;
 			for (String name : instances) {
-				params.put("Instances.member."+(i+1), name);
+				params.put("Instances.member."+i+"InstanceId", name);
 				i++;
 			}
 		}
@@ -388,7 +388,7 @@ public class LoadBalancing extends AWSQueryConnection {
 		params.put("LoadBalancerName", loadBalancerName);
 		int i=1;
 		for (String inst : instances) {
-			params.put("Instances.member."+i, inst);
+			params.put("Instances.member."+i+"InstanceId", inst);
 			i++;
 		}
 		GetMethod method = new GetMethod();
