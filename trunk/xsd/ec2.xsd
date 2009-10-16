@@ -2,8 +2,8 @@
 		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	 	   xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
 	 	   xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-		   xmlns:tns="http://ec2.amazonaws.com/doc/2009-04-04/"
-		   targetNamespace="http://ec2.amazonaws.com/doc/2009-04-04/"    
+		   xmlns:tns="http://ec2.amazonaws.com/doc/2009-08-15/"
+		   targetNamespace="http://ec2.amazonaws.com/doc/2009-08-15/"    
 		   jaxb:extensionBindingPrefixes="xjc"
 		   jaxb:version="2.0"
 		   elementFormDefault="qualified">
@@ -169,6 +169,7 @@
 	  <xs:element name="ramdiskId" type="xs:string" minOccurs="0" maxOccurs="1"/>
 	  <xs:element name="blockDeviceMapping" type="tns:BlockDeviceMappingType" minOccurs="0" maxOccurs="1" />
 	  <xs:element name="monitoring" type="tns:MonitoringInstanceType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="subnetId" type="xs:string" minOccurs="0" maxOccurs="1" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -254,7 +255,7 @@
 	  <xs:element name="imageId" type="xs:string"/>
 	  <xs:element name="instanceState" type="tns:InstanceStateType"/>
 	  <xs:element name="privateDnsName" type="xs:string"/>
-	  <xs:element name="dnsName" type="xs:string"/>
+	  <xs:element name="dnsName" type="xs:string" minOccurs="0" />
 	  <xs:element name="reason" type="xs:string" minOccurs="0"/>
 	  <xs:element name="keyName" type="xs:string" minOccurs="0"/>
 	  <xs:element name="amiLaunchIndex" type="xs:string" minOccurs="0" maxOccurs="1"/>
@@ -266,6 +267,10 @@
 	  <xs:element name="ramdiskId" type="xs:string" minOccurs="0"/>
 	  <xs:element name="platform" type="xs:string" minOccurs="0"/>
 	  <xs:element name="monitoring" type="tns:InstanceMonitoringStateType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="subnetId" type="xs:string" minOccurs="0" />
+	  <xs:element name="vpcId" type="xs:string" minOccurs="0" />
+	  <xs:element name="privateIpAddress" type="xs:string" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="ipAddress" type="xs:string" minOccurs="0" maxOccurs="1" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -295,6 +300,29 @@
 	  <xs:element name="instanceId" type="xs:string" />
 	  <xs:element name="timestamp" type="xs:dateTime" />
 	  <xs:element name="output" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- GetPasswordData request definitions -->
+
+  <xs:element name="GetPasswordData" type="tns:GetPasswordDataType"/>
+
+  <xs:complexType name="GetPasswordDataType">
+	<xs:sequence>
+	  <xs:element name="instanceId" type="xs:string"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- GetPasswordData response definitions -->
+
+  <xs:element name="GetPasswordDataResponse" type="tns:GetPasswordDataResponseType"/>
+
+  <xs:complexType name="GetPasswordDataResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
+	  <xs:element name="instanceId" type="xs:string" />
+	  <xs:element name="timestamp" type="xs:dateTime" />
+	  <xs:element name="passwordData" type="xs:string" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -642,16 +670,6 @@
 
   <!-- AuthorizeSecurityGroupIngress Request definitions -->
 
-  <xs:annotation>
-	<xs:documentation xml:lang="en">
-	  This API call should be treated as under development. The current API specification supports a richer
-	  set of semantics than we intend to retain in future releases, and the details for this call are still under
-	  review. Semantically, clients can depend on fine grained CIDR based access control (as currently exposed) but
-	  for group based access control clients should only depend on the ability to control access for an entire
-	  (user,group) tuple. Fine grained group based access control at the protocol and port or icmp code:type level
-	  are not guaranteed to be supported in future releases of this API.
-	</xs:documentation>
-  </xs:annotation>
 
   <xs:element name="AuthorizeSecurityGroupIngress" 
 			  type="tns:AuthorizeSecurityGroupIngressType"/>
@@ -678,16 +696,6 @@
 
   <!-- RevokeSecurityGroupIngress Request definitions -->
 
-  <xs:annotation>
-	<xs:documentation xml:lang="en">
-	  This API call should be treated as under development. The current API specification supports a richer
-	  set of semantics than we intend to retain in future releases, and the details for this call are still under
-	  review. Semantically, clients can depend on fine grained CIDR based access control (as currently exposed) but
-	  for group based access control clients should only depend on the ability to control access for an entire
-	  (user,group) tuple. Fine grained group based access control at the protocol and port or icmp code:type level
-	  are not guaranteed to be supported in future releases of this API.
-	</xs:documentation>
-  </xs:annotation>
 
   <xs:element name="RevokeSecurityGroupIngress" 
 			  type="tns:RevokeSecurityGroupIngressType"/>
@@ -944,11 +952,24 @@
 	</xs:sequence>
   </xs:complexType>
 
+  <xs:complexType name="AvailabilityZoneMessageType">
+	<xs:sequence>
+	  <xs:element name="message" type="xs:string"/>
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="AvailabilityZoneMessageSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:AvailabilityZoneMessageType" minOccurs="0" maxOccurs="unbounded"/>
+	</xs:sequence>
+  </xs:complexType>
+
   <xs:complexType name="AvailabilityZoneItemType">
 	<xs:sequence>
 	  <xs:element name="zoneName" type="xs:string"/>
 	  <xs:element name="zoneState" type="xs:string"/>
 	  <xs:element name="regionName" type="xs:string"/>
+	  <xs:element name="messageSet" type="tns:AvailabilityZoneMessageSetType"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -1250,6 +1271,7 @@
   <xs:complexType name="CreateSnapshotType">
 	<xs:sequence>
 	  <xs:element name="volumeId" type="xs:string"/>
+	  <xs:element name="description" type="xs:string" minOccurs="0"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -1265,6 +1287,9 @@
 	  <xs:element name="status" type="xs:string"/>
 	  <xs:element name="startTime" type="xs:dateTime"/>
 	  <xs:element name="progress" type="xs:string"/>
+	  <xs:element name="ownerId" type="xs:string"/>
+	  <xs:element name="volumeSize" type="xs:string"/>
+	  <xs:element name="description" type="xs:string" minOccurs="0"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -1297,6 +1322,8 @@
   <xs:complexType name="DescribeSnapshotsType">
 	<xs:sequence>
 	  <xs:element name="snapshotSet" type="tns:DescribeSnapshotsSetType"/>
+	  <xs:element name="ownersSet" type="tns:DescribeSnapshotsOwnersType" minOccurs="0"/>
+	  <xs:element name="restorableBySet" type="tns:DescribeSnapshotsRestorableBySetType" minOccurs="0"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -1309,6 +1336,30 @@
   <xs:complexType name="DescribeSnapshotsSetItemType">
 	<xs:sequence>
 	  <xs:element name="snapshotId" type="xs:string"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeSnapshotsOwnersType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:DescribeSnapshotsOwnerType" minOccurs="0" maxOccurs="unbounded"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeSnapshotsOwnerType">
+	<xs:sequence>
+	  <xs:element name="owner" type="xs:string"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeSnapshotsRestorableBySetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:DescribeSnapshotsRestorableByType" minOccurs="0" maxOccurs="unbounded"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeSnapshotsRestorableByType">
+	<xs:sequence>
+	  <xs:element name="user" type="xs:string"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -1337,6 +1388,114 @@
 	  <xs:element name="status" type="xs:string"/>
 	  <xs:element name="startTime" type="xs:dateTime"/>
 	  <xs:element name="progress" type="xs:string"/>
+	  <xs:element name="ownerId" type="xs:string"/>
+	  <xs:element name="volumeSize" type="xs:string"/>
+	  <xs:element name="description" type="xs:string" minOccurs="0"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <!-- ModifySnapshotAttribute Definitions -->
+  
+  <xs:element name="ModifySnapshotAttribute"
+			  type="tns:ModifySnapshotAttributeType"/>
+  
+  <xs:complexType name="ModifySnapshotAttributeType">
+	<xs:sequence>
+	  <xs:element name="snapshotId" type="xs:string"/>
+	  <xs:element name="createVolumePermission" type="tns:CreateVolumePermissionOperationType"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="CreateVolumePermissionOperationType">
+	<xs:choice>
+	  <xs:element name="add" type="tns:CreateVolumePermissionListType"/>
+	  <xs:element name="remove" type="tns:CreateVolumePermissionListType"/>
+	</xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="CreateVolumePermissionListType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:CreateVolumePermissionItemType" minOccurs="0" maxOccurs="unbounded"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="CreateVolumePermissionItemType">
+	<xs:choice>
+	  <xs:element name="userId" type="xs:string"/>
+	  <xs:element name="group" type="xs:string" />
+	</xs:choice>
+  </xs:complexType>
+
+  <!-- ModifySnapshotAttributeResponse Definitions -->
+
+  <xs:element name="ModifySnapshotAttributeResponse"
+			  type="tns:ModifySnapshotAttributeResponseType" />
+			  
+  <xs:complexType name="ModifySnapshotAttributeResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
+	  <xs:element name="return" type="xs:boolean"/>
+	</xs:sequence>
+  </xs:complexType>
+  
+  <!-- ResetSnapshotAttribute Definitions -->
+  
+  <xs:element name="ResetSnapshotAttribute"
+			  type="tns:ResetSnapshotAttributeType"/>
+  
+  <xs:complexType name="ResetSnapshotAttributeType">
+	<xs:sequence>
+	  <xs:element name="snapshotId" type="xs:string"/>
+	  <xs:group ref="tns:ResetSnapshotAttributesGroup" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:group name="ResetSnapshotAttributesGroup" >
+	<xs:choice>
+	  <xs:element name="createVolumePermission" type="tns:EmptyElementType"/>
+	</xs:choice>
+  </xs:group>
+
+  <!-- ResetSnapshotAttributeResponse Definitions -->
+
+  <xs:element name="ResetSnapshotAttributeResponse"
+			  type="tns:ResetSnapshotAttributeResponseType" />
+			  
+  <xs:complexType name="ResetSnapshotAttributeResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
+	  <xs:element name="return" type="xs:boolean"/>
+	</xs:sequence>
+  </xs:complexType>
+  
+  <!-- DescribeSnapshotAttribute Definitions -->
+  
+  <xs:element name="DescribeSnapshotAttribute"
+			  type="tns:DescribeSnapshotAttributeType" />
+
+  <xs:complexType name="DescribeSnapshotAttributeType">
+	<xs:sequence>
+	  <xs:element name="snapshotId" type="xs:string" />
+	  <xs:group ref="tns:DescribeSnapshotAttributesGroup" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:group name="DescribeSnapshotAttributesGroup" >
+	<xs:choice>
+	  <xs:element name="createVolumePermission" type="tns:EmptyElementType"/>
+	</xs:choice>
+  </xs:group>
+
+  <!-- DescribeSnapshotAttributeResponse Definitions -->
+  
+  <xs:element name="DescribeSnapshotAttributeResponse"
+			  type="tns:DescribeSnapshotAttributeResponseType" />
+			  
+  <xs:complexType name="DescribeSnapshotAttributeResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>
+	  <xs:element name="snapshotId" type="xs:string" />
+	  <xs:element name="createVolumePermission" type="tns:CreateVolumePermissionListType"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -1700,4 +1859,491 @@
 	</xs:sequence>
   </xs:complexType>
   
+  
+  <!-- VPC definitions -->
+  
+  <xs:complexType name="AttachmentType">
+	<xs:sequence>
+	  <xs:element name="vpcId" type="xs:string" />
+	  <xs:element name="state" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AttachmentSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:AttachmentType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="VpnGatewayType">
+	<xs:sequence>
+	  <xs:element name="vpnGatewayId" type="xs:string" />
+	  <xs:element name="state" type="xs:string" />
+	  <xs:element name="type" type="xs:string" />
+	  <xs:element name="availabilityZone" type="xs:string" />
+	  <xs:element name="attachments" type="tns:AttachmentSetType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CustomerGatewayType">
+	<xs:sequence>
+	  <xs:element name="customerGatewayId" type="xs:string" />
+	  <xs:element name="state" type="xs:string" />
+	  <xs:element name="type" type="xs:string" />
+	  <xs:element name="ipAddress" type="xs:string" />
+	  <xs:element name="bgpAsn" type="xs:int" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="VpnConnectionType">
+	<xs:sequence>
+	  <xs:element name="vpnConnectionId" type="xs:string" />
+	  <xs:element name="state" type="xs:string" />
+	  <xs:element name="customerGatewayConfiguration" type="xs:string" minOccurs="0" />
+	  <xs:element name="type" type="xs:string" minOccurs="0" />
+	  <xs:element name="customerGatewayId" type="xs:string" />
+	  <xs:element name="vpnGatewayId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="VpcType">
+	<xs:sequence>
+	  <xs:element name="vpcId" type="xs:string" />
+	  <xs:element name="state" type="xs:string" minOccurs="0" />
+	  <xs:element name="cidrBlock" type="xs:string" minOccurs="0" />
+	  <xs:element name="dhcpOptionsId" type="xs:string" minOccurs="0" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SubnetType">
+	<xs:sequence>
+	  <xs:element name="subnetId" type="xs:string" />
+	  <xs:element name="state" type="xs:string" minOccurs="0" />
+	  <xs:element name="vpcId" type="xs:string" minOccurs="0" />
+	  <xs:element name="cidrBlock" type="xs:string" minOccurs="0" />
+	  <xs:element name="availableIpAddressCount" type="xs:int" minOccurs="0" />
+	  <xs:element name="availabilityZone" type="xs:string" minOccurs="0" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CustomerGatewaySetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:CustomerGatewayType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="VpnGatewaySetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:VpnGatewayType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="VpnConnectionSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:VpnConnectionType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="VpcSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:VpcType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SubnetSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:SubnetType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CustomerGatewayIdSetItemType">
+	<xs:sequence>
+	  <xs:element name="customerGatewayId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CustomerGatewayIdSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:CustomerGatewayIdSetItemType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="VpnGatewayIdSetItemType">
+	<xs:sequence>
+	  <xs:element name="vpnGatewayId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="VpnGatewayIdSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:VpnGatewayIdSetItemType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="VpnConnectionIdSetItemType">
+	<xs:sequence>
+	  <xs:element name="vpnConnectionId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="VpnConnectionIdSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:VpnConnectionIdSetItemType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="VpcIdSetItemType">
+	<xs:sequence>
+	  <xs:element name="vpcId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="VpcIdSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:VpcIdSetItemType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SubnetIdSetItemType">
+	<xs:sequence>
+	  <xs:element name="subnetId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SubnetIdSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:SubnetIdSetItemType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DhcpOptionsIdSetItemType">
+	<xs:sequence>
+	  <xs:element name="dhcpOptionsId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DhcpOptionsIdSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:DhcpOptionsIdSetItemType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DhcpConfigurationItemSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:DhcpConfigurationItemType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DhcpOptionsSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:DhcpOptionsType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DhcpConfigurationItemType">
+	<xs:sequence>
+	  <xs:element name="key" type="xs:string" />
+	  <xs:element name="valueSet" type="tns:DhcpValueSetType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DhcpOptionsType">
+	<xs:sequence>
+	  <xs:element name="dhcpOptionsId" type="xs:string" />
+	  <xs:element name="dhcpConfigurationSet" type="tns:DhcpConfigurationItemSetType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DhcpValueType">
+	<xs:sequence>
+	  <xs:element name="value" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DhcpValueSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:DhcpValueType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="FilterType">
+	<xs:sequence>
+	  <xs:element name="name" type="xs:string" />
+	  <xs:element name="valueSet" type="tns:ValueSetType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="FilterSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:FilterType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ValueType">
+	<xs:sequence>
+	  <xs:element name="value" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ValueSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:ValueType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:element name="CreateCustomerGateway" type="tns:CreateCustomerGatewayType" />
+  <xs:element name="CreateCustomerGatewayResponse" type="tns:CreateCustomerGatewayResponseType" />
+  <xs:element name="DeleteCustomerGateway" type="tns:DeleteCustomerGatewayType" />
+  <xs:element name="DeleteCustomerGatewayResponse" type="tns:DeleteCustomerGatewayResponseType" />
+  <xs:element name="DescribeCustomerGateways" type="tns:DescribeCustomerGatewaysType" />
+  <xs:element name="DescribeCustomerGatewaysResponse" type="tns:DescribeCustomerGatewaysResponseType" />
+  <xs:element name="CreateVpnGateway" type="tns:CreateVpnGatewayType" />
+  <xs:element name="CreateVpnGatewayResponse" type="tns:CreateVpnGatewayResponseType" />
+  <xs:element name="DeleteVpnGateway" type="tns:DeleteVpnGatewayType" />
+  <xs:element name="DeleteVpnGatewayResponse" type="tns:DeleteVpnGatewayResponseType" />
+  <xs:element name="DescribeVpnGateways" type="tns:DescribeVpnGatewaysType" />
+  <xs:element name="DescribeVpnGatewaysResponse" type="tns:DescribeVpnGatewaysResponseType" />
+  <xs:element name="CreateVpnConnection" type="tns:CreateVpnConnectionType" />
+  <xs:element name="CreateVpnConnectionResponse" type="tns:CreateVpnConnectionResponseType" />
+  <xs:element name="DeleteVpnConnection" type="tns:DeleteVpnConnectionType" />
+  <xs:element name="DeleteVpnConnectionResponse" type="tns:DeleteVpnConnectionResponseType" />
+  <xs:element name="DescribeVpnConnections" type="tns:DescribeVpnConnectionsType" />
+  <xs:element name="DescribeVpnConnectionsResponse" type="tns:DescribeVpnConnectionsResponseType" />
+  <xs:element name="AttachVpnGateway" type="tns:AttachVpnGatewayType" />
+  <xs:element name="AttachVpnGatewayResponse" type="tns:AttachVpnGatewayResponseType" />
+  <xs:element name="DetachVpnGateway" type="tns:DetachVpnGatewayType" />
+  <xs:element name="DetachVpnGatewayResponse" type="tns:DetachVpnGatewayResponseType" />
+  <xs:element name="CreateVpc" type="tns:CreateVpcType" />
+  <xs:element name="CreateVpcResponse" type="tns:CreateVpcResponseType" />
+  <xs:element name="DescribeVpcs" type="tns:DescribeVpcsType" />
+  <xs:element name="DescribeVpcsResponse" type="tns:DescribeVpcsResponseType" />
+  <xs:element name="DeleteVpc" type="tns:DeleteVpcType" />
+  <xs:element name="DeleteVpcResponse" type="tns:DeleteVpcResponseType" />
+  <xs:element name="CreateSubnet" type="tns:CreateSubnetType" />
+  <xs:element name="CreateSubnetResponse" type="tns:CreateSubnetResponseType" />
+  <xs:element name="DescribeSubnets" type="tns:DescribeSubnetsType" />
+  <xs:element name="DescribeSubnetsResponse" type="tns:DescribeSubnetsResponseType" />
+  <xs:element name="DeleteSubnet" type="tns:DeleteSubnetType" />
+  <xs:element name="DeleteSubnetResponse" type="tns:DeleteSubnetResponseType" />
+  <xs:element name="DeleteDhcpOptions" type="tns:DeleteDhcpOptionsType" />
+  <xs:element name="DeleteDhcpOptionsResponse" type="tns:DeleteDhcpOptionsResponseType" />
+  <xs:element name="DescribeDhcpOptions" type="tns:DescribeDhcpOptionsType" />
+  <xs:element name="DescribeDhcpOptionsResponse" type="tns:DescribeDhcpOptionsResponseType" />
+  <xs:element name="CreateDhcpOptions" type="tns:CreateDhcpOptionsType" />
+  <xs:element name="CreateDhcpOptionsResponse" type="tns:CreateDhcpOptionsResponseType" />
+  <xs:element name="AssociateDhcpOptions" type="tns:AssociateDhcpOptionsType" />
+  <xs:element name="AssociateDhcpOptionsResponse" type="tns:AssociateDhcpOptionsResponseType" />
+  <xs:complexType name="CreateCustomerGatewayType">
+	<xs:sequence>
+	  <xs:element name="type" type="xs:string" />
+	  <xs:element name="ipAddress" type="xs:string" />
+	  <xs:element name="bgpAsn" type="xs:int" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CreateCustomerGatewayResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="customerGateway" type="tns:CustomerGatewayType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DeleteCustomerGatewayType">
+	<xs:sequence>
+	  <xs:element name="customerGatewayId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DeleteCustomerGatewayResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="return" type="xs:boolean" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DescribeCustomerGatewaysType">
+	<xs:sequence>
+	  <xs:element name="customerGatewaySet" type="tns:CustomerGatewayIdSetType" minOccurs="0" />
+	  <xs:element name="filterSet" type="tns:FilterSetType" minOccurs="0" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DescribeCustomerGatewaysResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="customerGatewaySet" type="tns:CustomerGatewaySetType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CreateVpnGatewayType">
+	<xs:sequence>
+	  <xs:element name="type" type="xs:string" />
+	  <xs:element name="availabilityZone" type="xs:string" minOccurs="0" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CreateVpnGatewayResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="vpnGateway" type="tns:VpnGatewayType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DeleteVpnGatewayType">
+	<xs:sequence>
+	  <xs:element name="vpnGatewayId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DeleteVpnGatewayResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="return" type="xs:boolean" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DescribeVpnGatewaysType">
+	<xs:sequence>
+	  <xs:element name="vpnGatewaySet" type="tns:VpnGatewayIdSetType" minOccurs="0" />
+	  <xs:element name="filterSet" type="tns:FilterSetType" minOccurs="0" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DescribeVpnGatewaysResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="vpnGatewaySet" type="tns:VpnGatewaySetType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CreateVpnConnectionType">
+	<xs:sequence>
+	  <xs:element name="type" type="xs:string" />
+	  <xs:element name="customerGatewayId" type="xs:string" />
+	  <xs:element name="vpnGatewayId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CreateVpnConnectionResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="vpnConnection" type="tns:VpnConnectionType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DeleteVpnConnectionType">
+	<xs:sequence>
+	  <xs:element name="vpnConnectionId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DeleteVpnConnectionResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="return" type="xs:boolean" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DescribeVpnConnectionsType">
+	<xs:sequence>
+	  <xs:element name="vpnConnectionSet" type="tns:VpnConnectionIdSetType" minOccurs="0" />
+	  <xs:element name="filterSet" type="tns:FilterSetType" minOccurs="0" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DescribeVpnConnectionsResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="vpnConnectionSet" type="tns:VpnConnectionSetType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AttachVpnGatewayType">
+	<xs:sequence>
+	  <xs:element name="vpnGatewayId" type="xs:string" />
+	  <xs:element name="vpcId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AttachVpnGatewayResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="attachment" type="tns:AttachmentType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DetachVpnGatewayType">
+	<xs:sequence>
+	  <xs:element name="vpnGatewayId" type="xs:string" />
+	  <xs:element name="vpcId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DetachVpnGatewayResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="return" type="xs:boolean" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CreateVpcType">
+	<xs:sequence>
+	  <xs:element name="cidrBlock" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CreateVpcResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="vpc" type="tns:VpcType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DescribeVpcsType">
+	<xs:sequence>
+	  <xs:element name="vpcSet" type="tns:VpcIdSetType" minOccurs="0" />
+	  <xs:element name="filterSet" type="tns:FilterSetType" minOccurs="0" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DescribeVpcsResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="vpcSet" type="tns:VpcSetType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DeleteVpcType">
+	<xs:sequence>
+	  <xs:element name="vpcId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DeleteVpcResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="return" type="xs:boolean" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CreateSubnetType">
+	<xs:sequence>
+	  <xs:element name="vpcId" type="xs:string" />
+	  <xs:element name="cidrBlock" type="xs:string" />
+	  <xs:element name="availabilityZone" type="xs:string" minOccurs="0" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CreateSubnetResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="subnet" type="tns:SubnetType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DescribeSubnetsType">
+	<xs:sequence>
+	  <xs:element name="subnetSet" type="tns:SubnetIdSetType" minOccurs="0" />
+	  <xs:element name="filterSet" type="tns:FilterSetType" minOccurs="0" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DescribeSubnetsResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="subnetSet" type="tns:SubnetSetType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DeleteSubnetType">
+	<xs:sequence>
+	  <xs:element name="subnetId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DeleteSubnetResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="return" type="xs:boolean" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DeleteDhcpOptionsType">
+	<xs:sequence>
+	  <xs:element name="dhcpOptionsId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DeleteDhcpOptionsResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="return" type="xs:boolean" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DescribeDhcpOptionsType">
+	<xs:sequence>
+	  <xs:element name="dhcpOptionsSet" type="tns:DhcpOptionsIdSetType" minOccurs="0" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DescribeDhcpOptionsResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="dhcpOptionsSet" type="tns:DhcpOptionsSetType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CreateDhcpOptionsType">
+	<xs:sequence>
+	  <xs:element name="dhcpConfigurationSet" type="tns:DhcpConfigurationItemSetType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CreateDhcpOptionsResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="dhcpOptions" type="tns:DhcpOptionsType" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AssociateDhcpOptionsType">
+	<xs:sequence>
+	  <xs:element name="dhcpOptionsId" type="xs:string" />
+	  <xs:element name="vpcId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AssociateDhcpOptionsResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="return" type="xs:boolean" />
+	</xs:sequence>
+  </xs:complexType>
+
 </xs:schema>

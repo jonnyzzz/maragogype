@@ -100,6 +100,7 @@ import com.xerox.amazonws.typica.jaxb.DescribeSecurityGroupsResponse;
 import com.xerox.amazonws.typica.jaxb.DetachVolumeResponse;
 import com.xerox.amazonws.typica.jaxb.DisassociateAddressResponse;
 import com.xerox.amazonws.typica.jaxb.GetConsoleOutputResponse;
+import com.xerox.amazonws.typica.jaxb.GetPasswordDataResponse;
 import com.xerox.amazonws.typica.jaxb.GroupItemType;
 import com.xerox.amazonws.typica.jaxb.GroupSetType;
 import com.xerox.amazonws.typica.jaxb.IpPermissionSetType;
@@ -196,7 +197,7 @@ public class Jec2 extends AWSQueryConnection {
     {
 		super(awsAccessId, awsSecretKey, isSecure, server, port);
 		ArrayList<String> vals = new ArrayList<String>();
-		vals.add("2009-04-04");
+		vals.add("2009-08-15");
 		super.headers.put("Version", vals);
     }
 
@@ -531,9 +532,7 @@ public class Jec2 extends AWSQueryConnection {
 			params.put("UserData",
 			new String(Base64.encodeBase64(userData)));
 		}
-		if (lc.isPublicAddressing()) {
-			params.put("AddressingType", "true");
-		}
+		params.put("AddressingType", lc.isPublicAddressing()?"public":"private");
 		String keyName = lc.getKeyName();
 		if (keyName != null && !keyName.trim().equals("")) {
 			params.put("KeyName", keyName);
@@ -597,7 +596,10 @@ public class Jec2 extends AWSQueryConnection {
 								rsp_item.getPlacement().getAvailabilityZone(),
 								rsp_item.getKernelId(), rsp_item.getRamdiskId(),
 								rsp_item.getPlatform(),
-								rsp_item.getMonitoring().getState().equals("true"));
+								rsp_item.getMonitoring().getState().equals("true"),
+								rsp_item.getSubnetId(),
+								rsp_item.getPrivateIpAddress(),
+								rsp_item.getIpAddress());
 			}
 			return res;
 		} finally {
@@ -713,7 +715,10 @@ public class Jec2 extends AWSQueryConnection {
                             rsp_item.getPlacement().getAvailabilityZone(),
                             rsp_item.getKernelId(), rsp_item.getRamdiskId(),
 							rsp_item.getPlatform(),
-							rsp_item.getMonitoring().getState().equals("true"));
+							rsp_item.getMonitoring().getState().equals("true"),
+							rsp_item.getSubnetId(),
+							rsp_item.getPrivateIpAddress(),
+							rsp_item.getIpAddress());
                 }
                 result.add(res);
             }
@@ -775,6 +780,26 @@ public class Jec2 extends AWSQueryConnection {
 			return new ConsoleOutput(response.getRequestId(), response.getInstanceId(),
 				response.getTimestamp().toGregorianCalendar(),
 				new String(Base64.decodeBase64(response.getOutput().getBytes())));
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Get a Windows instance's admin password.
+	 *
+	 * @param instanceId An instance's id ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
+	 * @return password data
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public String getPasswordData(String instanceId) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("InstanceId", instanceId);
+		GetMethod method = new GetMethod();
+		try {
+			GetPasswordDataResponse response =
+					makeRequestInt(method, "GetPasswordData", params, GetPasswordDataResponse.class);
+			return response.getPasswordData();
 		} finally {
 			method.releaseConnection();
 		}

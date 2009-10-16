@@ -59,10 +59,12 @@ public class ReservationDescription {
 	public Instance addInstance(String imageId, String instanceId,
 			String privateDnsName, String dnsName, InstanceStateType state,
 			String reason, String keyName, Calendar launchTime, InstanceType instanceType,
-			String availabilityZone, String kernelId, String ramdiskId, String platform, boolean monitoring) {
+			String availabilityZone, String kernelId, String ramdiskId, String platform,
+			boolean monitoring, String subnetId, String privateIpAddress, String ipAddress) {
 		Instance instance = new Instance(imageId, instanceId, privateDnsName,
 				dnsName, state.getName(), state.getCode(), reason, keyName,
-				instanceType, launchTime, availabilityZone, kernelId, ramdiskId, platform, monitoring);
+				instanceType, launchTime, availabilityZone, kernelId, ramdiskId, platform,
+				monitoring, subnetId, privateIpAddress, ipAddress);
 		instances.add(instance);
 		return instance;
 	}
@@ -113,12 +115,15 @@ public class ReservationDescription {
 		private String state;
 		private int stateCode;
 		private boolean monitoring;
+		private String subnetId;
+		private String privateIpAddress;
+		private String ipAddress;
 
 		public Instance(String imageId, String instanceId, String privateDnsName,
 				String dnsName, String stateName, int stateCode, String reason,
 				String keyName, InstanceType instanceType, Calendar launchTime,
 				String availabilityZone, String kernelId, String ramdiskId, String platform,
-				boolean monitoring) {
+				boolean monitoring, String subnetId, String privateIpdAddress, String ipAddress) {
 			this.imageId = imageId;
 			this.instanceId = instanceId;
 			this.privateDnsName = privateDnsName;
@@ -134,6 +139,9 @@ public class ReservationDescription {
 			this.ramdiskId = ramdiskId;
 			this.platform = platform;
 			this.monitoring = monitoring;
+			this.subnetId = subnetId;
+			this.privateIpAddress = privateIpAddress;
+			this.ipAddress = ipAddress;
 		}
 
 		public String getImageId() {
@@ -212,12 +220,25 @@ public class ReservationDescription {
 			return monitoring;
 		}
 
+		public String getSubnetId() {
+			return subnetId;
+		}
+
+		public String getPrivateIpAddress() {
+			return privateIpAddress;
+		}
+
+		public String getIpAddress() {
+			return ipAddress;
+		}
+
 		public String toString() {
 			return "[img=" + this.imageId + ", instance=" + this.instanceId
 					+ ", privateDns=" + this.privateDnsName
 					+ ", dns=" + this.dnsName + ", loc=" + ", state="
 					+ this.state + "(" + this.stateCode + ") reason="
-					+ this.reason + "]";
+					+ this.reason + ", monitoring=" + this.monitoring
+					+ ", subnetId=" + this.subnetId + "]";
 		}
 	}
 
