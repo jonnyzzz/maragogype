@@ -23,6 +23,7 @@ package com.xerox.amazonws.ec2;
 public class RegionInfo {
 	public static final String REGIONURL_EU_WEST = "eu-west-1.ec2.amazonaws.com";
 	public static final String REGIONURL_US_EAST = "us-east-1.ec2.amazonaws.com";
+	public static final String REGIONURL_US_WEST = "us-west-1.ec2.amazonaws.com";
 
 	private String name;
 	private String url;
