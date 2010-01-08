@@ -123,7 +123,7 @@ public class ReservationDescription {
 				String dnsName, String stateName, int stateCode, String reason,
 				String keyName, InstanceType instanceType, Calendar launchTime,
 				String availabilityZone, String kernelId, String ramdiskId, String platform,
-				boolean monitoring, String subnetId, String privateIpdAddress, String ipAddress) {
+				boolean monitoring, String subnetId, String privateIpAddress, String ipAddress) {
 			this.imageId = imageId;
 			this.instanceId = instanceId;
 			this.privateDnsName = privateDnsName;

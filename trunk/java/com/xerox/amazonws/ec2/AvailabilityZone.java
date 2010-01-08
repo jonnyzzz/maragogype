@@ -17,16 +17,22 @@
 
 package com.xerox.amazonws.ec2;
 
+import java.util.List;
+
 /**
  * This is a container class for an Availability Zone
  */
 public class AvailabilityZone {
 	private String name;
 	private String state;
+	private String regionName;
+	private List<String> messages;
 
-	public AvailabilityZone(String name, String state) {
+	public AvailabilityZone(String name, String state, String regionName, List<String> messages) {
 		this.name = name;
 		this.state = state;
+		this.regionName = regionName;
+		this.messages = messages;
 	}
 
 	public String getName() {
@@ -37,7 +43,16 @@ public class AvailabilityZone {
 		return state;
 	}
 
+	public String getRegionName() {
+		return regionName;
+	}
+
+	public List<String> getMessages() {
+		return messages;
+	}
+
 	public String toString() {
-		return "AvailabilityZone[name=" + name + ", state=" + state + "]";
+		return "AvailabilityZone[name=" + name + ", state=" + state +
+				", region=" + regionName + "]";
 	}
 }

@@ -54,6 +54,7 @@ import com.xerox.amazonws.typica.jaxb.AttachmentSetResponseType;
 import com.xerox.amazonws.typica.jaxb.AttachmentSetItemResponseType;
 import com.xerox.amazonws.typica.jaxb.AttachVolumeResponse;
 import com.xerox.amazonws.typica.jaxb.AvailabilityZoneItemType;
+import com.xerox.amazonws.typica.jaxb.AvailabilityZoneMessageType;
 import com.xerox.amazonws.typica.jaxb.AvailabilityZoneSetType;
 import com.xerox.amazonws.typica.jaxb.AuthorizeSecurityGroupIngressResponse;
 import com.xerox.amazonws.typica.jaxb.BlockDeviceMappingType;
@@ -111,6 +112,7 @@ import com.xerox.amazonws.typica.jaxb.IpRangeSetType;
 import com.xerox.amazonws.typica.jaxb.LaunchPermissionItemType;
 import com.xerox.amazonws.typica.jaxb.LaunchPermissionListType;
 import com.xerox.amazonws.typica.jaxb.ModifyImageAttributeResponse;
+import com.xerox.amazonws.typica.jaxb.ModifySnapshotAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.MonitorInstancesResponseType;
 import com.xerox.amazonws.typica.jaxb.MonitorInstancesResponseSetItemType;
 import com.xerox.amazonws.typica.jaxb.NullableAttributeValueType;
@@ -1327,7 +1329,11 @@ public class Jec2 extends AWSQueryConnection {
 			Iterator set_iter = set.getItems().iterator();
 			while (set_iter.hasNext()) {
 				AvailabilityZoneItemType item = (AvailabilityZoneItemType) set_iter.next();
-				ret.add(new AvailabilityZone(item.getZoneName(), item.getZoneState()));
+				List<String> messages = new ArrayList<String>();
+				for (AvailabilityZoneMessageType msg : item.getMessageSet().getItems()) {
+					messages.add(msg.getMessage());
+				}
+				ret.add(new AvailabilityZone(item.getZoneName(), item.getZoneState(), item.getRegionName(), messages));
 			}
 			return ret;
 		} finally {
@@ -1619,12 +1625,14 @@ public class Jec2 extends AWSQueryConnection {
 	 * Creates a snapshot of the EBS Volume.
 	 *
 	 * @param volumeId the id of the volume
+	 * @param description an optional descriptive string (256 chars max)
 	 * @return information about the snapshot
 	 * @throws EC2Exception wraps checked exceptions
 	 */
-	public SnapshotInfo createSnapshot(String volumeId) throws EC2Exception {
+	public SnapshotInfo createSnapshot(String volumeId, String description) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("VolumeId", volumeId);
+		params.put("Description", description);
 		GetMethod method = new GetMethod();
 		try {
 			CreateSnapshotResponse response =
@@ -1632,7 +1640,8 @@ public class Jec2 extends AWSQueryConnection {
 			return new SnapshotInfo(response.getSnapshotId(), response.getVolumeId(),
 								response.getStatus(),
 								response.getStartTime().toGregorianCalendar(),
-								response.getProgress());
+								response.getProgress(), response.getOwnerId(),
+								response.getVolumeSize(), response.getDescription());
 		} finally {
 			method.releaseConnection();
 		}
@@ -1686,9 +1695,33 @@ public class Jec2 extends AWSQueryConnection {
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public List<SnapshotInfo> describeSnapshots(List<String> snapshotIds) throws EC2Exception {
+		return describeSnapshots(snapshotIds, null, null);
+	}
+
+	/**
+	 * Gets a list of EBS snapshots for this account.
+	 * <p>
+	 * If the list of snapshot IDs is empty then a list of all snapshots owned
+	 * by the caller will be returned. Otherwise the list will contain
+	 * information for the requested snapshots only.
+	 * 
+	 * @param snapshotIds A list of snapshots ({@link com.xerox.amazonws.ec2.SnapshotInfo}.
+	 * @param owner limits results to snapshots owned by this user
+	 * @param restorableBy limits results to account that can create volumes from this snapshot
+	 * @return A list of {@link com.xerox.amazonws.ec2.VolumeInfo} volumes.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<SnapshotInfo> describeSnapshots(List<String> snapshotIds,
+							String owner, String restorableBy) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		for (int i=0 ; i<snapshotIds.size(); i++) {
 			params.put("SnapshotId."+(i+1), snapshotIds.get(i));
+		}
+		if (owner != null) {
+			params.put("Owner", owner);
+		}
+		if (restorableBy != null) {
+			params.put("RestorableBy", owner);
 		}
 		GetMethod method = new GetMethod();
 		try {
@@ -1702,10 +1735,46 @@ public class Jec2 extends AWSQueryConnection {
 				SnapshotInfo vol = new SnapshotInfo(item.getSnapshotId(), item.getVolumeId(),
 									item.getStatus(),
 									item.getStartTime().toGregorianCalendar(),
-									item.getProgress());
+									item.getProgress(), item.getOwnerId(),
+									item.getVolumeSize(), item.getDescription());
 				result.add(vol);
 			}
 			return result;
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Changes permissions settings of a snapshot.
+	 * 
+	 * @param snapshotId the snapshot you are addressing
+	 * @param attribute for now, should be "createVolumePermission"
+	 * @param opType either add or remove
+	 * @param userId optional userId (this or userGroup);
+	 * @param userGroup optional userGroup (this or userId)
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public void modifySnapshotAttribute(String snapshotId, String attribute,
+											OperationType opType, String userId,
+											String userGroup) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("SnapshotId", snapshotId);
+		if (userId != null) {
+			params.put("UserId", userId);
+		}
+		if (userGroup != null) {
+			params.put("UserGroup", userGroup);
+		}
+		params.put("Attribute", attribute);
+		params.put("OperationType", opType.getTypeId());
+		GetMethod method = new GetMethod();
+		try {
+			ModifySnapshotAttributeResponse response =
+					makeRequestInt(method, "ModifySnapshotAttribute", params, ModifySnapshotAttributeResponse.class);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not modify snapshot attribute : "+attribute+". No reason given.");
+			}
 		} finally {
 			method.releaseConnection();
 		}

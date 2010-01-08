@@ -19,6 +19,7 @@ package com.xerox.amazonws.sdb;
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -109,6 +110,8 @@ public class Item extends AWSQueryConnection {
 				ret.add(createAttribute(attr));
 			}
 			return ret;
+		} catch (UnsupportedEncodingException ex) {
+			throw new SDBException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -143,6 +146,8 @@ public class Item extends AWSQueryConnection {
 				ret.add(createAttribute(attr));
 			}
 			return ret;
+		} catch (UnsupportedEncodingException ex) {
+			throw new SDBException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -177,7 +182,7 @@ public class Item extends AWSQueryConnection {
 				String name = attr.getName().getValue();
 				String encoding = attr.getName().getEncoding();
 				if (encoding != null && encoding.equals("base64")) {
-					name = new String(Base64.decodeBase64(name.getBytes()));
+					name = new String(Base64.decodeBase64(name.getBytes()), "UTF-8");
 				}
 				List<String> vals = ret.get(name);
 				if (vals == null) {
@@ -187,11 +192,13 @@ public class Item extends AWSQueryConnection {
 				String value = attr.getValue().getValue();
 				encoding = attr.getValue().getEncoding();
 				if (encoding != null && encoding.equals("base64")) {
-					value = new String(Base64.decodeBase64(value.getBytes()));
+					value = new String(Base64.decodeBase64(value.getBytes()), "UTF-8");
 				}
 				vals.add(value);
 			}
 			return ret;
+		} catch (UnsupportedEncodingException ex) {
+			throw new SDBException(ex.getMessage(), ex);
 		} finally {
 			method.releaseConnection();
 		}
@@ -281,16 +288,16 @@ public class Item extends AWSQueryConnection {
 		}
 	}
 
-	private ItemAttribute createAttribute(Attribute a) {
+	private ItemAttribute createAttribute(Attribute a) throws UnsupportedEncodingException {
 		String name = a.getName().getValue();
 		String encoding = a.getName().getEncoding();
 		if (encoding != null && encoding.equals("base64")) {
-			name = new String(Base64.decodeBase64(name.getBytes()));
+			name = new String(Base64.decodeBase64(name.getBytes()), "UTF-8");
 		}
 		String value = a.getValue().getValue();
 		encoding = a.getValue().getEncoding();
 		if (encoding != null && encoding.equals("base64")) {
-			value = new String(Base64.decodeBase64(value.getBytes()));
+			value = new String(Base64.decodeBase64(value.getBytes()), "UTF-8");
 		}
 		return new ItemAttribute(name, value, false);
 	}
@@ -299,18 +306,22 @@ public class Item extends AWSQueryConnection {
 								String awsSecretKey, boolean isSecure, String server,
 								int signatureVersion, HttpClient hc)
 			throws SDBException {
-		ArrayList<Item> ret = new ArrayList<Item>();
-		for (int i=0; i<itemNames.length; i++) {
-			String name = itemNames[i].getValue();
-			String encoding = itemNames[i].getEncoding();
-			if (encoding != null && encoding.equals("base64")) {
-				name = new String(Base64.decodeBase64(name.getBytes()));
+		try {
+			ArrayList<Item> ret = new ArrayList<Item>();
+			for (int i=0; i<itemNames.length; i++) {
+				String name = itemNames[i].getValue();
+				String encoding = itemNames[i].getEncoding();
+				if (encoding != null && encoding.equals("base64")) {
+					name = new String(Base64.decodeBase64(name.getBytes()), "UTF-8");
+				}
+				Item item = new Item(name, domainName, awsAccessId, awsSecretKey, isSecure, server);
+				item.setSignatureVersion(signatureVersion);
+				item.setHttpClient(hc);
+				ret.add(item);
 			}
-			Item item = new Item(name, domainName, awsAccessId, awsSecretKey, isSecure, server);
-			item.setSignatureVersion(signatureVersion);
-			item.setHttpClient(hc);
-			ret.add(item);
+			return ret;
+		} catch (UnsupportedEncodingException ex) {
+			throw new SDBException(ex.getMessage(), ex);
 		}
-		return ret;
 	}
 }

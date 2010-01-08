@@ -35,14 +35,21 @@ public class SnapshotInfo {
 	private String status;
 	private Calendar startTime;
 	private String progress;
+	private String ownerId;
+	private String volumeSize;
+	private String description;
 
 	public SnapshotInfo(String snapshotId, String volumeId,
-			String status, Calendar startTime, String progress) {
+			String status, Calendar startTime, String progress,
+			String ownerId, String volumeSize, String description) {
 		this.snapshotId = snapshotId;
 		this.volumeId = volumeId;
 		this.status = status;
 		this.startTime = startTime;
 		this.progress = progress;
+		this.ownerId = ownerId;
+		this.volumeSize = volumeSize;
+		this.description = description;
 	}
 
 	public String getSnapshotId() {
@@ -65,11 +72,26 @@ public class SnapshotInfo {
 		return progress;
 	}
 
+	public String getOwnerId() {
+		return ownerId;
+	}
+
+	public String getVolumeSize() {
+		return volumeSize;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
 	public String toString() {
 		return "Snapshot[id=" + this.snapshotId
 				+ ", volumeId=" + this.volumeId
 				+ ", status=" + this.status
 				+ ", startTime=" + this.startTime.toString()
+				+ ", ownerId=" + this.ownerId
+				+ ", volumeSize=" + this.volumeSize
+				+ ", description=" + this.description
 				+ "]";
 	}
 }
