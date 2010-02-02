@@ -138,6 +138,8 @@ import com.xerox.amazonws.typica.jaxb.RunningInstancesSetType;
 import com.xerox.amazonws.typica.jaxb.RunInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.SecurityGroupSetType;
 import com.xerox.amazonws.typica.jaxb.SecurityGroupItemType;
+import com.xerox.amazonws.typica.jaxb.StartInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.StopInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.TerminateInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.UserIdGroupPairType;
 import com.xerox.amazonws.typica.jaxb.UserIdGroupPairSetType;
@@ -602,6 +604,104 @@ public class Jec2 extends AWSQueryConnection {
 								rsp_item.getSubnetId(),
 								rsp_item.getPrivateIpAddress(),
 								rsp_item.getIpAddress());
+			}
+			return res;
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Starts a selection of stopped instances.
+	 * 
+	 * @param instanceIds An array of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
+	 * @return A list of {@link InstanceStateChangeDescription} instances.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<InstanceStateChangeDescription> startInstances(String[] instanceIds) throws EC2Exception {
+		return this.startInstances(Arrays.asList(instanceIds));
+	}
+
+	/**
+	 * Starts a selection of stopped instances.
+	 * 
+	 * @param instanceIds A list of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
+	 * @return A list of {@link InstanceStateChangeDescription} instances.
+	 * @throws EC2Exception wraps checked exceptions
+	 * TODO: need to return request id
+	 */
+	public List<InstanceStateChangeDescription> startInstances(List<String> instanceIds)
+			throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		for (int i=0 ; i<instanceIds.size(); i++) {
+			params.put("InstanceId."+(i+1), instanceIds.get(i));
+		}
+		GetMethod method = new GetMethod();
+		try {
+			StartInstancesResponse response =
+					makeRequestInt(method, "StartInstances", params, StartInstancesResponse.class);
+			List<InstanceStateChangeDescription> res =
+						new ArrayList<InstanceStateChangeDescription>();
+			InstanceStateChangeSetType set = response.getInstancesSet();
+			Iterator instances_iter = set.getItems().iterator();
+			while (instances_iter.hasNext()) {
+				InstanceStateChangeType rsp_item =
+						(InstanceStateChangeType)instances_iter.next();
+				res.add(new InstanceStateChangeDescription(
+						rsp_item.getInstanceId(), rsp_item.getPreviousState().getName(),
+						rsp_item.getPreviousState().getCode(),
+						rsp_item.getCurrentState().getName(),
+						rsp_item.getCurrentState().getCode()));
+			}
+			return res;
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Stops a selection of running instances.
+	 * 
+	 * @param instanceIds An array of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
+	 * @param force forces the instance to stop. bypasses filesystem flush. Use with caution!
+	 * @return A list of {@link InstanceStateChangeDescription} instances.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<InstanceStateChangeDescription> stopInstances(String[] instanceIds, boolean force) throws EC2Exception {
+		return this.stopInstances(Arrays.asList(instanceIds), force);
+	}
+
+	/**
+	 * Stops a selection of running instances.
+	 * 
+	 * @param instanceIds A list of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
+	 * @param force forces the instance to stop. bypasses filesystem flush. Use with caution!
+	 * @return A list of {@link InstanceStateChangeDescription} instances.
+	 * @throws EC2Exception wraps checked exceptions
+	 * TODO: need to return request id
+	 */
+	public List<InstanceStateChangeDescription> stopInstances(List<String> instanceIds, boolean force)
+			throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		for (int i=0 ; i<instanceIds.size(); i++) {
+			params.put("InstanceId."+(i+1), instanceIds.get(i));
+		}
+		GetMethod method = new GetMethod();
+		try {
+			StopInstancesResponse response =
+					makeRequestInt(method, "StopInstances", params, StopInstancesResponse.class);
+			List<InstanceStateChangeDescription> res =
+						new ArrayList<InstanceStateChangeDescription>();
+			InstanceStateChangeSetType set = response.getInstancesSet();
+			Iterator instances_iter = set.getItems().iterator();
+			while (instances_iter.hasNext()) {
+				InstanceStateChangeType rsp_item =
+						(InstanceStateChangeType)instances_iter.next();
+				res.add(new InstanceStateChangeDescription(
+						rsp_item.getInstanceId(), rsp_item.getPreviousState().getName(),
+						rsp_item.getPreviousState().getCode(),
+						rsp_item.getCurrentState().getName(),
+						rsp_item.getCurrentState().getCode()));
 			}
 			return res;
 		} finally {
