@@ -104,6 +104,8 @@ import com.xerox.amazonws.typica.jaxb.GetConsoleOutputResponse;
 import com.xerox.amazonws.typica.jaxb.GetPasswordDataResponse;
 import com.xerox.amazonws.typica.jaxb.GroupItemType;
 import com.xerox.amazonws.typica.jaxb.GroupSetType;
+import com.xerox.amazonws.typica.jaxb.InstanceStateChangeSetType;
+import com.xerox.amazonws.typica.jaxb.InstanceStateChangeType;
 import com.xerox.amazonws.typica.jaxb.IpPermissionSetType;
 import com.xerox.amazonws.typica.jaxb.IpPermissionSetType;
 import com.xerox.amazonws.typica.jaxb.IpPermissionType;
@@ -137,8 +139,6 @@ import com.xerox.amazonws.typica.jaxb.RunInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.SecurityGroupSetType;
 import com.xerox.amazonws.typica.jaxb.SecurityGroupItemType;
 import com.xerox.amazonws.typica.jaxb.TerminateInstancesResponse;
-import com.xerox.amazonws.typica.jaxb.TerminateInstancesResponseInfoType;
-import com.xerox.amazonws.typica.jaxb.TerminateInstancesResponseItemType;
 import com.xerox.amazonws.typica.jaxb.UserIdGroupPairType;
 import com.xerox.amazonws.typica.jaxb.UserIdGroupPairSetType;
 
@@ -199,7 +199,7 @@ public class Jec2 extends AWSQueryConnection {
     {
 		super(awsAccessId, awsSecretKey, isSecure, server, port);
 		ArrayList<String> vals = new ArrayList<String>();
-		vals.add("2009-08-15");
+		vals.add("2009-11-30");
 		super.headers.put("Version", vals);
     }
 
@@ -613,10 +613,10 @@ public class Jec2 extends AWSQueryConnection {
 	 * Terminates a selection of running instances.
 	 * 
 	 * @param instanceIds An array of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
-	 * @return A list of {@link TerminatingInstanceDescription} instances.
+	 * @return A list of {@link InstanceStateChangeDescription} instances.
 	 * @throws EC2Exception wraps checked exceptions
 	 */
-	public List<TerminatingInstanceDescription> terminateInstances(String[] instanceIds) throws EC2Exception {
+	public List<InstanceStateChangeDescription> terminateInstances(String[] instanceIds) throws EC2Exception {
 		return this.terminateInstances(Arrays.asList(instanceIds));
 	}
 
@@ -624,11 +624,11 @@ public class Jec2 extends AWSQueryConnection {
 	 * Terminates a selection of running instances.
 	 * 
 	 * @param instanceIds A list of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
-	 * @return A list of {@link TerminatingInstanceDescription} instances.
+	 * @return A list of {@link InstanceStateChangeDescription} instances.
 	 * @throws EC2Exception wraps checked exceptions
 	 * TODO: need to return request id
 	 */
-	public List<TerminatingInstanceDescription> terminateInstances(List<String> instanceIds)
+	public List<InstanceStateChangeDescription> terminateInstances(List<String> instanceIds)
 			throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		for (int i=0 ; i<instanceIds.size(); i++) {
@@ -638,19 +638,18 @@ public class Jec2 extends AWSQueryConnection {
 		try {
 			TerminateInstancesResponse response =
 					makeRequestInt(method, "TerminateInstances", params, TerminateInstancesResponse.class);
-			response.getInstancesSet();
-			List<TerminatingInstanceDescription> res =
-						new ArrayList<TerminatingInstanceDescription>();
-			TerminateInstancesResponseInfoType set = response.getInstancesSet();
+			List<InstanceStateChangeDescription> res =
+						new ArrayList<InstanceStateChangeDescription>();
+			InstanceStateChangeSetType set = response.getInstancesSet();
 			Iterator instances_iter = set.getItems().iterator();
 			while (instances_iter.hasNext()) {
-				TerminateInstancesResponseItemType rsp_item =
-						(TerminateInstancesResponseItemType) instances_iter.next();
-				res.add(new TerminatingInstanceDescription(
-						rsp_item.getInstanceId(), rsp_item.getPreviousState()
-								.getName(), rsp_item.getPreviousState().getCode(),
-						rsp_item.getShutdownState().getName(), rsp_item
-								.getShutdownState().getCode()));
+				InstanceStateChangeType rsp_item =
+						(InstanceStateChangeType)instances_iter.next();
+				res.add(new InstanceStateChangeDescription(
+						rsp_item.getInstanceId(), rsp_item.getPreviousState().getName(),
+						rsp_item.getPreviousState().getCode(),
+						rsp_item.getCurrentState().getName(),
+						rsp_item.getCurrentState().getCode()));
 			}
 			return res;
 		} finally {

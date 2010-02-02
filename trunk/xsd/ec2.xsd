@@ -1,9 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		   xmlns:tns="http://ec2.amazonaws.com/doc/2009-11-30/"
+		   targetNamespace="http://ec2.amazonaws.com/doc/2009-11-30/"    
 		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	 	   xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
 	 	   xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-		   xmlns:tns="http://ec2.amazonaws.com/doc/2009-08-15/"
-		   targetNamespace="http://ec2.amazonaws.com/doc/2009-08-15/"    
 		   jaxb:extensionBindingPrefixes="xjc"
 		   jaxb:version="2.0"
 		   elementFormDefault="qualified">
@@ -18,23 +19,61 @@
     </xs:appinfo>
   </xs:annotation>
   
-  <!-- RegisterImage request definitions -->
-  
-  <xs:element name="RegisterImage" type="tns:RegisterImageType"/>
+  <!-- CreateImage -->
 
-  <xs:complexType name="RegisterImageType">
+  <xs:element name='CreateImage' type='tns:CreateImageType' />
+  
+  <xs:complexType name='CreateImageType'>
 	<xs:sequence>
-	  <xs:element name="imageLocation" type="xs:string"/>
+	  <xs:element name='instanceId' type='xs:string' />
+	  <xs:element name='name' type='xs:string' />
+	  <xs:element name='description' type='xs:string' minOccurs='0' />
+	  <xs:element name='noReboot' type='xs:boolean' minOccurs='0' />
 	</xs:sequence>
   </xs:complexType>
+  
+  <xs:element name='CreateImageResponse' type='tns:CreateImageResponseType' />
 
-  <!-- RegisterImage response definitions -->
-
-  <xs:element name="RegisterImageResponse" type="tns:RegisterImageResponseType"/>
-  <xs:complexType name="RegisterImageResponseType">
+  <xs:complexType name='CreateImageResponseType'>
 	<xs:sequence>
-	  <xs:element name="requestId" type="xs:string"/>
-	  <xs:element name="imageId" type="xs:string"/>
+	  <xs:element name='requestId' type='xs:string' />
+	  <xs:element name='imageId' type='xs:string' />
+	</xs:sequence>
+  </xs:complexType>
+  
+  
+  <!-- RegisterImage -->
+  
+  <xs:complexType name='ProductCodeType'>
+	<xs:sequence>
+	  <xs:element name='productCode' type='xs:string' />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name='ProductCodeSetType'>
+	<xs:sequence>
+	  <xs:element name='item' type='tns:ProductCodeType' minOccurs='0' maxOccurs='unbounded' />
+	</xs:sequence>
+  </xs:complexType>
+  
+	
+  <xs:element name='RegisterImage' type='tns:RegisterImageType' />
+  <xs:element name='RegisterImageResponse' type='tns:RegisterImageResponseType' />
+  <xs:complexType name='RegisterImageType'>
+	<xs:sequence>
+	  <xs:element name='imageLocation' type='xs:string' minOccurs='0' />
+	  <xs:element name='name' type='xs:string' />
+	  <xs:element name='description' type='xs:string' minOccurs='0' />
+	  <xs:element name='architecture' type='xs:string' minOccurs='0' />
+	  <xs:element name='kernelId' type='xs:string' minOccurs='0' />
+	  <xs:element name='ramdiskId' type='xs:string' minOccurs='0' />
+	  <xs:element name='rootDeviceName' type='xs:string' minOccurs='0' />
+	  <xs:element name='blockDeviceMapping' type='tns:BlockDeviceMappingType' minOccurs='0' />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name='RegisterImageResponseType'>
+	<xs:sequence>
+	  <xs:element name='requestId' type='xs:string' />
+	  <xs:element name='imageId' type='xs:string' />
 	</xs:sequence>
   </xs:complexType>
 
@@ -170,6 +209,8 @@
 	  <xs:element name="blockDeviceMapping" type="tns:BlockDeviceMappingType" minOccurs="0" maxOccurs="1" />
 	  <xs:element name="monitoring" type="tns:MonitoringInstanceType" minOccurs="0" maxOccurs="1" />
 	  <xs:element name="subnetId" type="xs:string" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="disableApiTermination" type="xs:boolean" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="instanceInitiatedShutdownBehavior" type="xs:string" minOccurs="0" maxOccurs="1" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -187,12 +228,12 @@
 
   <xs:complexType name="UserDataType" mixed="true">
 	<xs:sequence>
-	  <xs:element name="data" type="xs:string"/>
+	  <xs:element name="data" type="xs:string" minOccurs="0"/>
 	</xs:sequence>
 	<xs:attribute name="version" type="xs:string" use="required" fixed="1.0"/>
 	<xs:attribute name="encoding" type="xs:string" use="required" fixed="base64"/>
   </xs:complexType>
-
+  
   <xs:complexType name="BlockDeviceMappingType"> 
 	<xs:sequence> 
 	  <xs:element name="item" type="tns:BlockDeviceMappingItemType" minOccurs="0" maxOccurs="unbounded" /> 
@@ -201,10 +242,22 @@
 
   <xs:complexType name="BlockDeviceMappingItemType"> 
 	<xs:sequence> 
-	  <xs:element name="virtualName" type="xs:string"/> 
 	  <xs:element name="deviceName" type="xs:string"/> 
-	</xs:sequence> 
+	  <xs:choice>
+		<xs:element name="virtualName" type="xs:string"/> 
+		<xs:element name="ebs" type="tns:EbsBlockDeviceType"/>
+		<xs:element name="noDevice" type="tns:EmptyElementType"/>
+	  </xs:choice>
+	</xs:sequence>
   </xs:complexType> 
+  
+  <xs:complexType name="EbsBlockDeviceType">
+	<xs:sequence>
+	  <xs:element name="snapshotId" type="xs:string" minOccurs="0"/>
+	  <xs:element name="volumeSize" type="xs:int" minOccurs="0"/>
+	  <xs:element name="deleteOnTermination" type="xs:boolean" minOccurs="0"/>
+	</xs:sequence>
+  </xs:complexType>
 
   <xs:complexType name="PlacementRequestType"> 
 	<xs:sequence> 
@@ -252,7 +305,7 @@
   <xs:complexType name="RunningInstancesItemType">
 	<xs:sequence>
 	  <xs:element name="instanceId" type="xs:string"/>
-	  <xs:element name="imageId" type="xs:string"/>
+	  <xs:element name="imageId" type="xs:string" minOccurs="0" />
 	  <xs:element name="instanceState" type="tns:InstanceStateType"/>
 	  <xs:element name="privateDnsName" type="xs:string"/>
 	  <xs:element name="dnsName" type="xs:string" minOccurs="0" />
@@ -271,6 +324,13 @@
 	  <xs:element name="vpcId" type="xs:string" minOccurs="0" />
 	  <xs:element name="privateIpAddress" type="xs:string" minOccurs="0" maxOccurs="1" />
 	  <xs:element name="ipAddress" type="xs:string" minOccurs="0" maxOccurs="1" />
+	  <xs:element name='stateReason' type='tns:StateReasonType' minOccurs="0" />
+	  <xs:element name='architecture' type='xs:string' minOccurs='0' />
+	  <xs:element name='rootDeviceType' type='xs:string' minOccurs='0' />
+	  <xs:element name='rootDeviceName' type='xs:string' minOccurs='0' />
+	  <xs:element name='blockDeviceMapping' type='tns:InstanceBlockDeviceMappingResponseType' minOccurs='0' />
+	  <xs:element name="instanceLifecycle" type="xs:string" minOccurs="0" />
+	  <xs:element name="spotInstanceRequestId" type="xs:string" minOccurs="0" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -279,6 +339,37 @@
 	  <xs:element name="availabilityZone" type="xs:string" /> 
 	</xs:sequence> 
   </xs:complexType> 
+
+  <xs:complexType name="StateReasonType">
+	<xs:sequence>
+	  <xs:element name="code" type="xs:string"/>
+	  <xs:element name="message" type="xs:string"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name='InstanceBlockDeviceMappingResponseType'>
+	<xs:sequence>
+	  <xs:element name='item' type='tns:InstanceBlockDeviceMappingResponseItemType' minOccurs='0' maxOccurs='unbounded' />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name='InstanceBlockDeviceMappingResponseItemType'>
+	<xs:sequence>
+	  <xs:element name='deviceName' type='xs:string' />
+	  <xs:choice>
+		<xs:element name='ebs' type='tns:EbsInstanceBlockDeviceMappingResponseType' />
+	  </xs:choice>
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name='EbsInstanceBlockDeviceMappingResponseType'>
+	<xs:sequence>
+	  <xs:element name='volumeId' type='xs:string' />
+	  <xs:element name='status' type='xs:string' />
+	  <xs:element name='attachTime' type='xs:dateTime' />
+	  <xs:element name='deleteOnTermination' type='xs:boolean' minOccurs='0' />
+	</xs:sequence>
+  </xs:complexType>
 
   <!-- GetConsoleOutput request definitions -->
 
@@ -326,50 +417,99 @@
 	</xs:sequence>
   </xs:complexType>
 
-  <!-- TerminateInstances request definitions -->
+  <!-- TerminateInstances -->
 
-  <xs:element name="TerminateInstances" type="tns:TerminateInstancesType"/>
-
-  <xs:complexType name="TerminateInstancesType">
+  <xs:complexType name='InstanceIdType'>
 	<xs:sequence>
-	  <xs:element name="instancesSet" type="tns:TerminateInstancesInfoType"/>
+	  <xs:element name='instanceId' type='xs:string' />
 	</xs:sequence>
   </xs:complexType>
-
-  <xs:complexType name="TerminateInstancesInfoType">
+  <xs:complexType name='InstanceIdSetType'>
 	<xs:sequence>
-	  <xs:element name="item" type="tns:TerminateInstancesItemType" minOccurs="1" maxOccurs="unbounded"/>
+	  <xs:element name='item' type='tns:InstanceIdType' minOccurs='0' maxOccurs='unbounded' />
 	</xs:sequence>
   </xs:complexType>
-
-  <xs:complexType name="TerminateInstancesItemType">
+  <xs:complexType name='InstanceStateChangeType'>
 	<xs:sequence>
-	  <xs:element name="instanceId" type="xs:string"/>
+	  <xs:element name='instanceId' type='xs:string' />
+	  <xs:element name='currentState' type='tns:InstanceStateType' />
+	  <xs:element name='previousState' type='tns:InstanceStateType' />
 	</xs:sequence>
   </xs:complexType>
-
-  <!-- TerminateInstances response definitions -->
-
-  <xs:element name="TerminateInstancesResponse" type="tns:TerminateInstancesResponseType"/>
-
-  <xs:complexType name="TerminateInstancesResponseType">
+  <xs:complexType name='InstanceStateChangeSetType'>
 	<xs:sequence>
-	  <xs:element name="requestId" type="xs:string"/>
-	  <xs:element name="instancesSet" type="tns:TerminateInstancesResponseInfoType"/>
+	  <xs:element name='item' type='tns:InstanceStateChangeType' minOccurs='0' maxOccurs='unbounded' />
 	</xs:sequence>
   </xs:complexType>
-
-  <xs:complexType name="TerminateInstancesResponseInfoType">
+  
+  <xs:element name='TerminateInstances' type='tns:TerminateInstancesType' />
+  <xs:element name='TerminateInstancesResponse' type='tns:TerminateInstancesResponseType' />
+  <xs:complexType name='TerminateInstancesType'>
 	<xs:sequence>
-	  <xs:element name="item" type="tns:TerminateInstancesResponseItemType" minOccurs="0" maxOccurs="unbounded"/>
+	  <xs:element name='instancesSet' type='tns:InstanceIdSetType' />
 	</xs:sequence>
   </xs:complexType>
-
-  <xs:complexType name="TerminateInstancesResponseItemType">
+  <xs:complexType name='TerminateInstancesResponseType'>
 	<xs:sequence>
-	  <xs:element name="instanceId" type="xs:string" />
-	  <xs:element name="shutdownState" type="tns:InstanceStateType" />
-	  <xs:element name="previousState" type="tns:InstanceStateType" />
+	  <xs:element name='requestId' type='xs:string' />
+	  <xs:element name='instancesSet' type='tns:InstanceStateChangeSetType' />
+	</xs:sequence>
+  </xs:complexType>
+  
+  
+  <xs:complexType name='InstanceBlockDeviceMappingType'>
+	<xs:sequence>
+	  <xs:element name='item' type='tns:InstanceBlockDeviceMappingItemType' minOccurs='0' maxOccurs='unbounded' />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name='InstanceBlockDeviceMappingItemType'>
+	<xs:sequence>
+	  <xs:element name='deviceName' type='xs:string' />
+	  <xs:choice>
+		<xs:element name='virtualName' type='xs:string' />
+		<xs:element name='ebs' type='tns:InstanceEbsBlockDeviceType' />
+		<xs:element name='noDevice' type='tns:EmptyElementType' />
+	  </xs:choice>
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name='InstanceEbsBlockDeviceType'>
+	<xs:sequence>
+	  <xs:element name='volumeId' type='xs:string' />
+	  <xs:element name='deleteOnTermination' type='xs:boolean' minOccurs='0' />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <!-- Stop instances -->
+
+  <xs:element name='StopInstances' type='tns:StopInstancesType' />
+  <xs:element name='StopInstancesResponse' type='tns:StopInstancesResponseType' />
+  <xs:complexType name='StopInstancesType'>
+	<xs:sequence>
+	  <xs:element name='instancesSet' type='tns:InstanceIdSetType' />
+	  <xs:element name='force' type='xs:boolean' minOccurs='0' />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name='StopInstancesResponseType'>
+	<xs:sequence>
+	  <xs:element name='requestId' type='xs:string' />
+	  <xs:element name='instancesSet' type='tns:InstanceStateChangeSetType' />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <!--  Start instances -->
+  <xs:element name='StartInstances' type='tns:StartInstancesType' />
+  <xs:element name='StartInstancesResponse' type='tns:StartInstancesResponseType' />
+   <xs:complexType name='StartInstancesType'>
+	<xs:sequence>
+	  <xs:element name='instancesSet' type='tns:InstanceIdSetType' />
+	</xs:sequence>
+  </xs:complexType>
+  <xs:complexType name='StartInstancesResponseType'>
+	<xs:sequence>
+	  <xs:element name='requestId' type='xs:string' />
+	  <xs:element name='instancesSet' type='tns:InstanceStateChangeSetType' />
 	</xs:sequence>
   </xs:complexType>
 
@@ -512,7 +652,7 @@
   <xs:complexType name="DescribeImagesResponseItemType">
 	<xs:sequence>
 	  <xs:element name="imageId" type="xs:string" />
-	  <xs:element name="imageLocation" type="xs:string" />
+	  <xs:element name="imageLocation" type="xs:string" minOccurs="0" />
 	  <xs:element name="imageState" type="xs:string" />
 	  <xs:element name="imageOwnerId" type="xs:string" />
 	  <xs:element name="isPublic" type="xs:boolean" />
@@ -522,6 +662,13 @@
 	  <xs:element name="kernelId" type="xs:string"  minOccurs="0"/>
 	  <xs:element name="ramdiskId" type="xs:string"  minOccurs="0"/>
 	  <xs:element name="platform" type="xs:string"  minOccurs="0"/>
+	  <xs:element name="stateReason" type="tns:StateReasonType" minOccurs="0"/>
+	  <xs:element name="imageOwnerAlias" type="xs:string" minOccurs="0"/>
+	  <xs:element name="name" type="xs:string" minOccurs="0" />
+	  <xs:element name="description" type="xs:string"  minOccurs="0"/>
+	  <xs:element name='rootDeviceType' type='xs:string' minOccurs='0' />
+	  <xs:element name="rootDeviceName" type="xs:string" minOccurs="0" />
+	  <xs:element name="blockDeviceMapping" type="tns:BlockDeviceMappingType" minOccurs="0" />
 	</xs:sequence>
   </xs:complexType>
 
@@ -729,6 +876,111 @@
 	</xs:sequence>
   </xs:complexType>
   
+  <!-- ModifyInstanceAttribute Definitions -->
+  
+  <xs:element name='ModifyInstanceAttribute' type='tns:ModifyInstanceAttributeType' />
+ 
+  <xs:complexType name='ModifyInstanceAttributeType'>
+	<xs:sequence>
+	  <xs:element name='instanceId' type='xs:string' />
+	  <xs:choice>
+		<xs:element name='instanceType' type='tns:AttributeValueType' />
+		<xs:element name='kernel' type='tns:AttributeValueType' />
+		<xs:element name='ramdisk' type='tns:AttributeValueType' />
+		<xs:element name="userData" type="tns:AttributeValueType"/>
+		<xs:element name='disableApiTermination' type='tns:AttributeBooleanValueType' />
+		<xs:element name='instanceInitiatedShutdownBehavior' type='tns:AttributeValueType' />
+		<xs:element name="blockDeviceMapping" type="tns:InstanceBlockDeviceMappingType"/>
+	  </xs:choice>
+	</xs:sequence>
+  </xs:complexType>
+  
+
+  <!-- ModifyInstanceAttributeResponse Definitions -->  
+  
+  <xs:element name='ModifyInstanceAttributeResponse' type='tns:ModifyInstanceAttributeResponseType' />
+ 
+  <xs:complexType name='ModifyInstanceAttributeResponseType'>
+	<xs:sequence>
+	  <xs:element name='requestId' type='xs:string' />
+	  <xs:element name='return' type='xs:boolean' />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <!-- ResetImageAttribute Definitions -->
+		  
+  <xs:element name='ResetInstanceAttribute' type='tns:ResetInstanceAttributeType' />
+
+  <xs:complexType name='ResetInstanceAttributeType'>
+	<xs:sequence>
+	  <xs:element name='instanceId' type='xs:string' />
+	  <xs:group ref='tns:ResetInstanceAttributesGroup'/>
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:group name='ResetInstanceAttributesGroup' >
+	<xs:choice>
+	  <xs:element name='kernel' type='tns:EmptyElementType' />
+	  <xs:element name='ramdisk' type='tns:EmptyElementType' />
+	</xs:choice>
+  </xs:group>
+  
+  <!-- ResetInstanceAttributeResponse Definitions -->
+  
+  <xs:element name='ResetInstanceAttributeResponse' type='tns:ResetInstanceAttributeResponseType' />
+  
+  <xs:complexType name='ResetInstanceAttributeResponseType'>
+	<xs:sequence>
+	  <xs:element name='requestId' type='xs:string' />
+	  <xs:element name='return' type='xs:boolean' />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <!-- DescribeInstanceAttribute Definitions -->
+  
+  <xs:element name='DescribeInstanceAttribute' type='tns:DescribeInstanceAttributeType' />
+  
+  <xs:complexType name='DescribeInstanceAttributeType'>
+	<xs:sequence>
+	  <xs:element name='instanceId' type='xs:string' />
+	  <xs:group ref='tns:DescribeInstanceAttributesGroup' />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:group name='DescribeInstanceAttributesGroup' >
+	<xs:choice>
+	  <xs:element name='instanceType' type='tns:EmptyElementType' />
+	  <xs:element name='kernel' type='tns:EmptyElementType' />
+	  <xs:element name='ramdisk' type='tns:EmptyElementType' />
+	  <xs:element name='userData' type='tns:EmptyElementType' />
+	  <xs:element name='disableApiTermination' type='tns:EmptyElementType' />
+	  <xs:element name='instanceInitiatedShutdownBehavior' type='tns:EmptyElementType' />
+	  <xs:element name='rootDeviceName' type='tns:EmptyElementType' />
+	  <xs:element name="blockDeviceMapping" type="tns:EmptyElementType"/>
+	</xs:choice>
+  </xs:group>
+  
+  <!-- DescribeImageAttributeResponse Definitions -->
+  
+  <xs:element name='DescribeInstanceAttributeResponse' type='tns:DescribeInstanceAttributeResponseType' />  
+  
+  <xs:complexType name='DescribeInstanceAttributeResponseType'>
+	<xs:sequence>
+	  <xs:element name='requestId' type='xs:string' />
+	  <xs:element name='instanceId' type='xs:string' />
+	  <xs:choice>
+		<xs:element name='instanceType' type='tns:NullableAttributeValueType' />
+		<xs:element name='kernel' type='tns:NullableAttributeValueType' />
+		<xs:element name='ramdisk' type='tns:NullableAttributeValueType' />
+		<xs:element name="userData" type="tns:NullableAttributeValueType"/>
+		<xs:element name='disableApiTermination' type='tns:NullableAttributeBooleanValueType' />
+		<xs:element name='instanceInitiatedShutdownBehavior' type='tns:NullableAttributeValueType' />
+		<xs:element name='rootDeviceName' type='tns:NullableAttributeValueType' />
+		<xs:element name="blockDeviceMapping" type="tns:InstanceBlockDeviceMappingResponseType"/>
+	  </xs:choice>
+	</xs:sequence>
+  </xs:complexType>
+  
   <!-- ModifyImageAttribute Definitions -->
   
   <xs:element name="ModifyImageAttribute"
@@ -738,8 +990,9 @@
 	<xs:sequence>
 	  <xs:element name="imageId" type="xs:string"/>
 	  <xs:choice>
-	  <xs:element name="launchPermission" type="tns:LaunchPermissionOperationType"/>
-	  <xs:element name="productCodes" type="tns:ProductCodeListType" />
+		<xs:element name="launchPermission" type="tns:LaunchPermissionOperationType"/>
+		<xs:element name="productCodes" type="tns:ProductCodeListType" />
+		<xs:element name="description" type="tns:AttributeValueType" />
 	  </xs:choice>
 	</xs:sequence>
   </xs:complexType>
@@ -840,6 +1093,7 @@
 	  <xs:element name="kernel" type="tns:EmptyElementType" />
 	  <xs:element name="ramdisk" type="tns:EmptyElementType" />
 	  <xs:element name="blockDeviceMapping" type="tns:EmptyElementType" />
+	  <xs:element name="description" type="tns:EmptyElementType" />
 	</xs:choice>
   </xs:group>
 
@@ -857,6 +1111,7 @@
 		<xs:element name="productCodes" type="tns:ProductCodeListType" />
 		<xs:element name="kernel" type="tns:NullableAttributeValueType" />
 		<xs:element name="ramdisk" type="tns:NullableAttributeValueType" />
+		<xs:element name="description" type="tns:NullableAttributeValueType" />
 		<xs:element name="blockDeviceMapping" type="tns:BlockDeviceMappingType"/>
 	  </xs:choice>
 	</xs:sequence>
@@ -868,9 +1123,21 @@
 	</xs:sequence>
   </xs:complexType>
 
+  <xs:complexType name="NullableAttributeBooleanValueType">
+	<xs:sequence>
+	  <xs:element name="value" type="xs:boolean" minOccurs="0"/>
+	</xs:sequence>
+  </xs:complexType>
+
   <xs:complexType name="AttributeValueType">
 	<xs:sequence>
 	  <xs:element name="value" type="xs:string"/>
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="AttributeBooleanValueType">
+	<xs:sequence>
+	  <xs:element name="value" type="xs:boolean"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -1206,6 +1473,7 @@
 	  <xs:element name="device" type="xs:string"/>
 	  <xs:element name="status" type="xs:string"/>
 	  <xs:element name="attachTime" type="xs:dateTime"/>
+	  <xs:element name="deleteOnTermination" type="xs:boolean"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -1391,6 +1659,7 @@
 	  <xs:element name="ownerId" type="xs:string"/>
 	  <xs:element name="volumeSize" type="xs:string"/>
 	  <xs:element name="description" type="xs:string" minOccurs="0"/>
+	  <xs:element name="ownerAlias" type="xs:string" minOccurs="0"/>
 	</xs:sequence>
   </xs:complexType>
 
@@ -1858,8 +2127,7 @@
 	  <xs:element name="state" type="xs:string" />
 	</xs:sequence>
   </xs:complexType>
-  
-  
+
   <!-- VPC definitions -->
   
   <xs:complexType name="AttachmentType">
@@ -2346,4 +2614,254 @@
 	</xs:sequence>
   </xs:complexType>
 
+  <!-- SpotInstances methods -->
+
+  <xs:element name="RequestSpotInstances" type="tns:RequestSpotInstancesType" />
+  <xs:element name="RequestSpotInstancesResponse" type="tns:RequestSpotInstancesResponseType" />
+  <xs:element name="DescribeSpotInstanceRequests" type="tns:DescribeSpotInstanceRequestsType" />	
+  <xs:element name="DescribeSpotInstanceRequestsResponse" type="tns:DescribeSpotInstanceRequestsResponseType" />
+  <xs:element name="CancelSpotInstanceRequests" type="tns:CancelSpotInstanceRequestsType" />
+  <xs:element name="CancelSpotInstanceRequestsResponse" type="tns:CancelSpotInstanceRequestsResponseType" />
+  <xs:element name="DescribeSpotPriceHistory" type="tns:DescribeSpotPriceHistoryType" />
+  <xs:element name="DescribeSpotPriceHistoryResponse" type="tns:DescribeSpotPriceHistoryResponseType" />
+
+  <xs:element name="CreateSpotDatafeedSubscription" type="tns:CreateSpotDatafeedSubscriptionType" />
+  <xs:element name="CreateSpotDatafeedSubscriptionResponse" type="tns:CreateSpotDatafeedSubscriptionResponseType" />
+  <xs:element name="DescribeSpotDatafeedSubscription" type="tns:DescribeSpotDatafeedSubscriptionType" />
+  <xs:element name="DescribeSpotDatafeedSubscriptionResponse" type="tns:DescribeSpotDatafeedSubscriptionResponseType" />
+  <xs:element name="DeleteSpotDatafeedSubscription" type="tns:DeleteSpotDatafeedSubscriptionType" />
+  <xs:element name="DeleteSpotDatafeedSubscriptionResponse" type="tns:DeleteSpotDatafeedSubscriptionResponseType" />
+  
+  <xs:complexType name="RequestSpotInstancesType">
+	<xs:sequence>
+	  <xs:element name="spotPrice" type="xs:string" />
+	  <xs:element name="instanceCount" type="xs:integer" minOccurs="0" />
+	  <xs:element name="type" type="xs:string" minOccurs="0" />
+	  <xs:element name="validFrom" type="xs:dateTime" minOccurs="0" />
+	  <xs:element name="validUntil" type="xs:dateTime" minOccurs="0" />
+	  <xs:element name="launchGroup" type="xs:string" minOccurs="0" />
+	  <xs:element name="availabilityZoneGroup" type="xs:string" minOccurs="0" />
+	  <xs:element name="launchSpecification" type="tns:LaunchSpecificationRequestType" />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="LaunchSpecificationRequestType">
+	<xs:sequence>
+	  <xs:element name="imageId" type="xs:string"/>
+	  <xs:element name="keyName" type="xs:string" minOccurs="0" />
+	  <xs:element name="groupSet" type="tns:GroupSetType"/>
+	  <xs:element name="userData" type="tns:UserDataType" minOccurs="0" maxOccurs="1"/>
+	  <xs:element name="addressingType" type="xs:string" minOccurs="0" maxOccurs="1"/>
+	  <xs:element name="instanceType" type="xs:string" />
+	  <xs:element name="placement" type="tns:PlacementRequestType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="kernelId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+	  <xs:element name="ramdiskId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+	  <xs:element name="blockDeviceMapping" type="tns:BlockDeviceMappingType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="monitoring" type="tns:MonitoringInstanceType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="subnetId" type="xs:string" minOccurs="0" maxOccurs="1" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="LaunchSpecificationResponseType">
+	<xs:sequence>
+	  <xs:element name="imageId" type="xs:string"/>
+	  <xs:element name="keyName" type="xs:string" minOccurs="0" />
+	  <xs:element name="groupSet" type="tns:GroupSetType"/>
+	  <xs:element name="addressingType" type="xs:string" minOccurs="0" maxOccurs="1"/>
+	  <xs:element name="instanceType" type="xs:string" />
+	  <xs:element name="placement" type="tns:PlacementRequestType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="kernelId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+	  <xs:element name="ramdiskId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+	  <xs:element name="blockDeviceMapping" type="tns:BlockDeviceMappingType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="monitoring" type="tns:MonitoringInstanceType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="subnetId" type="xs:string" minOccurs="0" maxOccurs="1" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="SpotInstanceRequestSetItemType">
+	<xs:sequence>
+	  <xs:element name="spotInstanceRequestId" type="xs:string" />
+	  <xs:element name="spotPrice" type="xs:string" />
+	  <xs:element name="type" type="xs:string" />
+	  <xs:element name="state" type="xs:string" />
+	  <xs:element name="fault" type="tns:SpotInstanceStateFaultType" minOccurs="0" />
+	  <xs:element name="validFrom" type="xs:dateTime" minOccurs="0" />
+	  <xs:element name="validUntil" type="xs:dateTime" minOccurs="0" />
+	  <xs:element name="launchGroup" type="xs:string" minOccurs="0" />
+	  <xs:element name="availabilityZoneGroup" type="xs:string" minOccurs="0" />
+	  <xs:element name="launchSpecification" type="tns:LaunchSpecificationResponseType" minOccurs="0" />
+	  <xs:element name="instanceId" type="xs:string" minOccurs="0" />
+	  <xs:element name="createTime" type="xs:dateTime" minOccurs="0" />
+	  <xs:element name="productDescription" type="xs:string" minOccurs="0" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="SpotInstanceStateFaultType">
+	<xs:sequence>
+	  <xs:element name="code" type="xs:string"/>
+	  <xs:element name="message" type="xs:string"/>
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="SpotInstanceRequestSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:SpotInstanceRequestSetItemType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="RequestSpotInstancesResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="spotInstanceRequestSet" type="tns:SpotInstanceRequestSetType" minOccurs="1" maxOccurs="1" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeSpotInstanceRequestsType">
+	<xs:sequence>
+	  <xs:element name="spotInstanceRequestIdSet" type="tns:SpotInstanceRequestIdSetType" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="SpotInstanceRequestIdSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:SpotInstanceRequestIdSetItemType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+			
+  <xs:complexType name="SpotInstanceRequestIdSetItemType">
+	<xs:sequence>
+	  <xs:element name="spotInstanceRequestId" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeSpotInstanceRequestsResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="spotInstanceRequestSet" type="tns:SpotInstanceRequestSetType" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="CancelSpotInstanceRequestsType">
+	<xs:sequence>
+	  <xs:element name="spotInstanceRequestIdSet" type="tns:SpotInstanceRequestIdSetType" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="CancelSpotInstanceRequestsResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="spotInstanceRequestSet" type="tns:CancelSpotInstanceRequestsResponseSetType" />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="CancelSpotInstanceRequestsResponseSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:CancelSpotInstanceRequestsResponseSetItemType" minOccurs="1" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="CancelSpotInstanceRequestsResponseSetItemType">
+	  <xs:sequence>
+		<xs:element name="spotInstanceRequestId" type="xs:string" />
+		<xs:element name="state" type="xs:string" />
+	  </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeSpotPriceHistoryType">
+	<xs:sequence>
+	  <xs:element name="startTime" type="xs:dateTime" minOccurs="0" />
+	  <xs:element name="endTime" type="xs:dateTime" minOccurs="0" />
+	  <xs:element name="instanceTypeSet" type="tns:InstanceTypeSetType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="productDescriptionSet" type="tns:ProductDescriptionSetType" minOccurs="0" maxOccurs="1" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="InstanceTypeSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:InstanceTypeSetItemType" minOccurs="1" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="InstanceTypeSetItemType">
+	<xs:sequence>
+	  <xs:element name="instanceType" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ProductDescriptionSetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:ProductDescriptionSetItemType" minOccurs="1" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ProductDescriptionSetItemType">
+	<xs:sequence>
+	  <xs:element name="productDescription" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeSpotPriceHistoryResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="spotPriceHistorySet" type="tns:SpotPriceHistorySetType" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="SpotPriceHistorySetType">
+	<xs:sequence>
+	  <xs:element name="item" type="tns:SpotPriceHistorySetItemType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="SpotPriceHistorySetItemType">
+	<xs:sequence>
+	  <xs:element name="instanceType" type="xs:string" />
+	  <xs:element name="productDescription" type="xs:string" />
+	  <xs:element name="spotPrice" type="xs:string" />
+	  <xs:element name="timestamp" type="xs:dateTime" />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="SpotDatafeedSubscriptionType">
+	<xs:sequence>
+	  <xs:element name="ownerId" type="xs:string" />
+	  <xs:element name="bucket" type="xs:string" />
+	  <xs:element name="prefix" type="xs:string" />
+	  <xs:element name="state" type="xs:string" />
+	  <xs:element name="fault" type="tns:SpotInstanceStateFaultType" minOccurs="0" />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="CreateSpotDatafeedSubscriptionType">
+	<xs:sequence>
+	  <xs:element name="bucket" type="xs:string" />
+	  <xs:element name="prefix" type="xs:string" />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="CreateSpotDatafeedSubscriptionResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="spotDatafeedSubscription" type="tns:SpotDatafeedSubscriptionType" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DescribeSpotDatafeedSubscriptionType" />
+
+  <xs:complexType name="DescribeSpotDatafeedSubscriptionResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="spotDatafeedSubscription" type="tns:SpotDatafeedSubscriptionType" />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="DeleteSpotDatafeedSubscriptionType" />
+  
+  <xs:complexType name="DeleteSpotDatafeedSubscriptionResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string" />
+	  <xs:element name="return" type="xs:boolean" />
+	</xs:sequence>
+  </xs:complexType>
+  
 </xs:schema>
