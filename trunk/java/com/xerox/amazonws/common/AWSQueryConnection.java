@@ -29,18 +29,7 @@ import java.net.SocketException;
 import java.net.URL;
 import java.text.Collator;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.SortedMap;
-import java.util.TimeZone;
-import java.util.TreeMap;
+import java.util.*;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
@@ -623,5 +612,12 @@ public class AWSQueryConnection extends AWSConnection {
         SimpleDateFormat format = new SimpleDateFormat( DateFormat, Locale.US );
         format.setTimeZone(serverTimeZone);
         return format.format( new Date() );
-    }
+	}
+
+	protected String httpDate(Calendar date) {
+		final String DateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+		SimpleDateFormat format = new SimpleDateFormat(DateFormat, Locale.US);
+		format.setTimeZone(serverTimeZone);
+		return format.format(date.getTime());
+	}
 }

@@ -17,132 +17,22 @@
 
 package com.xerox.amazonws.ec2;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.StringWriter;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.bind.JAXBException;
 
+import com.xerox.amazonws.typica.jaxb.*;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
-import com.xerox.amazonws.typica.jaxb.AllocateAddressResponse;
-import com.xerox.amazonws.typica.jaxb.AssociateAddressResponse;
-import com.xerox.amazonws.typica.jaxb.AttachmentSetResponseType;
-import com.xerox.amazonws.typica.jaxb.AttachmentSetItemResponseType;
-import com.xerox.amazonws.typica.jaxb.AttachVolumeResponse;
-import com.xerox.amazonws.typica.jaxb.AvailabilityZoneItemType;
-import com.xerox.amazonws.typica.jaxb.AvailabilityZoneMessageType;
-import com.xerox.amazonws.typica.jaxb.AvailabilityZoneSetType;
-import com.xerox.amazonws.typica.jaxb.AuthorizeSecurityGroupIngressResponse;
-import com.xerox.amazonws.typica.jaxb.BlockDeviceMappingType;
-import com.xerox.amazonws.typica.jaxb.BlockDeviceMappingItemType;
-import com.xerox.amazonws.typica.jaxb.BundleInstanceResponse;
-import com.xerox.amazonws.typica.jaxb.BundleInstanceTaskType;
-import com.xerox.amazonws.typica.jaxb.CancelBundleTaskResponse;
-import com.xerox.amazonws.typica.jaxb.CreateKeyPairResponse;
-import com.xerox.amazonws.typica.jaxb.CreateSnapshotResponse;
-import com.xerox.amazonws.typica.jaxb.CreateVolumeResponse;
-import com.xerox.amazonws.typica.jaxb.ConfirmProductInstanceResponse;
-import com.xerox.amazonws.typica.jaxb.CreateSecurityGroupResponse;
-import com.xerox.amazonws.typica.jaxb.DeleteKeyPairResponse;
-import com.xerox.amazonws.typica.jaxb.DeleteSecurityGroupResponse;
-import com.xerox.amazonws.typica.jaxb.DeleteSnapshotResponse;
-import com.xerox.amazonws.typica.jaxb.DeleteVolumeResponse;
-import com.xerox.amazonws.typica.jaxb.DeregisterImageResponse;
-import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponse;
-import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponseInfoType;
-import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponseItemType;
-import com.xerox.amazonws.typica.jaxb.DescribeAvailabilityZonesResponse;
-import com.xerox.amazonws.typica.jaxb.DescribeBundleTasksResponse;
-import com.xerox.amazonws.typica.jaxb.DescribeBundleTasksItemType;
-import com.xerox.amazonws.typica.jaxb.DescribeImageAttributeResponse;
-import com.xerox.amazonws.typica.jaxb.DescribeImagesResponse;
-import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseInfoType;
-import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseItemType;
-import com.xerox.amazonws.typica.jaxb.DescribeInstancesResponse;
-import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesResponse;
-import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesResponseSetItemType;
-import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesOfferingsResponse;
-import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesOfferingsResponseSetItemType;
-import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsResponse;
-import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsSetResponseType;
-import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsSetItemResponseType;
-import com.xerox.amazonws.typica.jaxb.DescribeVolumesResponse;
-import com.xerox.amazonws.typica.jaxb.DescribeVolumesSetResponseType;
-import com.xerox.amazonws.typica.jaxb.DescribeVolumesSetItemResponseType;
-import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponse;
-import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponseInfoType;
-import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponseItemType;
-import com.xerox.amazonws.typica.jaxb.DescribeRegionsResponse;
-import com.xerox.amazonws.typica.jaxb.DescribeSecurityGroupsResponse;
-import com.xerox.amazonws.typica.jaxb.DetachVolumeResponse;
-import com.xerox.amazonws.typica.jaxb.DisassociateAddressResponse;
-import com.xerox.amazonws.typica.jaxb.GetConsoleOutputResponse;
-import com.xerox.amazonws.typica.jaxb.GetPasswordDataResponse;
-import com.xerox.amazonws.typica.jaxb.GroupItemType;
-import com.xerox.amazonws.typica.jaxb.GroupSetType;
-import com.xerox.amazonws.typica.jaxb.InstanceStateChangeSetType;
-import com.xerox.amazonws.typica.jaxb.InstanceStateChangeType;
 import com.xerox.amazonws.typica.jaxb.IpPermissionSetType;
-import com.xerox.amazonws.typica.jaxb.IpPermissionSetType;
-import com.xerox.amazonws.typica.jaxb.IpPermissionType;
-import com.xerox.amazonws.typica.jaxb.IpRangeItemType;
-import com.xerox.amazonws.typica.jaxb.IpRangeSetType;
-import com.xerox.amazonws.typica.jaxb.LaunchPermissionItemType;
-import com.xerox.amazonws.typica.jaxb.LaunchPermissionListType;
-import com.xerox.amazonws.typica.jaxb.ModifyImageAttributeResponse;
-import com.xerox.amazonws.typica.jaxb.ModifySnapshotAttributeResponse;
-import com.xerox.amazonws.typica.jaxb.MonitorInstancesResponseType;
-import com.xerox.amazonws.typica.jaxb.MonitorInstancesResponseSetItemType;
-import com.xerox.amazonws.typica.jaxb.NullableAttributeValueType;
-import com.xerox.amazonws.typica.jaxb.ObjectFactory;
-import com.xerox.amazonws.typica.jaxb.ProductCodeListType;
-import com.xerox.amazonws.typica.jaxb.ProductCodeItemType;
-import com.xerox.amazonws.typica.jaxb.ProductCodesSetType;
-import com.xerox.amazonws.typica.jaxb.ProductCodesSetItemType;
-import com.xerox.amazonws.typica.jaxb.PurchaseReservedInstancesOfferingResponse;
-import com.xerox.amazonws.typica.jaxb.RebootInstancesResponse;
-import com.xerox.amazonws.typica.jaxb.RegionItemType;
-import com.xerox.amazonws.typica.jaxb.RegionSetType;
-import com.xerox.amazonws.typica.jaxb.RegisterImageResponse;
-import com.xerox.amazonws.typica.jaxb.ReleaseAddressResponse;
-import com.xerox.amazonws.typica.jaxb.RevokeSecurityGroupIngressResponse;
-import com.xerox.amazonws.typica.jaxb.ReservationSetType;
-import com.xerox.amazonws.typica.jaxb.ReservationInfoType;
-import com.xerox.amazonws.typica.jaxb.ResetImageAttributeResponse;
-import com.xerox.amazonws.typica.jaxb.RunningInstancesItemType;
-import com.xerox.amazonws.typica.jaxb.RunningInstancesSetType;
-import com.xerox.amazonws.typica.jaxb.RunInstancesResponse;
-import com.xerox.amazonws.typica.jaxb.SecurityGroupSetType;
-import com.xerox.amazonws.typica.jaxb.SecurityGroupItemType;
-import com.xerox.amazonws.typica.jaxb.StartInstancesResponse;
-import com.xerox.amazonws.typica.jaxb.StopInstancesResponse;
-import com.xerox.amazonws.typica.jaxb.TerminateInstancesResponse;
-import com.xerox.amazonws.typica.jaxb.UserIdGroupPairType;
-import com.xerox.amazonws.typica.jaxb.UserIdGroupPairSetType;
 
 /**
  * A Java wrapper for the EC2 web services API
@@ -2184,6 +2074,41 @@ public class Jec2 extends AWSQueryConnection {
 				ret.add(new MonitoredInstanceInfo(item.getInstanceId(),
 								item.getMonitoring().getState()));
 			}
+			return ret;
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	public List<SpotPriceHistoryItem> describeSpotPriceHistory(Calendar start, Calendar end, String productDescription, InstanceType... instanceTypes) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		if (start != null) {
+			params.put("StartTime", httpDate(start));
+		}
+		if (end != null) {
+			params.put("EndTime", httpDate(end));
+		}
+		if (productDescription != null) {
+			params.put("ProductDescription", productDescription);
+		}
+		for (int i = 0; i < instanceTypes.length; i++) {
+			InstanceType instanceType = instanceTypes[i];
+			params.put("InstanceType." + (i + 1), instanceType.getTypeId());
+		}
+
+		GetMethod method = new GetMethod();
+		try {
+			List<SpotPriceHistoryItem> ret = new ArrayList<SpotPriceHistoryItem>();
+			DescribeSpotPriceHistoryResponse response =
+					makeRequestInt(method, "DescribeSpotPriceHistory", params, DescribeSpotPriceHistoryResponse.class);
+
+			List<SpotPriceHistorySetItemType> items = response.getSpotPriceHistorySet().getItems();
+			if (items != null) {
+				for (SpotPriceHistorySetItemType item : items) {
+					ret.add(new SpotPriceHistoryItem(item));
+				}
+			}
+
 			return ret;
 		} finally {
 			method.releaseConnection();
