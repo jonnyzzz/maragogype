@@ -32,6 +32,65 @@ import org.apache.commons.logging.LogFactory;
 
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
+import com.xerox.amazonws.typica.jaxb.AllocateAddressResponse;
+import com.xerox.amazonws.typica.jaxb.AssociateAddressResponse;
+import com.xerox.amazonws.typica.jaxb.AttachmentSetResponseType;
+import com.xerox.amazonws.typica.jaxb.AttachmentSetItemResponseType;
+import com.xerox.amazonws.typica.jaxb.AttachVolumeResponse;
+import com.xerox.amazonws.typica.jaxb.AvailabilityZoneItemType;
+import com.xerox.amazonws.typica.jaxb.AvailabilityZoneMessageType;
+import com.xerox.amazonws.typica.jaxb.AvailabilityZoneSetType;
+import com.xerox.amazonws.typica.jaxb.AuthorizeSecurityGroupIngressResponse;
+import com.xerox.amazonws.typica.jaxb.BlockDeviceMappingType;
+import com.xerox.amazonws.typica.jaxb.BlockDeviceMappingItemType;
+import com.xerox.amazonws.typica.jaxb.BundleInstanceResponse;
+import com.xerox.amazonws.typica.jaxb.BundleInstanceTaskType;
+import com.xerox.amazonws.typica.jaxb.CancelBundleTaskResponse;
+import com.xerox.amazonws.typica.jaxb.CreateImageResponse;
+import com.xerox.amazonws.typica.jaxb.CreateKeyPairResponse;
+import com.xerox.amazonws.typica.jaxb.CreateSnapshotResponse;
+import com.xerox.amazonws.typica.jaxb.CreateVolumeResponse;
+import com.xerox.amazonws.typica.jaxb.ConfirmProductInstanceResponse;
+import com.xerox.amazonws.typica.jaxb.CreateSecurityGroupResponse;
+import com.xerox.amazonws.typica.jaxb.DeleteKeyPairResponse;
+import com.xerox.amazonws.typica.jaxb.DeleteSecurityGroupResponse;
+import com.xerox.amazonws.typica.jaxb.DeleteSnapshotResponse;
+import com.xerox.amazonws.typica.jaxb.DeleteVolumeResponse;
+import com.xerox.amazonws.typica.jaxb.DeregisterImageResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponseInfoType;
+import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponseItemType;
+import com.xerox.amazonws.typica.jaxb.DescribeAvailabilityZonesResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeBundleTasksResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeBundleTasksItemType;
+import com.xerox.amazonws.typica.jaxb.DescribeImageAttributeResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeImagesResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseInfoType;
+import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseItemType;
+import com.xerox.amazonws.typica.jaxb.DescribeInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesResponseSetItemType;
+import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesOfferingsResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesOfferingsResponseSetItemType;
+import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsSetResponseType;
+import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsSetItemResponseType;
+import com.xerox.amazonws.typica.jaxb.DescribeVolumesResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeVolumesSetResponseType;
+import com.xerox.amazonws.typica.jaxb.DescribeVolumesSetItemResponseType;
+import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponseInfoType;
+import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponseItemType;
+import com.xerox.amazonws.typica.jaxb.DescribeRegionsResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeSecurityGroupsResponse;
+import com.xerox.amazonws.typica.jaxb.DetachVolumeResponse;
+import com.xerox.amazonws.typica.jaxb.DisassociateAddressResponse;
+import com.xerox.amazonws.typica.jaxb.GetConsoleOutputResponse;
+import com.xerox.amazonws.typica.jaxb.GetPasswordDataResponse;
+import com.xerox.amazonws.typica.jaxb.GroupItemType;
+import com.xerox.amazonws.typica.jaxb.GroupSetType;
+import com.xerox.amazonws.typica.jaxb.InstanceStateChangeSetType;
+import com.xerox.amazonws.typica.jaxb.InstanceStateChangeType;
 import com.xerox.amazonws.typica.jaxb.IpPermissionSetType;
 
 /**
@@ -96,7 +155,39 @@ public class Jec2 extends AWSQueryConnection {
     }
 
 	/**
-	 * Register the given AMI.
+	 * Creates an AMI that uses an EBS root device.
+	 *
+	 * @param instanceId An instance's id ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
+	 * @param name a name to associate with the image
+	 * @param description a descriptive string to attach to the image
+	 * @param noReboot	normally false; if set to true, instance is not shutdown first. 
+	 * 					NOTE: filesystem integrity isn't guaranteed when noReboot=true
+	 * @return image ID
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public String createImage(String instanceId, String name, String description,
+							boolean noReboot) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("InstanceId", instanceId);
+		params.put("Name", name);
+		if (description != null && !description.trim().equals("")) {
+			params.put("Description", description);
+		}
+		if (noReboot) {
+			params.put("NoReboot", "true");
+		}
+		GetMethod method = new GetMethod();
+		try {
+			CreateImageResponse response =
+					makeRequestInt(method, "CreateImage", params, CreateImageResponse.class);
+			return response.getImageId();
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Register an S3 based AMI.
 	 * 
 	 * @param imageLocation An AMI path within S3.
 	 * @return A unique AMI ID that can be used to create and manage instances of this AMI.
@@ -104,8 +195,60 @@ public class Jec2 extends AWSQueryConnection {
 	 * TODO: need to return request id
 	 */
 	public String registerImage(String imageLocation) throws EC2Exception {
+		return registerImage(imageLocation, null, null, null, null, null, null, null);
+	}
+
+	/**
+	 * Register a snapshot as an EBS backed AMI
+	 * 
+	 * @param imageLocation An AMI path within S3.
+	 * @return A unique AMI ID that can be used to create and manage instances of this AMI.
+	 * @throws EC2Exception wraps checked exceptions
+	 * TODO: need to return request id
+	 */
+	public String registerImage(String name,
+					String description, String architecture,
+					String kernelId, String ramdiskId, String rootDeviceName,
+					List<BlockDeviceMapping> blockDeviceMappings) throws EC2Exception {
+		return registerImage(null, name, description, architecture, kernelId, ramdiskId,
+					rootDeviceName, blockDeviceMappings);
+	}
+
+	protected String registerImage(String imageLocation, String name,
+					String description, String architecture,
+					String kernelId, String ramdiskId, String rootDeviceName,
+					List<BlockDeviceMapping> blockDeviceMappings) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("ImageLocation", imageLocation);
+		if (imageLocation != null && !imageLocation.trim().equals("")) {
+			params.put("ImageLocation", imageLocation);
+		}
+		if (name != null && !name.trim().equals("")) {
+			params.put("Name", name);
+		}
+		if (description != null && !description.trim().equals("")) {
+			params.put("Description", description);
+		}
+		if (architecture != null && !architecture.trim().equals("")) {
+			params.put("Architecture", architecture);
+		}
+		if (kernelId != null && !kernelId.trim().equals("")) {
+			params.put("KernelId", kernelId);
+		}
+		if (ramdiskId != null && !ramdiskId.trim().equals("")) {
+			params.put("RamdiskId", ramdiskId);
+		}
+		if (rootDeviceName != null && !rootDeviceName.trim().equals("")) {
+			params.put("RootDeviceName", rootDeviceName);
+		}
+		if (blockDeviceMappings != null) {
+			for(int i = 0; i < blockDeviceMappings.size(); i++) {
+				BlockDeviceMapping bdm = blockDeviceMappings.get(i);
+				params.put("BlockDeviceMapping." + (i + 1) + ".VirtualName",
+												bdm.getVirtualName());
+				params.put("BlockDeviceMapping." + (i + 1) + ".DeviceName",
+												bdm.getDeviceName());
+			}
+		}
 		GetMethod method = new GetMethod();
 		try {
 			RegisterImageResponse response =
