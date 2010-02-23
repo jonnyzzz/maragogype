@@ -318,8 +318,13 @@ public class AWSQueryConnection extends AWSConnection {
 		throws HttpException, IOException, JAXBException, AWSException {
 
 		// add auth params, and protocol specific headers
-		Map<String, String> qParams = new HashMap<String, String>(params);
-		qParams.put("Action", action);
+        Map<String, String> qParams;
+        if (params != null) {
+            qParams = new HashMap<String, String>(params);
+        } else {
+            qParams = new HashMap<String, String>();
+        }
+        qParams.put("Action", action);
 		qParams.put("AWSAccessKeyId", getAwsAccessKeyId());
 		qParams.put("SignatureVersion", ""+getSignatureVersion());
 		qParams.put("Timestamp", httpDate(serverTimeZone));
