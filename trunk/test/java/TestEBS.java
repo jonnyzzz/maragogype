@@ -48,7 +48,7 @@ public class TestEBS {
 			try { Thread.sleep(4000); } catch (InterruptedException ex) {}
 			ec2.detachVolume(vol.getVolumeId(), null, null, true);
 		}
-		SnapshotInfo snap = ec2.createSnapshot(vol.getVolumeId());
+		SnapshotInfo snap = ec2.createSnapshot(vol.getVolumeId(), "");
 		try { Thread.sleep(4000); } catch (InterruptedException ex) {}
 		describeSnapshots(ec2, new String [] {snap.getSnapshotId()});
 		try { Thread.sleep(4000); } catch (InterruptedException ex) {}
