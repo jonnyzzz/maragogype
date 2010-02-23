@@ -17,7 +17,10 @@
 
 package com.xerox.amazonws.ec2;
 
+import org.apache.commons.codec.binary.Base64;
+
 import java.util.List;
+import java.util.Map;
 
 /**
  * A launch configuration encapsulates the parameters used for launching an AMI
@@ -299,4 +302,51 @@ public class LaunchConfiguration {
 	public void setPublicAddressing(boolean set) {
 		addressingType = set;
 	}
+
+    void prepareQueryParams(String prefix, boolean setMinAndMax, Map<String, String> params) {
+        params.put(prefix + "ImageId", getImageId());
+        if (setMinAndMax) {
+            params.put(prefix + "MinCount", "" + getMinCount());
+            params.put(prefix + "MaxCount", "" + getMaxCount());
+        }
+
+        byte[] userData = getUserData();
+        if (userData != null && userData.length > 0) {
+            params.put(prefix + "UserData",
+            new String(Base64.encodeBase64(userData)));
+        }
+        params.put(prefix + "AddressingType", isPublicAddressing()?"public":"private");
+        String keyName = getKeyName();
+        if (keyName != null && !keyName.trim().equals("")) {
+            params.put(prefix + "KeyName", keyName);
+        }
+
+        if (getSecurityGroup() != null) {
+            for(int i = 0; i < getSecurityGroup().size(); i++) {
+                params.put(prefix + "SecurityGroup." + (i + 1), getSecurityGroup().get(i));
+            }
+        }
+        params.put(prefix + "InstanceType", getInstanceType().getTypeId());
+        if (getAvailabilityZone() != null && !getAvailabilityZone().trim().equals("")) {
+            params.put(prefix + "Placement.AvailabilityZone", getAvailabilityZone());
+        }
+        if (getKernelId() != null && !getKernelId().trim().equals("")) {
+            params.put(prefix + "KernelId", getKernelId());
+        }
+        if (getRamdiskId() != null && !getRamdiskId().trim().equals("")) {
+            params.put(prefix + "RamdiskId", getRamdiskId());
+        }
+        if (getBlockDevicemappings() != null) {
+            for(int i = 0; i < getBlockDevicemappings().size(); i++) {
+                BlockDeviceMapping bdm = getBlockDevicemappings().get(i);
+                params.put(prefix + "BlockDeviceMapping." + (i + 1) + ".VirtualName",
+                bdm.getVirtualName());
+                params.put(prefix + "BlockDeviceMapping." + (i + 1) + ".DeviceName",
+                bdm.getDeviceName());
+            }
+        }
+        if (isMonitoring()) {
+            params.put(prefix + "Monitoring.Enabled", "true");
+        }
+    }
 }

@@ -62,7 +62,6 @@ import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponseInfoType;
 import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponseItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeAvailabilityZonesResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeBundleTasksResponse;
-import com.xerox.amazonws.typica.jaxb.DescribeBundleTasksItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeImageAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseInfoType;
@@ -560,48 +559,7 @@ public class Jec2 extends AWSQueryConnection {
 	 */
 	public ReservationDescription runInstances(LaunchConfiguration lc) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("ImageId", lc.getImageId());
-		params.put("MinCount", "" + lc.getMinCount());
-		params.put("MaxCount", "" + lc.getMaxCount());
-
-		byte[] userData = lc.getUserData();
-		if (userData != null && userData.length > 0) {
-			params.put("UserData",
-			new String(Base64.encodeBase64(userData)));
-		}
-		params.put("AddressingType", lc.isPublicAddressing()?"public":"private");
-		String keyName = lc.getKeyName();
-		if (keyName != null && !keyName.trim().equals("")) {
-			params.put("KeyName", keyName);
-		}
-
-		if (lc.getSecurityGroup() != null) {
-			for(int i = 0; i < lc.getSecurityGroup().size(); i++) {
-				params.put("SecurityGroup." + (i + 1), lc.getSecurityGroup().get(i));
-			}
-		}
-		params.put("InstanceType", lc.getInstanceType().getTypeId());
-		if (lc.getAvailabilityZone() != null && !lc.getAvailabilityZone().trim().equals("")) {
-			params.put("Placement.AvailabilityZone", lc.getAvailabilityZone());
-		}
-		if (lc.getKernelId() != null && !lc.getKernelId().trim().equals("")) {
-			params.put("KernelId", lc.getKernelId());
-		}
-		if (lc.getRamdiskId() != null && !lc.getRamdiskId().trim().equals("")) {
-			params.put("RamdiskId", lc.getRamdiskId());
-		}
-		if (lc.getBlockDevicemappings() != null) {
-			for(int i = 0; i < lc.getBlockDevicemappings().size(); i++) {
-				BlockDeviceMapping bdm = lc.getBlockDevicemappings().get(i);
-				params.put("BlockDeviceMapping." + (i + 1) + ".VirtualName",
-				bdm.getVirtualName());
-				params.put("BlockDeviceMapping." + (i + 1) + ".DeviceName",
-				bdm.getDeviceName());
-			}
-		}
-		if (lc.isMonitoring()) {
-			params.put("Monitoring.Enabled", "true");
-		}
+        lc.prepareQueryParams("", true, params);
 
 		GetMethod method = new GetMethod();
 		try {
@@ -644,7 +602,7 @@ public class Jec2 extends AWSQueryConnection {
 		}
 	}
 
-	/**
+    /**
 	 * Starts a selection of stopped instances.
 	 * 
 	 * @param instanceIds An array of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
@@ -2222,8 +2180,8 @@ public class Jec2 extends AWSQueryConnection {
 			method.releaseConnection();
 		}
 	}
-
-	public List<SpotPriceHistoryItem> describeSpotPriceHistory(Calendar start, Calendar end, String productDescription, InstanceType... instanceTypes) throws EC2Exception {
+    
+    public List<SpotPriceHistoryItem> describeSpotPriceHistory(Calendar start, Calendar end, String productDescription, InstanceType... instanceTypes) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		if (start != null) {
 			params.put("StartTime", httpDate(start));
@@ -2257,6 +2215,76 @@ public class Jec2 extends AWSQueryConnection {
 			method.releaseConnection();
 		}
 	}
+
+    public List<SpotInstanceRequest> describeSpotInstanceRequests() throws EC2Exception {
+        GetMethod method = new GetMethod();
+        try {
+            List<SpotInstanceRequest> ret = new ArrayList<SpotInstanceRequest>();
+            DescribeSpotInstanceRequestsResponse response =
+                    makeRequestInt(method, "DescribeSpotInstanceRequests", null, DescribeSpotInstanceRequestsResponse.class);
+
+            List<SpotInstanceRequestSetItemType> items = response.getSpotInstanceRequestSet().getItems();
+            if (items != null) {
+                for (SpotInstanceRequestSetItemType item : items) {
+                    ret.add(new SpotInstanceRequest(item));
+                }
+            }
+
+            return ret;
+        } finally {
+            method.releaseConnection();
+        }
+    }
+
+    public List<SpotInstanceRequest> requestSpotInstances(SpotInstanceRequestConfiguration sirc, LaunchConfiguration lc) throws EC2Exception {
+        Map<String, String> params = new HashMap<String, String>();
+        lc.prepareQueryParams("LaunchSpecification.", false, params);
+        sirc.prepareQueryParams(params);
+
+        GetMethod method = new GetMethod();
+        try {
+            List<SpotInstanceRequest> ret = new ArrayList<SpotInstanceRequest>();
+            RequestSpotInstancesResponse response =
+                    makeRequestInt(method, "RequestSpotInstances", params, RequestSpotInstancesResponse.class);
+
+            List<SpotInstanceRequestSetItemType> items = response.getSpotInstanceRequestSet().getItems();
+            if (items != null) {
+                for (SpotInstanceRequestSetItemType item : items) {
+                    ret.add(new SpotInstanceRequest(item));
+                }
+            }
+
+            return ret;
+        } finally {
+            method.releaseConnection();
+        }
+    }
+
+    public List<SpotInstanceCancellationResponse> cancelSpotInstanceRequests(String... sirIds) throws EC2Exception {
+        Map<String, String> params = new HashMap<String, String>();
+
+        for (int i = 0; i < sirIds.length; i++) {
+            params.put("SpotInstanceRequestId." + (i + 1), sirIds[i]);
+        }
+
+        GetMethod method = new GetMethod();
+        try {
+            List<SpotInstanceCancellationResponse> ret = new ArrayList<SpotInstanceCancellationResponse>();
+            CancelSpotInstanceRequestsResponse response =
+                    makeRequestInt(method, "CancelSpotInstanceRequests", params, CancelSpotInstanceRequestsResponse.class);
+
+            List<CancelSpotInstanceRequestsResponseSetItemType> items = response.getSpotInstanceRequestSet().getItems();
+            if (items != null) {
+                for (CancelSpotInstanceRequestsResponseSetItemType item : items) {
+                    ret.add(new SpotInstanceCancellationResponse(item));
+                }
+            }
+
+            return ret;
+        } finally {
+            method.releaseConnection();
+        }
+    }
 
 	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
 		throws EC2Exception {
