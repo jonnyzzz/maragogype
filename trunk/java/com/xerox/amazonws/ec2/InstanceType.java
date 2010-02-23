@@ -26,6 +26,7 @@ public enum InstanceType {
 	XLARGE ("m1.xlarge"),
 	MEDIUM_HCPU ("c1.medium"),
 	XLARGE_HCPU ("c1.xlarge"),
+	XLARGE_HMEM ("m2.xlarge"),
 	XLARGE_DOUBLE_HMEM ("m2.2xlarge"),
 	XLARGE_QUAD_HMEM ("m2.4xlarge");
 
