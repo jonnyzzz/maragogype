@@ -212,7 +212,7 @@ public class Item extends AWSQueryConnection {
 	 * @throws SDBException wraps checked exceptions
 	 */
 	public SDBResult putAttributes(List<ItemAttribute> attributes) throws SDBException {
-		putAttributes(attributes, null);
+		return putAttributes(attributes, null);
 	}
 
 	/**

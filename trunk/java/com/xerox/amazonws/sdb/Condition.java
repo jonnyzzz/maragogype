@@ -17,17 +17,38 @@
 
 package com.xerox.amazonws.sdb;
 
-import java.util.List;
+/**
+ * This class is an immutable representation of an item attribute.
+ *
+ * @author D. Kavanagh
+ * @author developer@dotech.com
+ */
+public class Condition {
+	private String name;
+	private String value;
+	private boolean exists;
 
-public class QueryResult extends SDBResult {
-	private List<Item> items;
-
-	QueryResult(String nextToken, String requestId, String boxUsage, List<Item> items) {
-		super(nextToken, requestId, boxUsage);
-		this.items = items;
+	public Condition(String name, String value) {
+		this.name = name;
+		this.value = value;
+		this.exists = false;
 	}
 
-	public List<Item> getItemList() {
-		return items;
+	public Condition(String name, boolean exists) {
+		this.name = name;
+		this.value = null;
+		this.exists = exists;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public boolean isExists() {
+		return exists;
 	}
 }

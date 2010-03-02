@@ -1,6 +1,7 @@
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -12,7 +13,7 @@ import com.xerox.amazonws.sdb.Domain;
 import com.xerox.amazonws.sdb.Item;
 import com.xerox.amazonws.sdb.ItemAttribute;
 import com.xerox.amazonws.sdb.ListDomainsResult;
-import com.xerox.amazonws.sdb.QueryResult;
+import com.xerox.amazonws.sdb.QueryWithAttributesResult;
 import com.xerox.amazonws.sdb.SimpleDB;
 import com.xerox.amazonws.sdb.SDBException;
 
@@ -24,8 +25,7 @@ public class TestSimpleDB {
 		Properties props = new Properties();
 		props.load(TestSimpleDB.class.getClassLoader().getResourceAsStream("aws.properties"));
 
-		SimpleDB sdb = new SimpleDB(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"), false, "localhost");
-		//sdb.setSignatureVersion(0);
+		SimpleDB sdb = new SimpleDB(props.getProperty("aws.accessId"), props.getProperty("aws.secretKey"));
 
 		logger.info("domains:");
 		String nextToken = "";
@@ -38,12 +38,12 @@ public class TestSimpleDB {
 			nextToken = result.getNextToken();
 		}
 		Domain dom = sdb.createDomain(args[0]);
-		QueryResult qr = dom.listItems();
-		List<Item> iList = qr.getItemList();
-		for (Item i : iList) {
-			logger.info("item : "+i.getIdentifier());
+		QueryWithAttributesResult qr = dom.selectItems("select * from "+args[0], null);
+		Map<String, List<ItemAttribute>> iList = qr.getItems();
+		for (String id : iList.keySet()) {
+			logger.info("item : "+id);
 		}
-		Item i = dom.getItem("ab\0u000dcd");
+		Map<String, List<ItemAttribute>> items = new HashMap<String, List<ItemAttribute>>();
 		List<ItemAttribute> list = new ArrayList<ItemAttribute>();
 		list.add(new ItemAttribute("test1", "value1", false));
 		list.add(new ItemAttribute("t\0u000dst1", "value2", false));
@@ -51,15 +51,44 @@ public class TestSimpleDB {
 		list.add(new ItemAttribute("test1", "\0u000dvalue4&gt;", false));
 		list.add(new ItemAttribute("test1", "value5", false));
 		list.add(new ItemAttribute("test1", "value6", false));
-		list.add(new ItemAttribute("test1", "value7", false));
-		list.add(new ItemAttribute("test1", "value8", false));
-		list.add(new ItemAttribute("test2", "value9", false));
-		list.add(new ItemAttribute("test2", "value10", false));
-		list.add(new ItemAttribute("test2", "value11", false));
-		list.add(new ItemAttribute("test2", "value12", false));
-		i.putAttributes(list);
+		items.put("00001", list);
 
-		List<ItemAttribute> attrs = i.getAttributes();
+		list = new ArrayList<ItemAttribute>();
+		list.add(new ItemAttribute("test1", "value1", false));
+		list.add(new ItemAttribute("t\0u000dst1", "value2", false));
+		list.add(new ItemAttribute("test1", "Jérôme", false));
+		list.add(new ItemAttribute("test1", "\0u000dvalue4&gt;", false));
+		list.add(new ItemAttribute("test1", "value5", false));
+		list.add(new ItemAttribute("test1", "value6", false));
+		items.put("00002", list);
+
+		list = new ArrayList<ItemAttribute>();
+		list.add(new ItemAttribute("test1", "value1", false));
+		list.add(new ItemAttribute("t\0u000dst1", "value2", false));
+		list.add(new ItemAttribute("test1", "Jérôme", false));
+		list.add(new ItemAttribute("test1", "\0u000dvalue4&gt;", false));
+		list.add(new ItemAttribute("test1", "value5", false));
+		list.add(new ItemAttribute("test1", "value6", false));
+		items.put("00003", list);
+
+		list = new ArrayList<ItemAttribute>();
+		list.add(new ItemAttribute("test1", "value1", false));
+		list.add(new ItemAttribute("t\0u000dst1", "value2", false));
+		list.add(new ItemAttribute("test1", "Jérôme", false));
+		list.add(new ItemAttribute("test1", "\0u000dvalue4&gt;", false));
+		list.add(new ItemAttribute("test1", "value5", false));
+		list.add(new ItemAttribute("test1", "value6", false));
+		items.put("00004", list);
+
+		dom.batchPutAttributes(items);
+
+		qr = dom.selectItems("select * from "+args[0], null);
+		iList = qr.getItems();
+		for (String id : iList.keySet()) {
+			logger.info("item : "+id);
+		}
+
+/*		List<ItemAttribute> attrs = i.getAttributes();
 		logger.info("all");
 		for (ItemAttribute attr : attrs) {
 			logger.info("Item:"+attr.getName()+" Value:"+attr.getValue());
@@ -84,6 +113,7 @@ public class TestSimpleDB {
 				logger.info("Item:"+key+" Value:"+value);
 			}
 		}
+*/
 		} catch (SDBException ex) {
 			System.err.println("message : "+ex.getMessage());
 			System.err.println("requestID : "+ex.getRequestId());
