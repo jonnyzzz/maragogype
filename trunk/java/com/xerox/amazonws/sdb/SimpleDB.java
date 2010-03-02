@@ -253,7 +253,7 @@ public class SimpleDB extends AWSQueryConnection {
 
 	static void setVersionHeader(AWSQueryConnection connection) {
 		ArrayList vals = new ArrayList();
-		vals.add("2007-11-07");
+		vals.add("2009-04-15");
 		connection.getHeaders().put("Version", vals);
 	}
 }

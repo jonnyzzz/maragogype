@@ -46,9 +46,6 @@ import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.typica.sdb.jaxb.Attribute;
 import com.xerox.amazonws.typica.sdb.jaxb.BatchPutAttributesResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.DomainMetadataResponse;
-import com.xerox.amazonws.typica.sdb.jaxb.QueryResponse;
-import com.xerox.amazonws.typica.sdb.jaxb.QueryResult.ItemName;
-import com.xerox.amazonws.typica.sdb.jaxb.QueryWithAttributesResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.SelectResponse;
 
 /**
@@ -117,292 +114,6 @@ public class Domain extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets a list of all items in this domain
-	 *
-     * @return the object containing the items, a more token, etc.
-	 * @throws SDBException wraps checked exceptions
-	 */
-	public QueryResult listItems() throws SDBException {
-		return listItems(null);
-	}
-
-	/**
-	 * Gets a list of items in this domain filtered by the query string.
-	 *
-	 * @param queryString the filter statement
-     * @return the object containing the items, a more token, etc.
-	 * @throws SDBException wraps checked exceptions
-	 */
-	public QueryResult listItems(String queryString) throws SDBException {
-		return listItems(queryString, null);
-	}
-
-	/**
-	 * Gets a list of items in this domain filtered by the query string.
-	 *
-	 * @param queryString the filter statement
-	 * @param nextToken the token used to return more items in the query result set
-     * @return the object containing the items, a more token, etc.
-	 * @throws SDBException wraps checked exceptions
-	 */
-	public QueryResult listItems(String queryString, String nextToken) throws SDBException {
-		return listItems(queryString, nextToken, 0);
-	}
-
-	/**
-	 * Gets a list of items in this domain filtered by the query string.
-	 *
-	 * @param queryString the filter statement
-	 * @param nextToken the token used to return more items in the query result set
-	 * @param maxResults a limit to the number of results to return now
-     * @return the object containing the items, a more token, etc.
-	 * @throws SDBException wraps checked exceptions
-	 */
-	public QueryResult listItems(String queryString, String nextToken, int maxResults) throws SDBException {
-		Map<String, String> params = new HashMap<String, String>();
-		params.put("DomainName", domainName);
-		params.put("QueryExpression", (queryString==null)?"":queryString);
-		if (nextToken != null) {
-			params.put("NextToken", nextToken);
-		}
-		if (maxResults > 0) {
-			params.put("MaxNumberOfItems", ""+maxResults);
-		}
-		GetMethod method = new GetMethod();
-		try {
-			QueryResponse response =
-						makeRequestInt(method, "Query", params, QueryResponse.class);
-			return new QueryResult(response.getQueryResult().getNextToken(),
-						response.getResponseMetadata().getRequestId(),
-						response.getResponseMetadata().getBoxUsage(),
-					Item.createList(response.getQueryResult().getItemNames().toArray(new ItemName[] {}), domainName,
-								getAwsAccessKeyId(), getSecretAccessKey(),
-								isSecure(), getServer(), getSignatureVersion(), getHttpClient()));
-		} finally {
-			method.releaseConnection();
-		}
-	}
-
-	/**
-	 * Gets attributes of given items. This method threads off the get requests and
-	 * aggregates the responses.
-	 *
-	 * @param items the list of items to get attributes for
-     * @return the map of items with lists of attributes
-	 * @throws SDBException wraps checked exceptions
-	 */
-	public Map<String, List<ItemAttribute>> getItemsAttributes(List<String> items) throws SDBException {
-		Map<String, List<ItemAttribute>> results = new Hashtable<String, List<ItemAttribute>>();
-		ThreadPoolExecutor pool = getThreadPoolExecutor();
-		pool.setRejectedExecutionHandler(new RejectionHandler());
-
-		Counter running = new Counter(0);
-		for (String item : items) {
-			while (pool.getActiveCount() == pool.getMaximumPoolSize()) {
-				try { Thread.sleep(100); } catch (InterruptedException ex) { }
-			}
-			synchronized (running) {
-				running.increment();
-			}
-			pool.execute(new AttrWorker(getItem(item), running, results, null));
-			Thread.yield();
-		}
-		while (true) {
-			if (running.getValue() == 0) {
-				break;
-			}
-			try { Thread.sleep(500); } catch (InterruptedException ex) { }
-		}
-		if (this.executor == null) {
-			pool.shutdown();
-		}
-		return results;
-	}
-
-	/**
-	 * Gets attributes of given items. This method threads off the get requests and
-	 * aggregates the responses.
-	 *
-	 * @param items the list of items to get attributes for
-	 * @param listener class that will be notified when items are ready
-	 * @throws SDBException wraps checked exceptions
-	 */
-	public void getItemsAttributes(List<String> items, ItemListener listener) throws SDBException {
-		ThreadPoolExecutor pool = getThreadPoolExecutor();
-		pool.setRejectedExecutionHandler(new RejectionHandler());
-
-		Counter running = new Counter(0);
-		for (String item : items) {
-			while (pool.getActiveCount() == pool.getMaximumPoolSize()) {
-				try { Thread.sleep(100); } catch (InterruptedException ex) { }
-			}
-			synchronized (running) {
-				running.increment();
-			}
-			pool.execute(new AttrWorker(getItem(item), running, null, listener));
-			Thread.yield();
-		}
-		while (true) {
-			if (running.getValue() == 0) {
-				break;
-			}
-			try { Thread.sleep(500); } catch (InterruptedException ex) { }
-		}
-		if (this.executor == null) {
-			pool.shutdown();
-		}
-	}
-
-	/**
-	 * Gets attributes of items specified in the query string. This method threads off the
-	 * get requests and aggregates the responses.
-	 *
-	 * @param queryString the filter statement
-	 * @param listener class that will be notified when items are ready
-	 * @throws SDBException wraps checked exceptions
-	 */
-	public void listItemsAttributes(String queryString, ItemListener listener) throws SDBException {
-		ThreadPoolExecutor pool = getThreadPoolExecutor();
-		pool.setRejectedExecutionHandler(new RejectionHandler());
-        String nextToken = "";
-		Counter running = new Counter(0);
-        do {
-            try {
-                QueryResult result = listItems(queryString, nextToken, 250);
-				List<Item> items = result.getItemList();
-                for (Item i : items) {
-					while (pool.getActiveCount() == pool.getMaximumPoolSize()) {
-						try { Thread.sleep(100); } catch (InterruptedException ex) { }
-					}
-					synchronized (running) {
-						running.increment();
-					}
-					pool.execute(new AttrWorker(i, running, null, listener));
-					Thread.yield();
-                }
-                nextToken = result.getNextToken();
-            }
-            catch (SDBException ex) {
-                System.out.println("Query '" + queryString + "' Failure: ");
-                ex.printStackTrace();
-            }
-        } while (nextToken != null && nextToken.trim().length() > 0);
-		while (true) {
-			if (running.getValue() == 0) {
-				break;
-			}
-			try { Thread.sleep(500); } catch (InterruptedException ex) { }
-		}
-		if (this.executor == null) {
-			pool.shutdown();
-		}
-	}
-
-	/**
-	 * Gets a list of items (with attributes) in this domain filtered by the query string.
-	 *
-	 * @param queryString the filter statement
-	 * @param attributes an optional list of attributes to limit the results
-	 * @param nextToken the token used to return more items in the query result set
-	 * @param maxResults a limit to the number of results to return now
-     * @return the object containing the items, a more token, etc.
-	 * @throws SDBException wraps checked exceptions
-	 */
-	public QueryWithAttributesResult listItemsWithAttributes(String queryString,
-				List<String> attributes, String nextToken, int maxResults) throws SDBException {
-		Map<String, String> params = new HashMap<String, String>();
-		params.put("DomainName", domainName);
-		int idx = 1;
-		if (attributes != null) {
-			for (String attr : attributes) {
-				params.put("AttributeName."+idx, attr);
-				idx++;
-			}
-		}
-		params.put("QueryExpression", (queryString==null)?"":queryString);
-		if (nextToken != null) {
-			params.put("NextToken", nextToken);
-		}
-		if (maxResults > 0) {
-			params.put("MaxNumberOfItems", ""+maxResults);
-		}
-		GetMethod method = new GetMethod();
-		try {
-			QueryWithAttributesResponse response =
-						makeRequestInt(method, "QueryWithAttributes", params, QueryWithAttributesResponse.class);
-			Map<String, List<ItemAttribute>> results = new LinkedHashMap<String, List<ItemAttribute>>();
-			for (com.xerox.amazonws.typica.sdb.jaxb.Item i : response.getQueryWithAttributesResult().getItems()) {
-				List<ItemAttribute> attrs = new ArrayList<ItemAttribute>();
-				for (Attribute a : i.getAttributes()) {
-					attrs.add(createAttribute(a));
-				}
-				String iName = i.getName().getValue();
-				String encoding = i.getName().getEncoding();
-				if (encoding != null && encoding.equals("base64")) {
-					iName = new String(Base64.decodeBase64(iName.getBytes()));
-				}
-				results.put(iName, attrs);
-			}
-
-			return new QueryWithAttributesResult(
-						response.getQueryWithAttributesResult().getNextToken(),
-						response.getResponseMetadata().getRequestId(),
-						response.getResponseMetadata().getBoxUsage(),
-						results);
-		} finally {
-			method.releaseConnection();
-		}
-	}
-
-	/**
-	 * Gets a list of items (with attributes) in this domain filtered by the query string.
-	 *
-	 * @param queryString the filter statement
-	 * @param attributes an optional list of attributes to limit the results
-	 * @param listener class that will be notified when items are ready
-	 * @throws SDBException wraps checked exceptions
-	 */
-	public void listItemsWithAttributes(String queryString, List<String> attributes, ItemListener listener) throws SDBException {
-		Map<String, String> params = new HashMap<String, String>();
-		params.put("DomainName", domainName);
-		int idx = 1;
-		if (attributes != null) {
-			for (String attr : attributes) {
-				params.put("AttributeName."+idx, attr);
-				idx++;
-			}
-		}
-		params.put("QueryExpression", (queryString==null)?"":queryString);
-		GetMethod method = new GetMethod();
-		try {
-			String nextToken = null;
-			do {
-				QueryWithAttributesResponse response =
-						makeRequestInt(method, "QueryWithAttributes", params, QueryWithAttributesResponse.class);
-				for (com.xerox.amazonws.typica.sdb.jaxb.Item i : response.getQueryWithAttributesResult().getItems()) {
-					List<ItemAttribute> attrs = new ArrayList<ItemAttribute>();
-					for (Attribute a : i.getAttributes()) {
-						attrs.add(createAttribute(a));
-					}
-					if (listener != null) {
-						String iName = i.getName().getValue();
-						String encoding = i.getName().getEncoding();
-						if (encoding != null && encoding.equals("base64")) {
-							iName = new String(Base64.decodeBase64(iName.getBytes()));
-						}
-						listener.itemAvailable(iName, attrs);
-					}
-				}
-				nextToken = response.getQueryWithAttributesResult().getNextToken();
-				params.remove("NextToken");
-				params.put("NextToken", nextToken);
-			} while (nextToken != null && !nextToken.equals(""));
-		} finally {
-			method.releaseConnection();
-		}
-	}
-
-	/**
 	 * Deletes an item.
 	 *
 	 * @param identifier the name of the item to be deleted
@@ -410,6 +121,16 @@ public class Domain extends AWSQueryConnection {
 	 */
 	public void deleteItem(String identifier) throws SDBException {
 		getItem(identifier).deleteAttributes(null);
+	}
+
+	/**
+	 * Deletes an item, with conditions
+	 *
+	 * @param identifier the name of the item to be deleted
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public void deleteItem(String identifier, List<Condition> conditions) throws SDBException {
+		getItem(identifier).deleteAttributes(null, conditions);
 	}
 
 	/**
@@ -439,11 +160,35 @@ public class Domain extends AWSQueryConnection {
 		}
 	}
 
+	/**
+	 * This method supports selecting items/attributers based on the select syntax
+	 *
+	 * @param selectExpression the select query
+	 * @param nextToken the next token, for fetching more results from a previous query
+     * @return an object containing query results and stats
+	 * @throws SDBException wraps checked exceptions
+	 */
 	public QueryWithAttributesResult selectItems(String selectExpression, String nextToken) throws SDBException {
+		return selectItems(selectExpression, nextToken, false);
+	}
+
+	/**
+	 * This method supports selecting items/attributers based on the select syntax
+	 *
+	 * @param selectExpression the select query
+	 * @param nextToken the next token, for fetching more results from a previous query
+	 * @param consistent if true, consistency is assured
+     * @return an object containing query results and stats
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public QueryWithAttributesResult selectItems(String selectExpression, String nextToken, boolean consistent) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("SelectExpression", selectExpression);
 		if (nextToken != null) {
 			params.put("NextToken", nextToken);
+		}
+		if (consistent) {
+			params.put("ConsistentRead", "true");
 		}
 		GetMethod method = new GetMethod();
 		try {

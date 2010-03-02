@@ -41,7 +41,6 @@ import com.xerox.amazonws.typica.sdb.jaxb.Attribute;
 import com.xerox.amazonws.typica.sdb.jaxb.DeleteAttributesResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.GetAttributesResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.PutAttributesResponse;
-import com.xerox.amazonws.typica.sdb.jaxb.QueryResult.ItemName;
 
 /**
  * This class provides an interface with the Amazon SDB service. It provides methods for
@@ -213,6 +212,19 @@ public class Item extends AWSQueryConnection {
 	 * @throws SDBException wraps checked exceptions
 	 */
 	public SDBResult putAttributes(List<ItemAttribute> attributes) throws SDBException {
+		putAttributes(attributes, null);
+	}
+
+	/**
+	 * Creates attributes for this item. Each item can have "replace" specified which
+	 * indicates to replace the Attribute/Value or ad a new Attribute/Value.
+	 * NOTE: if an attribute value is null, that attribute will be ignored.
+	 *
+	 * @param attributes list of attributes to add
+	 * @param conditions the conditions under which attributes should be put
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public SDBResult putAttributes(List<ItemAttribute> attributes, List<Condition> conditions) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", domainName);
 		params.put("ItemName", identifier);
@@ -224,6 +236,20 @@ public class Item extends AWSQueryConnection {
 				params.put("Attribute."+i+".Value", val);
 				if (attr.isReplace()) {
 					params.put("Attribute."+i+".Replace", "true");
+				}
+				i++;
+			}
+		}
+		if (conditions != null) {
+			i=1;
+			for (Condition cond : conditions) {
+				params.put("Expected."+i+".Name", cond.getName());
+				String value = cond.getValue();
+				if (value != null) {
+					params.put("Expected."+i+".Value", value);
+				}
+				else {
+					params.put("Expected."+i+".Exists", cond.isExists()?"true":"false");
 				}
 				i++;
 			}
@@ -247,6 +273,17 @@ public class Item extends AWSQueryConnection {
 	 * @throws SDBException wraps checked exceptions
 	 */
 	public SDBResult deleteAttributes(List<ItemAttribute> attributes) throws SDBException {
+		return deleteAttributes(attributes, null);
+	}
+
+	/**
+	 * Deletes one or more attributes.
+	 *
+	 * @param attributes the names of the attributes to be deleted
+	 * @param conditions the conditions under which the delete should happen
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public SDBResult deleteAttributes(List<ItemAttribute> attributes, List<Condition> conditions) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", domainName);
 		params.put("ItemName", identifier);
@@ -257,6 +294,20 @@ public class Item extends AWSQueryConnection {
 				String value = attr.getValue();
 				if (value != null) {
 					params.put("Attribute."+i+".Value", value);
+				}
+				i++;
+			}
+		}
+		if (conditions != null) {
+			int i=1;
+			for (Condition cond : conditions) {
+				params.put("Expected."+i+".Name", cond.getName());
+				String value = cond.getValue();
+				if (value != null) {
+					params.put("Expected."+i+".Value", value);
+				}
+				else {
+					params.put("Expected."+i+".Exists", cond.isExists()?"true":"false");
 				}
 				i++;
 			}
@@ -300,28 +351,5 @@ public class Item extends AWSQueryConnection {
 			value = new String(Base64.decodeBase64(value.getBytes()), "UTF-8");
 		}
 		return new ItemAttribute(name, value, false);
-	}
-
-	static List<Item> createList(ItemName [] itemNames, String domainName, String awsAccessId,
-								String awsSecretKey, boolean isSecure, String server,
-								int signatureVersion, HttpClient hc)
-			throws SDBException {
-		try {
-			ArrayList<Item> ret = new ArrayList<Item>();
-			for (int i=0; i<itemNames.length; i++) {
-				String name = itemNames[i].getValue();
-				String encoding = itemNames[i].getEncoding();
-				if (encoding != null && encoding.equals("base64")) {
-					name = new String(Base64.decodeBase64(name.getBytes()), "UTF-8");
-				}
-				Item item = new Item(name, domainName, awsAccessId, awsSecretKey, isSecure, server);
-				item.setSignatureVersion(signatureVersion);
-				item.setHttpClient(hc);
-				ret.add(item);
-			}
-			return ret;
-		} catch (UnsupportedEncodingException ex) {
-			throw new SDBException(ex.getMessage(), ex);
-		}
 	}
 }
