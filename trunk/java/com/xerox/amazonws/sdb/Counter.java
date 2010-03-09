@@ -70,7 +70,7 @@ public class Counter {
 	 * @param initValue the initial value for the counter
 	 * @throws SDBException wraps checked exceptions
 	 */
-	public Counter(Domain domain, String counterName, int initValue) throws SDBException {
+	public Counter(Domain domain, String counterName, long initValue) throws SDBException {
 		this(domain, counterName);
 		// initialize counter
 		Item i = domain.getItem(name);
@@ -94,12 +94,12 @@ public class Counter {
 	 *
 	 * @return the next counter value
 	 */
-	public int nextValue() throws SDBException {
+	public long nextValue() throws SDBException {
 		Item i = domain.getItem(name);
 		List<ItemAttribute> attrs = i.getAttributes();
 		ItemAttribute attr = attrs.get(0);
 		String val = attr.getValue();
-		int value = Integer.parseInt(val);
+		long value = Long.parseLong(val);
 		boolean done = false;
 		while (!done) {
 			try {
