@@ -1,6 +1,6 @@
 //
 // typica - A client library for Amazon Web Services
-// Copyright (C) 2007,2008,2009 Xerox Corporation
+// Copyright (C) 2007,2008,2009,2010 Xerox Corporation
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,11 +19,16 @@ package com.xerox.amazonws.ec2;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.*;
+import java.util.Calendar;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
-import com.xerox.amazonws.typica.jaxb.*;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -46,10 +51,13 @@ import com.xerox.amazonws.typica.jaxb.BlockDeviceMappingItemType;
 import com.xerox.amazonws.typica.jaxb.BundleInstanceResponse;
 import com.xerox.amazonws.typica.jaxb.BundleInstanceTaskType;
 import com.xerox.amazonws.typica.jaxb.CancelBundleTaskResponse;
+import com.xerox.amazonws.typica.jaxb.CancelSpotInstanceRequestsResponse;
+import com.xerox.amazonws.typica.jaxb.CancelSpotInstanceRequestsResponseSetItemType;
 import com.xerox.amazonws.typica.jaxb.CreateImageResponse;
 import com.xerox.amazonws.typica.jaxb.CreateKeyPairResponse;
 import com.xerox.amazonws.typica.jaxb.CreateSnapshotResponse;
 import com.xerox.amazonws.typica.jaxb.CreateVolumeResponse;
+import com.xerox.amazonws.typica.jaxb.CreateVolumePermissionItemType;
 import com.xerox.amazonws.typica.jaxb.ConfirmProductInstanceResponse;
 import com.xerox.amazonws.typica.jaxb.CreateSecurityGroupResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteKeyPairResponse;
@@ -67,13 +75,16 @@ import com.xerox.amazonws.typica.jaxb.DescribeImagesResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseInfoType;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeInstanceAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesResponseSetItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesOfferingsResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesOfferingsResponseSetItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeSnapshotAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsSetResponseType;
 import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsSetItemResponseType;
+import com.xerox.amazonws.typica.jaxb.DescribeSpotInstanceRequestsResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeVolumesResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeVolumesSetResponseType;
 import com.xerox.amazonws.typica.jaxb.DescribeVolumesSetItemResponseType;
@@ -82,6 +93,7 @@ import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponseInfoType;
 import com.xerox.amazonws.typica.jaxb.DescribeKeyPairsResponseItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeRegionsResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeSecurityGroupsResponse;
+import com.xerox.amazonws.typica.jaxb.DescribeSpotPriceHistoryResponse;
 import com.xerox.amazonws.typica.jaxb.DetachVolumeResponse;
 import com.xerox.amazonws.typica.jaxb.DisassociateAddressResponse;
 import com.xerox.amazonws.typica.jaxb.GetConsoleOutputResponse;
@@ -91,6 +103,47 @@ import com.xerox.amazonws.typica.jaxb.GroupSetType;
 import com.xerox.amazonws.typica.jaxb.InstanceStateChangeSetType;
 import com.xerox.amazonws.typica.jaxb.InstanceStateChangeType;
 import com.xerox.amazonws.typica.jaxb.IpPermissionSetType;
+import com.xerox.amazonws.typica.jaxb.IpPermissionType;
+import com.xerox.amazonws.typica.jaxb.IpRangeItemType;
+import com.xerox.amazonws.typica.jaxb.IpRangeSetType;
+import com.xerox.amazonws.typica.jaxb.LaunchPermissionItemType;
+import com.xerox.amazonws.typica.jaxb.LaunchPermissionListType;
+import com.xerox.amazonws.typica.jaxb.ModifyImageAttributeResponse;
+import com.xerox.amazonws.typica.jaxb.ModifyInstanceAttributeResponse;
+import com.xerox.amazonws.typica.jaxb.ModifySnapshotAttributeResponse;
+import com.xerox.amazonws.typica.jaxb.MonitorInstancesResponseType;
+import com.xerox.amazonws.typica.jaxb.MonitorInstancesResponseSetItemType;
+import com.xerox.amazonws.typica.jaxb.NullableAttributeValueType;
+import com.xerox.amazonws.typica.jaxb.ObjectFactory;
+import com.xerox.amazonws.typica.jaxb.ProductCodeListType;
+import com.xerox.amazonws.typica.jaxb.ProductCodeItemType;
+import com.xerox.amazonws.typica.jaxb.ProductCodesSetType;
+import com.xerox.amazonws.typica.jaxb.ProductCodesSetItemType;
+import com.xerox.amazonws.typica.jaxb.PurchaseReservedInstancesOfferingResponse;
+import com.xerox.amazonws.typica.jaxb.RebootInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.RegionItemType;
+import com.xerox.amazonws.typica.jaxb.RegionSetType;
+import com.xerox.amazonws.typica.jaxb.RegisterImageResponse;
+import com.xerox.amazonws.typica.jaxb.ReleaseAddressResponse;
+import com.xerox.amazonws.typica.jaxb.RequestSpotInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.RevokeSecurityGroupIngressResponse;
+import com.xerox.amazonws.typica.jaxb.ReservationSetType;
+import com.xerox.amazonws.typica.jaxb.ReservationInfoType;
+import com.xerox.amazonws.typica.jaxb.ResetImageAttributeResponse;
+import com.xerox.amazonws.typica.jaxb.ResetInstanceAttributeResponse;
+import com.xerox.amazonws.typica.jaxb.ResetSnapshotAttributeResponse;
+import com.xerox.amazonws.typica.jaxb.RunningInstancesItemType;
+import com.xerox.amazonws.typica.jaxb.RunningInstancesSetType;
+import com.xerox.amazonws.typica.jaxb.RunInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.SecurityGroupSetType;
+import com.xerox.amazonws.typica.jaxb.SecurityGroupItemType;
+import com.xerox.amazonws.typica.jaxb.SpotPriceHistorySetItemType;
+import com.xerox.amazonws.typica.jaxb.SpotInstanceRequestSetItemType;
+import com.xerox.amazonws.typica.jaxb.StartInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.StopInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.TerminateInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.UserIdGroupPairType;
+import com.xerox.amazonws.typica.jaxb.UserIdGroupPairSetType;
 
 /**
  * A Java wrapper for the EC2 web services API
@@ -242,10 +295,24 @@ public class Jec2 extends AWSQueryConnection {
 		if (blockDeviceMappings != null) {
 			for(int i = 0; i < blockDeviceMappings.size(); i++) {
 				BlockDeviceMapping bdm = blockDeviceMappings.get(i);
-				params.put("BlockDeviceMapping." + (i + 1) + ".VirtualName",
-												bdm.getVirtualName());
 				params.put("BlockDeviceMapping." + (i + 1) + ".DeviceName",
 												bdm.getDeviceName());
+				if (bdm.getVirtualName() != null) {
+					params.put("BlockDeviceMapping." + (i + 1) + ".VirtualName",
+												bdm.getVirtualName());
+				}
+				else {
+					if (bdm.getSnapshotId() != null) {
+						params.put("BlockDeviceMapping." + (i + 1) + ".Ebs.SnapshotId",
+												bdm.getSnapshotId());
+					}
+					if (bdm.getVolumeSize() > 0) {
+						params.put("BlockDeviceMapping." + (i + 1) + ".Ebs.VolumeSize",
+												""+bdm.getVolumeSize());
+					}
+					params.put("BlockDeviceMapping." + (i + 1) + ".Ebs.DeleteOnTermination",
+										bdm.isDeleteOnTerminate()?"true":"false");
+				}
 			}
 		}
 		GetMethod method = new GetMethod();
@@ -566,36 +633,9 @@ public class Jec2 extends AWSQueryConnection {
 			RunInstancesResponse response =
 					makeRequestInt(method, "RunInstances", params, RunInstancesResponse.class);
 			ReservationDescription res = new ReservationDescription(response.getRequestId(),
-															response.getOwnerId(),
-															response.getReservationId());
-			GroupSetType grp_set = response.getGroupSet();
-			Iterator groups_iter = grp_set.getItems().iterator();
-			while (groups_iter.hasNext()) {
-				GroupItemType rsp_item = (GroupItemType) groups_iter.next();
-				res.addGroup(rsp_item.getGroupId());
-			}
-			RunningInstancesSetType set = response.getInstancesSet();
-			Iterator instances_iter = set.getItems().iterator();
-			while (instances_iter.hasNext()) {
-				RunningInstancesItemType rsp_item = (RunningInstancesItemType) instances_iter
-													.next();
-				res.addInstance(rsp_item.getImageId(),
-								rsp_item.getInstanceId(),
-								rsp_item.getPrivateDnsName(),
-								rsp_item.getDnsName(),
-								rsp_item.getInstanceState(),
-								rsp_item.getReason(),
-								rsp_item.getKeyName(),
-								rsp_item.getLaunchTime().toGregorianCalendar(),
-								InstanceType.getTypeFromString(rsp_item.getInstanceType()),
-								rsp_item.getPlacement().getAvailabilityZone(),
-								rsp_item.getKernelId(), rsp_item.getRamdiskId(),
-								rsp_item.getPlatform(),
-								rsp_item.getMonitoring().getState().equals("true"),
-								rsp_item.getSubnetId(),
-								rsp_item.getPrivateIpAddress(),
-								rsp_item.getIpAddress());
-			}
+												response.getOwnerId(), response.getReservationId(),
+												response.getRequesterId(), response.getGroupSet(),
+												response.getInstancesSet());
 			return res;
 		} finally {
 			method.releaseConnection();
@@ -786,32 +826,10 @@ public class Jec2 extends AWSQueryConnection {
 			List<ReservationDescription> result = new ArrayList<ReservationDescription>();
 			ReservationSetType res_set = response.getReservationSet();
             for (ReservationInfoType item : res_set.getItems()) {
-                ReservationDescription res = new ReservationDescription(response.getRequestId(),
-								item.getOwnerId(),
-								item.getReservationId());
-                GroupSetType grp_set = item.getGroupSet();
-                for (GroupItemType rsp_item : grp_set.getItems()) {
-                    res.addGroup(rsp_item.getGroupId());
-                }
-                RunningInstancesSetType set = item.getInstancesSet();
-                for (RunningInstancesItemType rsp_item : set.getItems()) {
-                    res.addInstance(rsp_item.getImageId(),
-                            rsp_item.getInstanceId(),
-                            rsp_item.getPrivateDnsName(),
-                            rsp_item.getDnsName(),
-                            rsp_item.getInstanceState(),
-                            rsp_item.getReason(),
-                            rsp_item.getKeyName(),
-                            rsp_item.getLaunchTime().toGregorianCalendar(),
-                            InstanceType.getTypeFromString(rsp_item.getInstanceType()),
-                            rsp_item.getPlacement().getAvailabilityZone(),
-                            rsp_item.getKernelId(), rsp_item.getRamdiskId(),
-							rsp_item.getPlatform(),
-							rsp_item.getMonitoring().getState().equals("true"),
-							rsp_item.getSubnetId(),
-							rsp_item.getPrivateIpAddress(),
-							rsp_item.getIpAddress());
-                }
+				ReservationDescription res = new ReservationDescription(response.getRequestId(),
+												item.getOwnerId(), item.getReservationId(),
+												item.getRequesterId(), item.getGroupSet(),
+												item.getInstancesSet());
                 result.add(res);
             }
 			return result;
@@ -850,6 +868,78 @@ public class Jec2 extends AWSQueryConnection {
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not reboot instances. No reason given.");
 			}
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Changes one of a variety of settings for a instance.
+	 * 
+	 * @param instanceId the instance you are addressing
+	 * @param attribute for now, should be (instanceType|kernel|ramdisk|userData|disableApiTermination|instanceInitatedShutdownBehavior|rootDeviceName|blockDeviceMapping)
+	 * @param value value of the attribute
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public void modifyInstanceAttribute(String instanceId, String attribute, String value) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("InstanceId", instanceId);
+		params.put("Attribute", attribute);
+		params.put("Value", value);
+		GetMethod method = new GetMethod();
+		try {
+			ModifyInstanceAttributeResponse response =
+					makeRequestInt(method, "ModifyInstanceAttribute", params, ModifyInstanceAttributeResponse.class);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not modify instance attribute : "+attribute+". No reason given.");
+			}
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Resets an attribute on an instance.
+	 *
+	 * @param instanceId The instance to reset the attribute on.
+	 * @param attribute The attribute type to reset (kernel|ramdisk).
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public void resetInstanceAttribute(String instanceId, String attribute) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("InstanceId", instanceId);
+		params.put("Attribute", attribute);
+		GetMethod method = new GetMethod();
+		try {
+			ResetInstanceAttributeResponse response =
+					makeRequestInt(method, "ResetInstanceAttribute", params, ResetInstanceAttributeResponse.class);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not reset instance attribute. No reason given.");
+			}
+		} finally {
+			method.releaseConnection();
+		}
+	}
+	
+	/**
+	 * Describes an attribute of an instance.
+	 *
+	 * @param instanceId The instance for which the attribute is described.
+	 * @param attribute The attribute to describe (createVolumePermission).
+	 * @return An object containing the instanceId and a list of list attribute item types and values.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public DescribeInstanceAttributeResult describeInstanceAttribute(String instanceId,
+													String attribute) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("InstanceId", instanceId);
+		params.put("Attribute", attribute);
+		GetMethod method = new GetMethod();
+		try {
+			DescribeInstanceAttributeResponse response =
+					makeRequestInt(method, "DescribeInstanceAttribute", params, DescribeInstanceAttributeResponse.class);
+			
+			return new DescribeInstanceAttributeResult(response);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1731,7 +1821,8 @@ public class Jec2 extends AWSQueryConnection {
 								response.getStatus(),
 								response.getStartTime().toGregorianCalendar(),
 								response.getProgress(), response.getOwnerId(),
-								response.getVolumeSize(), response.getDescription());
+								response.getVolumeSize(), response.getDescription(),
+								null);
 		} finally {
 			method.releaseConnection();
 		}
@@ -1826,7 +1917,8 @@ public class Jec2 extends AWSQueryConnection {
 									item.getStatus(),
 									item.getStartTime().toGregorianCalendar(),
 									item.getProgress(), item.getOwnerId(),
-									item.getVolumeSize(), item.getDescription());
+									item.getVolumeSize(), item.getDescription(),
+									item.getOwnerAlias());
 				result.add(vol);
 			}
 			return result;
@@ -1865,6 +1957,61 @@ public class Jec2 extends AWSQueryConnection {
 			if (!response.isReturn()) {
 				throw new EC2Exception("Could not modify snapshot attribute : "+attribute+". No reason given.");
 			}
+		} finally {
+			method.releaseConnection();
+		}
+	}
+
+	/**
+	 * Resets an attribute on a snapshot.
+	 *
+	 * @param snapshotId The snapshot to reset the attribute on.
+	 * @param attribute The attribute to reset (currently just "createVolumePermission").
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public void resetSnapshotAttribute(String snapshotId, String attribute) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("SnapshotId", snapshotId);
+		params.put("Attribute", attribute);
+		GetMethod method = new GetMethod();
+		try {
+			ResetSnapshotAttributeResponse response =
+					makeRequestInt(method, "ResetSnapshotAttribute", params, ResetSnapshotAttributeResponse.class);
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not reset snapshot attribute. No reason given.");
+			}
+		} finally {
+			method.releaseConnection();
+		}
+	}
+	
+	/**
+	 * Describes an attribute of a snapshot.
+	 *
+	 * @param snapshotId The snapshot for which the attribute is described.
+	 * @param attribute The attribute to describe (createVolumePermission).
+	 * @return An object containing the snapshotId and a list of list attribute item types and values.
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public DescribeSnapshotAttributeResult describeSnapshotAttribute(String snapshotId,
+													String attribute) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("SnapshotId", snapshotId);
+		params.put("Attribute", attribute);
+		GetMethod method = new GetMethod();
+		try {
+			DescribeSnapshotAttributeResponse response =
+					makeRequestInt(method, "DescribeSnapshotAttribute", params, DescribeSnapshotAttributeResponse.class);
+			
+			DescribeSnapshotAttributeResult ret = new DescribeSnapshotAttributeResult(response.getSnapshotId());
+			List<CreateVolumePermissionItemType> list = response.getCreateVolumePermission().getItems();
+			if (list != null) {
+				for (CreateVolumePermissionItemType item : list) {
+					ret.addCreateVolumePermission(item.getUserId(), item.getGroup());
+				}
+			}
+
+			return ret;
 		} finally {
 			method.releaseConnection();
 		}

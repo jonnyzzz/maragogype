@@ -68,6 +68,8 @@ public class LaunchConfiguration {
 
 	private boolean addressingType = true;
 
+	private String additionalInfo;
+
 	/**
 	 * Launches the given AMI one time. The min and max values are '1'.
 	 *
@@ -232,6 +234,20 @@ public class LaunchConfiguration {
 	}
 
 	/**
+	 * @return the additionalInfo
+	 */
+	public String getAdditionalInfo() {
+		return this.additionalInfo;
+	}
+
+	/**
+	 * @param additionalInfo the additionalInfo to set
+	 */
+	public void setAdditionalInfo(String additionalInfo) {
+		this.additionalInfo = additionalInfo;
+	}
+
+	/**
 	 * @return the kernelId
 	 */
 	public String getKernelId() {
@@ -312,8 +328,7 @@ public class LaunchConfiguration {
 
         byte[] userData = getUserData();
         if (userData != null && userData.length > 0) {
-            params.put(prefix + "UserData",
-            new String(Base64.encodeBase64(userData)));
+            params.put(prefix + "LaunchSpecification.UserData", new String(Base64.encodeBase64(userData)));
         }
         params.put(prefix + "AddressingType", isPublicAddressing()?"public":"private");
         String keyName = getKeyName();
@@ -323,8 +338,11 @@ public class LaunchConfiguration {
 
         if (getSecurityGroup() != null) {
             for(int i = 0; i < getSecurityGroup().size(); i++) {
-                params.put(prefix + "SecurityGroup." + (i + 1), getSecurityGroup().get(i));
+                params.put(prefix + "LaunchSpecification.SecurityGroup." + (i + 1), getSecurityGroup().get(i));
             }
+        }
+        if (getAdditionalInfo() != null && !getAdditionalInfo().trim().equals("")) {
+            params.put(prefix + "AdditionalInfo", getAdditionalInfo());
         }
         params.put(prefix + "InstanceType", getInstanceType().getTypeId());
         if (getAvailabilityZone() != null && !getAvailabilityZone().trim().equals("")) {
@@ -336,15 +354,29 @@ public class LaunchConfiguration {
         if (getRamdiskId() != null && !getRamdiskId().trim().equals("")) {
             params.put(prefix + "RamdiskId", getRamdiskId());
         }
-        if (getBlockDevicemappings() != null) {
-            for(int i = 0; i < getBlockDevicemappings().size(); i++) {
-                BlockDeviceMapping bdm = getBlockDevicemappings().get(i);
-                params.put(prefix + "BlockDeviceMapping." + (i + 1) + ".VirtualName",
-                bdm.getVirtualName());
-                params.put(prefix + "BlockDeviceMapping." + (i + 1) + ".DeviceName",
-                bdm.getDeviceName());
-            }
-        }
+		if (blockDeviceMappings != null) {
+			for(int i = 0; i < blockDeviceMappings.size(); i++) {
+				BlockDeviceMapping bdm = blockDeviceMappings.get(i);
+				params.put("BlockDeviceMapping." + (i + 1) + ".DeviceName",
+												bdm.getDeviceName());
+				if (bdm.getVirtualName() != null) {
+					params.put("BlockDeviceMapping." + (i + 1) + ".VirtualName",
+												bdm.getVirtualName());
+				}
+				else {
+					if (bdm.getSnapshotId() != null) {
+						params.put("BlockDeviceMapping." + (i + 1) + ".Ebs.SnapshotId",
+												bdm.getSnapshotId());
+					}
+					if (bdm.getVolumeSize() > 0) {
+						params.put("BlockDeviceMapping." + (i + 1) + ".Ebs.VolumeSize",
+												""+bdm.getVolumeSize());
+					}
+					params.put("BlockDeviceMapping." + (i + 1) + ".Ebs.DeleteOnTermination",
+										bdm.isDeleteOnTerminate()?"true":"false");
+				}
+			}
+		}
         if (isMonitoring()) {
             params.put(prefix + "Monitoring.Enabled", "true");
         }

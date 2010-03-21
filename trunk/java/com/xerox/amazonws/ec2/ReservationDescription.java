@@ -19,9 +19,18 @@ package com.xerox.amazonws.ec2;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 
+import com.xerox.amazonws.typica.jaxb.GroupItemType;
+import com.xerox.amazonws.typica.jaxb.GroupSetType;
+import com.xerox.amazonws.typica.jaxb.InstanceBlockDeviceMappingItemType;
+import com.xerox.amazonws.typica.jaxb.InstanceBlockDeviceMappingResponseItemType;
 import com.xerox.amazonws.typica.jaxb.InstanceStateType;
+import com.xerox.amazonws.typica.jaxb.ProductCodesSetItemType;
+import com.xerox.amazonws.typica.jaxb.ProductCodeType;
+import com.xerox.amazonws.typica.jaxb.RunningInstancesItemType;
+import com.xerox.amazonws.typica.jaxb.RunningInstancesSetType;
 
 /**
  * An instance of this class represents an EC2 instance slot reservation.
@@ -35,13 +44,30 @@ public class ReservationDescription {
 	private String requestId;
 	private String owner;
 	private String resId;
+	private String requesterId;
 	private List<Instance> instances = new ArrayList<Instance>();
 	private List<String> groups = new ArrayList<String>();
 
-	public ReservationDescription(String requestId, String owner, String resId) {
+	public ReservationDescription(String requestId, String owner, String resId, String requesterId) {
 		this.requestId = requestId;
 		this.owner = owner;
 		this.resId = resId;
+		this.requesterId = requesterId;
+	}
+
+	ReservationDescription(String requestId, String ownerId, String reservationId, String requesterId,
+					GroupSetType groupSet, RunningInstancesSetType instSet) {
+		this(requestId, ownerId, reservationId, requesterId);
+		Iterator groups_iter = groupSet.getItems().iterator();
+		while (groups_iter.hasNext()) {
+			GroupItemType rsp_item = (GroupItemType) groups_iter.next();
+			groups.add(rsp_item.getGroupId());
+		}
+		Iterator instances_iter = instSet.getItems().iterator();
+		while (instances_iter.hasNext()) {
+			RunningInstancesItemType rsp_item = (RunningInstancesItemType) instances_iter.next();
+			instances.add(new Instance(rsp_item));
+		}
 	}
 
 	public String getRequestId() {
@@ -56,15 +82,27 @@ public class ReservationDescription {
 		return resId;
 	}
 
+	public String getRequesterId() {
+		return requesterId;
+	}
+
 	public Instance addInstance(String imageId, String instanceId,
 			String privateDnsName, String dnsName, InstanceStateType state,
-			String reason, String keyName, Calendar launchTime, InstanceType instanceType,
+			String reason, String keyName, String launchIndex, List<String> productCodes,
+			Calendar launchTime, InstanceType instanceType,
 			String availabilityZone, String kernelId, String ramdiskId, String platform,
-			boolean monitoring, String subnetId, String privateIpAddress, String ipAddress) {
+			boolean monitoring, String subnetId, String privateIpAddress, String ipAddress,
+			String architecture, String rootDeviceType, String rootDeviceName,
+			List<BlockDeviceMapping> blockDeviceMapping, String instanceLifecycle,
+			String spotInstanceRequestId) {
 		Instance instance = new Instance(imageId, instanceId, privateDnsName,
-				dnsName, state.getName(), state.getCode(), reason, keyName,
-				instanceType, launchTime, availabilityZone, kernelId, ramdiskId, platform,
-				monitoring, subnetId, privateIpAddress, ipAddress);
+				dnsName, state.getName(), ""+state.getCode(), reason, 
+				keyName, launchIndex, productCodes,
+				instanceType, launchTime,
+				availabilityZone, kernelId, ramdiskId, platform,
+				monitoring, subnetId, privateIpAddress, ipAddress,
+				architecture, rootDeviceType, rootDeviceName,
+				blockDeviceMapping, instanceLifecycle, spotInstanceRequestId);
 		instances.add(instance);
 		return instance;
 	}
@@ -93,6 +131,8 @@ public class ReservationDescription {
 		private String dnsName;
 		private String reason;
 		private String keyName;
+		private String launchIndex;
+		private List<String> productCodes;
 		private InstanceType instanceType;
 		private Calendar launchTime;
 		private String availabilityZone;
@@ -113,17 +153,27 @@ public class ReservationDescription {
 		 * </ol>
 		 */
 		private String state;
-		private int stateCode;
+		private String stateCode;
 		private boolean monitoring;
 		private String subnetId;
 		private String privateIpAddress;
 		private String ipAddress;
+		private String architecture;
+		private String rootDeviceType;
+		private String rootDeviceName;
+		private List<BlockDeviceMapping> blockDeviceMapping;
+		private String instanceLifecycle;
+		private String spotInstanceRequestId;
 
 		public Instance(String imageId, String instanceId, String privateDnsName,
-				String dnsName, String stateName, int stateCode, String reason,
-				String keyName, InstanceType instanceType, Calendar launchTime,
+				String dnsName, String stateName, String stateCode, String reason,
+				String keyName, String launchIndex, List<String> productCodes,
+				InstanceType instanceType, Calendar launchTime,
 				String availabilityZone, String kernelId, String ramdiskId, String platform,
-				boolean monitoring, String subnetId, String privateIpAddress, String ipAddress) {
+				boolean monitoring, String subnetId, String privateIpAddress, String ipAddress,
+				String architecture, String rootDeviceType, String rootDeviceName,
+				List<BlockDeviceMapping> blockDeviceMapping, String instanceLifecycle,
+				String spotInstanceRequestId) {
 			this.imageId = imageId;
 			this.instanceId = instanceId;
 			this.privateDnsName = privateDnsName;
@@ -132,6 +182,8 @@ public class ReservationDescription {
 			this.stateCode = stateCode;
 			this.reason = reason;
 			this.keyName = keyName;
+			this.launchIndex = launchIndex;
+			this.productCodes = productCodes;
 			this.instanceType = instanceType;
 			this.launchTime = launchTime;
 			this.availabilityZone = availabilityZone;
@@ -142,6 +194,57 @@ public class ReservationDescription {
 			this.subnetId = subnetId;
 			this.privateIpAddress = privateIpAddress;
 			this.ipAddress = ipAddress;
+			this.architecture = architecture;
+			this.rootDeviceType = rootDeviceType;
+			this.rootDeviceName = rootDeviceName;
+			this.blockDeviceMapping = blockDeviceMapping;
+			this.instanceLifecycle = instanceLifecycle;
+			this.spotInstanceRequestId = spotInstanceRequestId;
+		}
+
+		Instance(RunningInstancesItemType rsp_item) {
+			this.imageId = rsp_item.getImageId();
+			this.instanceId = rsp_item.getInstanceId();
+			this.privateDnsName = rsp_item.getPrivateDnsName();
+			this.dnsName = rsp_item.getDnsName();
+			this.state = rsp_item.getInstanceState().getName();
+			this.stateCode = ""+rsp_item.getInstanceState().getCode();
+			if (rsp_item.getStateReason() != null) {
+				this.reason = rsp_item.getStateReason().getMessage();
+			}
+			else {
+				this.reason = "";
+			}
+			this.keyName = rsp_item.getKeyName();
+			this.launchIndex = rsp_item.getAmiLaunchIndex();
+			ArrayList<String> codes = new ArrayList<String>();
+			for (ProductCodesSetItemType type : rsp_item.getProductCodes().getItems()) {
+				codes.add(type.getProductCode());
+			}
+			this.productCodes = codes;
+			this.instanceType = InstanceType.getTypeFromString(rsp_item.getInstanceType());
+			this.launchTime = rsp_item.getLaunchTime().toGregorianCalendar();
+			this.availabilityZone = rsp_item.getPlacement().getAvailabilityZone();
+			this.kernelId = rsp_item.getKernelId();
+			this.ramdiskId = rsp_item.getRamdiskId();
+			this.platform = rsp_item.getPlatform();
+			this.monitoring = rsp_item.getMonitoring().getState().equals("enabled");
+			this.subnetId = rsp_item.getSubnetId();
+			this.privateIpAddress = rsp_item.getPrivateIpAddress();
+			this.ipAddress = rsp_item.getIpAddress();
+			this.architecture = rsp_item.getArchitecture();
+			this.rootDeviceType = rsp_item.getRootDeviceType();
+			this.rootDeviceName = rsp_item.getRootDeviceName();
+			this.blockDeviceMapping = new ArrayList<BlockDeviceMapping>();
+			List<InstanceBlockDeviceMappingResponseItemType> bdmSet = rsp_item.getBlockDeviceMapping().getItems();
+			if (bdmSet != null) {
+				for (InstanceBlockDeviceMappingResponseItemType mapping : bdmSet) {
+//					if (mapping.getVirtualName())
+//					this.blockDeviceMapping.add(new BlockDeviceMapping(mapping.getVirtualName(), mapping.getDeviceName()));
+				}
+			}
+			this.instanceLifecycle = rsp_item.getInstanceLifecycle();
+			this.spotInstanceRequestId = rsp_item.getSpotInstanceRequestId();
 		}
 
 		public String getImageId() {
@@ -168,6 +271,14 @@ public class ReservationDescription {
 			return keyName;
 		}
 
+		public String getLaunchIndex() {
+			return launchIndex;
+		}
+
+		public List<String> getProductCodes() {
+			return productCodes;
+		}
+
 		public String getState() {
 			return state;
 		}
@@ -188,7 +299,7 @@ public class ReservationDescription {
 			return this.state.equals("terminated");
 		}
 
-		public int getStateCode() {
+		public String getStateCode() {
 			return stateCode;
 		}
 
@@ -230,6 +341,30 @@ public class ReservationDescription {
 
 		public String getIpAddress() {
 			return ipAddress;
+		}
+
+		public String getArchitecture() {
+			return architecture;
+		}
+
+		public String getRootDeviceType() {
+			return rootDeviceType;
+		}
+
+		public String getRootDeviceName() {
+			return rootDeviceName;
+		}
+
+		public List<BlockDeviceMapping> getBlockDeviceMappings() {
+			return blockDeviceMapping;
+		}
+
+		public String getInstanceLifecycle() {
+			return instanceLifecycle;
+		}
+
+		public String getSpotInstanceRequestId() {
+			return spotInstanceRequestId;
 		}
 
 		public String toString() {

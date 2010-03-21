@@ -23,10 +23,21 @@ package com.xerox.amazonws.ec2;
 public class BlockDeviceMapping {
 	private String virtualName;
 	private String deviceName;
+	private String snapshotId;
+	private int volumeSize;	// GB
+	private boolean deleteOnTerminate;
 
 	public BlockDeviceMapping(String virtualName, String deviceName) {
 		this.virtualName = virtualName;
 		this.deviceName = deviceName;
+	}
+
+	public BlockDeviceMapping(String deviceName, String snapshotId,
+								int volumeSize, boolean deleteOnTerminate) {
+		this.deviceName = deviceName;
+		this.snapshotId = snapshotId;
+		this.volumeSize = volumeSize;
+		this.deleteOnTerminate = deleteOnTerminate;
 	}
 
 	public String getVirtualName() {
@@ -37,7 +48,19 @@ public class BlockDeviceMapping {
 		return deviceName;
 	}
 
+	public String getSnapshotId() {
+		return snapshotId;
+	}
+
+	public int getVolumeSize() {
+		return volumeSize;
+	}
+
+	public boolean isDeleteOnTerminate() {
+		return deleteOnTerminate;
+	}
+
 	public String toString() {
-		return "BlockDeviceMapping[virtualName=" + virtualName + ", deviceName=" + deviceName + "]";
+		return "BlockDeviceMapping[virtualName=" + virtualName + ", deviceName=" + deviceName + ", snapshotId=" + snapshotId + ", volumeSize=" + volumeSize + ", delOnTerm=" + deleteOnTerminate + "]";
 	}
 }

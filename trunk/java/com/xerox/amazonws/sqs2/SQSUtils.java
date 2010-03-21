@@ -93,6 +93,8 @@ public class SQSUtils {
 	 * Looks for a queue by name: if found, return a MessageQuueue object for it.
 	 * Else, return null.
 	 *
+	 * @deprecated This method was for compatibility with the old AWS SQS client
+	 *             (@see getQueueOrElse)
 	 * @param service the queue service we're using
 	 * @param msgQueueName the name of the message queue to find, or create
 	 * @return object representing the message queue
