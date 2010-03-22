@@ -22,6 +22,7 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 
+import com.xerox.amazonws.typica.jaxb.EbsInstanceBlockDeviceMappingResponseType;
 import com.xerox.amazonws.typica.jaxb.GroupItemType;
 import com.xerox.amazonws.typica.jaxb.GroupSetType;
 import com.xerox.amazonws.typica.jaxb.InstanceBlockDeviceMappingItemType;
@@ -93,7 +94,7 @@ public class ReservationDescription {
 			String availabilityZone, String kernelId, String ramdiskId, String platform,
 			boolean monitoring, String subnetId, String privateIpAddress, String ipAddress,
 			String architecture, String rootDeviceType, String rootDeviceName,
-			List<BlockDeviceMapping> blockDeviceMapping, String instanceLifecycle,
+			List<InstanceBlockDeviceMapping> blockDeviceMapping, String instanceLifecycle,
 			String spotInstanceRequestId) {
 		Instance instance = new Instance(imageId, instanceId, privateDnsName,
 				dnsName, state.getName(), ""+state.getCode(), reason, 
@@ -161,7 +162,7 @@ public class ReservationDescription {
 		private String architecture;
 		private String rootDeviceType;
 		private String rootDeviceName;
-		private List<BlockDeviceMapping> blockDeviceMapping;
+		private List<InstanceBlockDeviceMapping> blockDeviceMapping;
 		private String instanceLifecycle;
 		private String spotInstanceRequestId;
 
@@ -172,7 +173,7 @@ public class ReservationDescription {
 				String availabilityZone, String kernelId, String ramdiskId, String platform,
 				boolean monitoring, String subnetId, String privateIpAddress, String ipAddress,
 				String architecture, String rootDeviceType, String rootDeviceName,
-				List<BlockDeviceMapping> blockDeviceMapping, String instanceLifecycle,
+				List<InstanceBlockDeviceMapping> blockDeviceMapping, String instanceLifecycle,
 				String spotInstanceRequestId) {
 			this.imageId = imageId;
 			this.instanceId = instanceId;
@@ -235,12 +236,14 @@ public class ReservationDescription {
 			this.architecture = rsp_item.getArchitecture();
 			this.rootDeviceType = rsp_item.getRootDeviceType();
 			this.rootDeviceName = rsp_item.getRootDeviceName();
-			this.blockDeviceMapping = new ArrayList<BlockDeviceMapping>();
+			this.blockDeviceMapping = new ArrayList<InstanceBlockDeviceMapping>();
 			List<InstanceBlockDeviceMappingResponseItemType> bdmSet = rsp_item.getBlockDeviceMapping().getItems();
 			if (bdmSet != null) {
 				for (InstanceBlockDeviceMappingResponseItemType mapping : bdmSet) {
-//					if (mapping.getVirtualName())
-//					this.blockDeviceMapping.add(new BlockDeviceMapping(mapping.getVirtualName(), mapping.getDeviceName()));
+					EbsInstanceBlockDeviceMappingResponseType ebs = mapping.getEbs();
+					this.blockDeviceMapping.add(new InstanceBlockDeviceMapping(mapping.getDeviceName(), ebs.getVolumeId(),
+									ebs.getStatus(), ebs.getAttachTime().toGregorianCalendar(),
+									ebs.isDeleteOnTermination()));
 				}
 			}
 			this.instanceLifecycle = rsp_item.getInstanceLifecycle();
@@ -355,7 +358,7 @@ public class ReservationDescription {
 			return rootDeviceName;
 		}
 
-		public List<BlockDeviceMapping> getBlockDeviceMappings() {
+		public List<InstanceBlockDeviceMapping> getBlockDeviceMappings() {
 			return blockDeviceMapping;
 		}
 
@@ -370,7 +373,7 @@ public class ReservationDescription {
 		public String toString() {
 			return "[img=" + this.imageId + ", instance=" + this.instanceId
 					+ ", privateDns=" + this.privateDnsName
-					+ ", dns=" + this.dnsName + ", loc=" + ", state="
+					+ ", dns=" + this.dnsName + ", loc=" + this.availabilityZone + ", state="
 					+ this.state + "(" + this.stateCode + ") reason="
 					+ this.reason + ", monitoring=" + this.monitoring
 					+ ", subnetId=" + this.subnetId + "]";

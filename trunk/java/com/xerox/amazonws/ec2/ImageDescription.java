@@ -38,10 +38,20 @@ public class ImageDescription {
 	private String ramdiskId;
 	private String platform;
 
+	private String reason;
+	private String imageOwnerAlias;
+	private String name;
+	private String description;
+	private String rootDeviceType;
+	private String rootDeviceName;
+	private List<BlockDeviceMapping> blockDeviceMapping;
+
 	public ImageDescription(String id, String loc, String owner,
 			String state, Boolean isPublic, List<String> productCodes,
 			String architecture, String imageType, String kernelId, String ramdiskId,
-			String platform) {
+			String platform, String reason, String imageOwnerAlias, String name,
+			String description, String rootDeviceType, String rootDeviceName,
+			List<BlockDeviceMapping> blockDeviceMapping) {
 		this.imageId = id;
 		this.imageLocation = loc;
 		this.imageOwnerId = owner;
@@ -53,6 +63,13 @@ public class ImageDescription {
 		this.kernelId = kernelId;
 		this.ramdiskId = ramdiskId;
 		this.platform = platform;
+		this.reason = reason;
+		this.imageOwnerAlias = imageOwnerAlias;
+		this.name = name;
+		this.description = description;
+		this.rootDeviceType = rootDeviceType;
+		this.rootDeviceName = rootDeviceName;
+		this.blockDeviceMapping = blockDeviceMapping;
 	}
 
 	public String getImageId() {
@@ -99,12 +116,43 @@ public class ImageDescription {
 		return platform;
 	}
 
+	public String getReason() {
+		return reason;
+	}
+
+	public String getImageOwnerAlias() {
+		return imageOwnerAlias;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public String getRootDeviceType() {
+		return rootDeviceType;
+	}
+
+	public String getRootDeviceName() {
+		return rootDeviceName;
+	}
+
+	public List<BlockDeviceMapping> getBlockDeviceMapping() {
+		return blockDeviceMapping;
+	}
+
 	public String toString() {
 		return "Image[ID=" + imageId + ", Loc=" + imageLocation + ", own="
 				+ imageOwnerId + ", state=" + imageState + " isPublic="
 				+ isPublic + ", arch=" + architecture + ", imgTyp="
 				+ imageType + ", kernelId=" + kernelId + ", ramdiskId="
-				+ ramdiskId + ", platform=" + platform + "]";
+				+ ramdiskId + ", platform=" + platform + ", reason="
+				+ reason + ", imgOwnrAlias=" + imageOwnerAlias + ", name="
+				+ name + ", descrip=" + description + ", rootDevType="
+				+ rootDeviceType + ", rootDevName=" + rootDeviceName + "]";
 	}
 }
 

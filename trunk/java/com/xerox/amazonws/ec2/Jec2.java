@@ -96,6 +96,7 @@ import com.xerox.amazonws.typica.jaxb.DescribeSecurityGroupsResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeSpotPriceHistoryResponse;
 import com.xerox.amazonws.typica.jaxb.DetachVolumeResponse;
 import com.xerox.amazonws.typica.jaxb.DisassociateAddressResponse;
+import com.xerox.amazonws.typica.jaxb.EbsBlockDeviceType;
 import com.xerox.amazonws.typica.jaxb.GetConsoleOutputResponse;
 import com.xerox.amazonws.typica.jaxb.GetPasswordDataResponse;
 import com.xerox.amazonws.typica.jaxb.GroupItemType;
@@ -446,11 +447,35 @@ public class Jec2 extends AWSQueryConnection {
 						codes.add(code.getProductCode());
 					}
 				}
+				ArrayList<BlockDeviceMapping> bdm = new ArrayList<BlockDeviceMapping>();
+				BlockDeviceMappingType bdmType = item.getBlockDeviceMapping();
+				if (bdmType != null) {
+					for (BlockDeviceMappingItemType mapping : bdmType.getItems()) {
+						if (mapping.getVirtualName() != null) {
+							bdm.add(new BlockDeviceMapping(mapping.getVirtualName(), mapping.getDeviceName()));
+						}
+						else if (mapping.getEbs() != null) {
+							EbsBlockDeviceType ebs = mapping.getEbs();
+							bdm.add(new BlockDeviceMapping(mapping.getDeviceName(), ebs.getSnapshotId(),
+											ebs.getVolumeSize(), ebs.isDeleteOnTermination()));
+						}
+						else {
+							bdm.add(new BlockDeviceMapping("", mapping.getDeviceName()));
+						}
+					}
+				}
+				String reason = "";
+				if (item.getStateReason() != null) {
+					reason = item.getStateReason().getMessage();
+				}
 				result.add(new ImageDescription(item.getImageId(),
 						item.getImageLocation(), item.getImageOwnerId(),
 						item.getImageState(), item.isIsPublic(), codes,
 						item.getArchitecture(), item.getImageType(),
-						item.getKernelId(), item.getRamdiskId(), item.getPlatform()));
+						item.getKernelId(), item.getRamdiskId(), item.getPlatform(),
+						reason, item.getImageOwnerAlias(),
+						item.getName(), item.getDescription(), item.getRootDeviceType(),
+						item.getRootDeviceName(), bdm));
 			}
 			return result;
 		} finally {
