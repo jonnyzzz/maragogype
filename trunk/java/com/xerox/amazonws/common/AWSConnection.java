@@ -60,9 +60,10 @@ public abstract class AWSConnection {
 	private int sigVersion = 2;
 	protected Map <String, List<String>> headers;
 	// used for caching last used Mac obj.. to save time 99.99% of the time
-	private static Map<String, Mac> macMap = new HashMap<String, Mac>();
-	private static String lastSecretKey;
-	private static Object macSync = new Object();
+	// no longer static. was causing bottleneck for multi-core systems.
+	private Map<String, Mac> macMap = new HashMap<String, Mac>();
+	private String lastSecretKey;
+	private Object macSync = new Object();
 
     /**
 	 * Initializes the queue service with your AWS login information.
