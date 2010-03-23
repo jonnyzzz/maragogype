@@ -56,6 +56,7 @@ import com.xerox.amazonws.typica.jaxb.CancelSpotInstanceRequestsResponseSetItemT
 import com.xerox.amazonws.typica.jaxb.CreateImageResponse;
 import com.xerox.amazonws.typica.jaxb.CreateKeyPairResponse;
 import com.xerox.amazonws.typica.jaxb.CreateSnapshotResponse;
+import com.xerox.amazonws.typica.jaxb.CreateSpotDatafeedSubscriptionResponse;
 import com.xerox.amazonws.typica.jaxb.CreateVolumeResponse;
 import com.xerox.amazonws.typica.jaxb.CreateVolumePermissionItemType;
 import com.xerox.amazonws.typica.jaxb.ConfirmProductInstanceResponse;
@@ -63,6 +64,7 @@ import com.xerox.amazonws.typica.jaxb.CreateSecurityGroupResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteKeyPairResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteSecurityGroupResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteSnapshotResponse;
+import com.xerox.amazonws.typica.jaxb.DeleteSpotDatafeedSubscriptionResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteVolumeResponse;
 import com.xerox.amazonws.typica.jaxb.DeregisterImageResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeAddressesResponse;
@@ -84,6 +86,7 @@ import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeSnapshotAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsSetResponseType;
 import com.xerox.amazonws.typica.jaxb.DescribeSnapshotsSetItemResponseType;
+import com.xerox.amazonws.typica.jaxb.DescribeSpotDatafeedSubscriptionResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeSpotInstanceRequestsResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeVolumesResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeVolumesSetResponseType;
@@ -2457,6 +2460,56 @@ public class Jec2 extends AWSQueryConnection {
             method.releaseConnection();
         }
     }
+
+	public SpotDatafeedSubscription createSpotDatafeedSubscription(String bucket, String prefix) throws EC2Exception {
+        Map<String, String> params = new HashMap<String, String>();
+
+        params.put("Bucket", bucket);
+		if (prefix != null && !prefix.trim().equals("")) {
+        	params.put("Prefix", prefix);
+		}
+
+        GetMethod method = new GetMethod();
+        try {
+            CreateSpotDatafeedSubscriptionResponse response =
+                    makeRequestInt(method, "CreateSpotDatafeedSubscription", params, CreateSpotDatafeedSubscriptionResponse.class);
+
+
+            return new SpotDatafeedSubscription(response.getRequestId(), response.getSpotDatafeedSubscription());
+        } finally {
+            method.releaseConnection();
+        }
+	}
+
+	public SpotDatafeedSubscription describeSpotDatafeedSubscription() throws EC2Exception {
+        Map<String, String> params = new HashMap<String, String>();
+        GetMethod method = new GetMethod();
+        try {
+            DescribeSpotDatafeedSubscriptionResponse response =
+                    makeRequestInt(method, "DescribeSpotDatafeedSubscription", params, DescribeSpotDatafeedSubscriptionResponse.class);
+
+
+            return new SpotDatafeedSubscription(response.getRequestId(), response.getSpotDatafeedSubscription());
+        } finally {
+            method.releaseConnection();
+        }
+	}
+
+	public void deleteSpotDatafeedSubscription() throws EC2Exception {
+        Map<String, String> params = new HashMap<String, String>();
+        GetMethod method = new GetMethod();
+        try {
+            DeleteSpotDatafeedSubscriptionResponse response =
+                    makeRequestInt(method, "DeleteSpotDatafeedSubscription", params, DeleteSpotDatafeedSubscriptionResponse.class);
+
+
+			if (!response.isReturn()) {
+				throw new EC2Exception("Could not delete subscription. No reason given.");
+			}
+        } finally {
+            method.releaseConnection();
+        }
+	}
 
 	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
 		throws EC2Exception {
