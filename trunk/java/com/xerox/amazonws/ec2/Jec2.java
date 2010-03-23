@@ -115,7 +115,7 @@ import com.xerox.amazonws.typica.jaxb.LaunchPermissionListType;
 import com.xerox.amazonws.typica.jaxb.ModifyImageAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.ModifyInstanceAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.ModifySnapshotAttributeResponse;
-import com.xerox.amazonws.typica.jaxb.MonitorInstancesResponseType;
+import com.xerox.amazonws.typica.jaxb.MonitorInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.MonitorInstancesResponseSetItemType;
 import com.xerox.amazonws.typica.jaxb.NullableAttributeValueType;
 import com.xerox.amazonws.typica.jaxb.ObjectFactory;
@@ -146,6 +146,7 @@ import com.xerox.amazonws.typica.jaxb.SpotInstanceRequestSetItemType;
 import com.xerox.amazonws.typica.jaxb.StartInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.StopInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.TerminateInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.UnmonitorInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.UserIdGroupPairType;
 import com.xerox.amazonws.typica.jaxb.UserIdGroupPairSetType;
 
@@ -2316,8 +2317,8 @@ public class Jec2 extends AWSQueryConnection {
 		}
 		GetMethod method = new GetMethod();
 		try {
-			MonitorInstancesResponseType response =
-					makeRequestInt(method, "MonitorInstances", params, MonitorInstancesResponseType.class);
+			MonitorInstancesResponse response =
+					makeRequestInt(method, "MonitorInstances", params, MonitorInstancesResponse.class);
 			List<MonitoredInstanceInfo> ret = new ArrayList<MonitoredInstanceInfo>();
 			for (MonitorInstancesResponseSetItemType item : response.getInstancesSet().getItems()) {
 				ret.add(new MonitoredInstanceInfo(item.getInstanceId(),
@@ -2343,8 +2344,8 @@ public class Jec2 extends AWSQueryConnection {
 		}
 		GetMethod method = new GetMethod();
 		try {
-			MonitorInstancesResponseType response =
-					makeRequestInt(method, "UnmonitorInstances", params, MonitorInstancesResponseType.class);
+			UnmonitorInstancesResponse response =
+					makeRequestInt(method, "UnmonitorInstances", params, UnmonitorInstancesResponse.class);
 			List<MonitoredInstanceInfo> ret = new ArrayList<MonitoredInstanceInfo>();
 			for (MonitorInstancesResponseSetItemType item : response.getInstancesSet().getItems()) {
 				ret.add(new MonitoredInstanceInfo(item.getInstanceId(),
@@ -2461,6 +2462,14 @@ public class Jec2 extends AWSQueryConnection {
         }
     }
 
+	/**
+	 * This method creates the spot datafeed subscription (for spot usage logs)
+	 *
+	 * @param bucket the bucket to store the feed in
+	 * @param prefix the prefix used with the datafeed files
+	 * @return information about the subscription
+	 * @throws EC2Exception wraps checked exceptions
+	 */
 	public SpotDatafeedSubscription createSpotDatafeedSubscription(String bucket, String prefix) throws EC2Exception {
         Map<String, String> params = new HashMap<String, String>();
 
@@ -2481,6 +2490,12 @@ public class Jec2 extends AWSQueryConnection {
         }
 	}
 
+	/**
+	 * This method describes the spot datafeed subscription
+	 *
+	 * @return information about the subscription
+	 * @throws EC2Exception wraps checked exceptions
+	 */
 	public SpotDatafeedSubscription describeSpotDatafeedSubscription() throws EC2Exception {
         Map<String, String> params = new HashMap<String, String>();
         GetMethod method = new GetMethod();
@@ -2495,6 +2510,11 @@ public class Jec2 extends AWSQueryConnection {
         }
 	}
 
+	/**
+	 * This method deletes the spot datafeed subscription
+	 *
+	 * @throws EC2Exception wraps checked exceptions
+	 */
 	public void deleteSpotDatafeedSubscription() throws EC2Exception {
         Map<String, String> params = new HashMap<String, String>();
         GetMethod method = new GetMethod();

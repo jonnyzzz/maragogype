@@ -2100,9 +2100,16 @@
 			  type="tns:MonitorInstancesResponseType"/>
 
   <xs:element name="UnmonitorInstancesResponse" 
-			  type="tns:MonitorInstancesResponseType"/>
+			  type="tns:UnmonitorInstancesResponseType"/>
 			  
   <xs:complexType name="MonitorInstancesResponseType">
+	<xs:sequence>
+	  <xs:element name="requestId" type="xs:string"/>    
+	  <xs:element name="instancesSet" type="tns:MonitorInstancesResponseSetType" />
+	</xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="UnmonitorInstancesResponseType">
 	<xs:sequence>
 	  <xs:element name="requestId" type="xs:string"/>    
 	  <xs:element name="instancesSet" type="tns:MonitorInstancesResponseSetType" />
