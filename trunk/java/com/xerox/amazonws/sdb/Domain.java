@@ -40,6 +40,7 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.PostMethod;
 
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
@@ -244,7 +245,7 @@ public class Domain extends AWSQueryConnection {
 			}
 			k++;
 		}
-		GetMethod method = new GetMethod();
+		PostMethod method = new PostMethod();
 		try {
 			BatchPutAttributesResponse response =
 				makeRequestInt(method, "BatchPutAttributes", params, BatchPutAttributesResponse.class);

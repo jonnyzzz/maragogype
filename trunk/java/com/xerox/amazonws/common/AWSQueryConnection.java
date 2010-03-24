@@ -44,7 +44,13 @@ import org.apache.commons.httpclient.NTCredentials;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -388,22 +394,33 @@ public class AWSQueryConnection extends AWSConnection {
 				resource.append(qParams.get(key));
 			}
 		}
-		//System.err.println("String to sign :"+resource.toString());
+//		System.err.println("String to sign :"+resource.toString());
 
 		// calculate signature
-        String encoded = encode(getSecretAccessKey(), resource.toString(), true);
+       	String unencoded = encode(getSecretAccessKey(), resource.toString(), false);
+       	String encoded = urlencode(unencoded);
+		
 
 		// build param string, encoding values and adding request signature
 		resource = new StringBuilder();
-		for (String key : keys) {
-			resource.append("&");
-			resource.append(key);
-			resource.append("=");
-			resource.append(urlencode(qParams.get(key)));
+		if (method.getName().equals("POST")) {
+			for (String key : keys) {
+				((PostMethod)method).setParameter(key, qParams.get(key));
+			}
+			((PostMethod)method).setParameter("Signature", unencoded);
+			method.setRequestHeader(new Header("Content-Type", "application/x-www-form-urlencoded; charset=utf-8"));
 		}
-		resource.setCharAt(0, '?');	// set first param delimeter
-		resource.append("&Signature=");
-		resource.append(encoded);
+		else {
+			for (String key : keys) {
+				resource.append("&");
+				resource.append(key);
+				resource.append("=");
+				resource.append(urlencode(qParams.get(key)));
+			}
+			resource.setCharAt(0, '?');	// set first param delimeter
+			resource.append("&Signature=");
+			resource.append(encoded);
+		}
 
 		// finally, build request object
         URL url = makeURL(resource.toString());

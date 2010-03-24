@@ -32,6 +32,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -657,7 +658,7 @@ public class Jec2 extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
         lc.prepareQueryParams("", true, params);
 
-		GetMethod method = new GetMethod();
+		PostMethod method = new PostMethod();
 		try {
 			RunInstancesResponse response =
 					makeRequestInt(method, "RunInstances", params, RunInstancesResponse.class);
@@ -794,7 +795,7 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<instanceIds.size(); i++) {
 			params.put("InstanceId."+(i+1), instanceIds.get(i));
 		}
-		GetMethod method = new GetMethod();
+		PostMethod method = new PostMethod();
 		try {
 			TerminateInstancesResponse response =
 					makeRequestInt(method, "TerminateInstances", params, TerminateInstancesResponse.class);
@@ -915,7 +916,7 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("InstanceId", instanceId);
 		params.put("Attribute", attribute);
 		params.put("Value", value);
-		GetMethod method = new GetMethod();
+		PostMethod method = new PostMethod();
 		try {
 			ModifyInstanceAttributeResponse response =
 					makeRequestInt(method, "ModifyInstanceAttribute", params, ModifyInstanceAttributeResponse.class);
