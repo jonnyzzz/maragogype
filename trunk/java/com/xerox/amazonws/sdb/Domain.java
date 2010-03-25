@@ -36,11 +36,11 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.http.client.HttpClient;
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
@@ -143,22 +143,18 @@ public class Domain extends AWSQueryConnection {
 	public DomainMetadataResult getMetadata() throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", domainName);
-		GetMethod method = new GetMethod();
-		try {
-			DomainMetadataResponse response =
-						makeRequestInt(method, "DomainMetadata", params, DomainMetadataResponse.class);
-			return new DomainMetadataResult(response.getResponseMetadata().getRequestId(),
-						response.getResponseMetadata().getBoxUsage(),
-						Integer.parseInt(response.getDomainMetadataResult().getItemCount()),
-						Integer.parseInt(response.getDomainMetadataResult().getAttributeValueCount()),
-						Integer.parseInt(response.getDomainMetadataResult().getAttributeNameCount()),
-						Long.parseLong(response.getDomainMetadataResult().getItemNamesSizeBytes()),
-						Long.parseLong(response.getDomainMetadataResult().getAttributeValuesSizeBytes()),
-						Long.parseLong(response.getDomainMetadataResult().getAttributeNamesSizeBytes()),
-						new Date(Long.parseLong(response.getDomainMetadataResult().getTimestamp())*1000));
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		DomainMetadataResponse response =
+					makeRequestInt(method, "DomainMetadata", params, DomainMetadataResponse.class);
+		return new DomainMetadataResult(response.getResponseMetadata().getRequestId(),
+					response.getResponseMetadata().getBoxUsage(),
+					Integer.parseInt(response.getDomainMetadataResult().getItemCount()),
+					Integer.parseInt(response.getDomainMetadataResult().getAttributeValueCount()),
+					Integer.parseInt(response.getDomainMetadataResult().getAttributeNameCount()),
+					Long.parseLong(response.getDomainMetadataResult().getItemNamesSizeBytes()),
+					Long.parseLong(response.getDomainMetadataResult().getAttributeValuesSizeBytes()),
+					Long.parseLong(response.getDomainMetadataResult().getAttributeNamesSizeBytes()),
+					new Date(Long.parseLong(response.getDomainMetadataResult().getTimestamp())*1000));
 	}
 
 	/**
@@ -191,32 +187,28 @@ public class Domain extends AWSQueryConnection {
 		if (consistent) {
 			params.put("ConsistentRead", "true");
 		}
-		GetMethod method = new GetMethod();
-		try {
-			SelectResponse response =
-						makeRequestInt(method, "Select", params, SelectResponse.class);
-			Map<String, List<ItemAttribute>> results = new LinkedHashMap<String, List<ItemAttribute>>();
-			for (com.xerox.amazonws.typica.sdb.jaxb.Item i : response.getSelectResult().getItems()) {
-				List<ItemAttribute> attrs = new ArrayList<ItemAttribute>();
-				for (Attribute a : i.getAttributes()) {
-					attrs.add(createAttribute(a));
-				}
-				String iName = i.getName().getValue();
-				String encoding = i.getName().getEncoding();
-				if (encoding != null && encoding.equals("base64")) {
-					iName = new String(Base64.decodeBase64(iName.getBytes()));
-				}
-				results.put(iName, attrs);
+		HttpGet method = new HttpGet();
+		SelectResponse response =
+					makeRequestInt(method, "Select", params, SelectResponse.class);
+		Map<String, List<ItemAttribute>> results = new LinkedHashMap<String, List<ItemAttribute>>();
+		for (com.xerox.amazonws.typica.sdb.jaxb.Item i : response.getSelectResult().getItems()) {
+			List<ItemAttribute> attrs = new ArrayList<ItemAttribute>();
+			for (Attribute a : i.getAttributes()) {
+				attrs.add(createAttribute(a));
 			}
-
-			return new QueryWithAttributesResult(
-						response.getSelectResult().getNextToken(),
-						response.getResponseMetadata().getRequestId(),
-						response.getResponseMetadata().getBoxUsage(),
-						results);
-		} finally {
-			method.releaseConnection();
+			String iName = i.getName().getValue();
+			String encoding = i.getName().getEncoding();
+			if (encoding != null && encoding.equals("base64")) {
+				iName = new String(Base64.decodeBase64(iName.getBytes()));
+			}
+			results.put(iName, attrs);
 		}
+
+		return new QueryWithAttributesResult(
+					response.getSelectResult().getNextToken(),
+					response.getResponseMetadata().getRequestId(),
+					response.getResponseMetadata().getBoxUsage(),
+					results);
 	}
 
 	/**
@@ -245,16 +237,12 @@ public class Domain extends AWSQueryConnection {
 			}
 			k++;
 		}
-		PostMethod method = new PostMethod();
-		try {
-			BatchPutAttributesResponse response =
-				makeRequestInt(method, "BatchPutAttributes", params, BatchPutAttributesResponse.class);
-			return new SDBResult(null, 
-						response.getResponseMetadata().getRequestId(),
-						response.getResponseMetadata().getBoxUsage());
-		} finally {
-			method.releaseConnection();
-		}
+		HttpPost method = new HttpPost();
+		BatchPutAttributesResponse response =
+			makeRequestInt(method, "BatchPutAttributes", params, BatchPutAttributesResponse.class);
+		return new SDBResult(null, 
+					response.getResponseMetadata().getRequestId(),
+					response.getResponseMetadata().getBoxUsage());
 	}
 
 
@@ -293,7 +281,7 @@ public class Domain extends AWSQueryConnection {
 		}
 	}
 
-	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+	protected <T> T makeRequestInt(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
 		throws SDBException {
 		try {
 			return makeRequest(method, action, params, respType);

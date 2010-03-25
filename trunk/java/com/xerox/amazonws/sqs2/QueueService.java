@@ -30,9 +30,9 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpGet;
 
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
@@ -137,18 +137,14 @@ public class QueueService extends AWSQueryConnection {
 			if (timeout >= 0) {
 				params.put("DefaultVisibilityTimeout", ""+timeout);
 			}
-			GetMethod method = new GetMethod();
-			try {
-				CreateQueueResponse response =
-						makeRequestInt(method, "CreateQueue", params, CreateQueueResponse.class);
-				MessageQueue ret = new MessageQueue(response.getCreateQueueResult().getQueueUrl(),
-									getAwsAccessKeyId(), getSecretAccessKey(),
-									isSecure(), getServer());
-				ret.setHttpClient(getHttpClient());
-				return ret;
-			} finally {
-				method.releaseConnection();
-			}
+			HttpGet method = new HttpGet();
+			CreateQueueResponse response =
+					makeRequestInt(method, "CreateQueue", params, CreateQueueResponse.class);
+			MessageQueue ret = new MessageQueue(response.getCreateQueueResult().getQueueUrl(),
+								getAwsAccessKeyId(), getSecretAccessKey(),
+								isSecure(), getServer());
+			ret.setHttpClient(getHttpClient());
+			return ret;
 		}
     }
 
@@ -185,25 +181,21 @@ public class QueueService extends AWSQueryConnection {
 		if (queueNamePrefix != null && !queueNamePrefix.trim().equals("")) {
 			params.put("QueueNamePrefix", queueNamePrefix);
 		}
-		GetMethod method = new GetMethod();
-		try {
-			ListQueuesResponse response =
-				makeRequestInt(method, "ListQueues", params, ListQueuesResponse.class);
-			List<String> urls = response.getListQueuesResult().getQueueUrls();
-			if (urls == null || urls.size() == 0) {
-				return new ArrayList<MessageQueue>();
-			}
-			else {
-				return MessageQueue.createList(urls.toArray(new String[urls.size()]),
-								getAwsAccessKeyId(), getSecretAccessKey(),
-								isSecure(), getServer(), getHttpClient());
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		ListQueuesResponse response =
+			makeRequestInt(method, "ListQueues", params, ListQueuesResponse.class);
+		List<String> urls = response.getListQueuesResult().getQueueUrls();
+		if (urls == null || urls.size() == 0) {
+			return new ArrayList<MessageQueue>();
+		}
+		else {
+			return MessageQueue.createList(urls.toArray(new String[urls.size()]),
+							getAwsAccessKeyId(), getSecretAccessKey(),
+							isSecure(), getServer(), getHttpClient());
 		}
     }
 
-	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+	protected <T> T makeRequestInt(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
 		throws SQSException {
 		try {
 			return makeRequest(method, action, params, respType);

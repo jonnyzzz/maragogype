@@ -30,10 +30,10 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.client.HttpClient;
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpGet;
 
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
@@ -99,7 +99,7 @@ public class Item extends AWSQueryConnection {
 		if (attributeName != null) {
 			params.put("AttributeName.1", attributeName);
 		}
-		GetMethod method = new GetMethod();
+		HttpGet method = new HttpGet();
 		try {
 			GetAttributesResponse response =
 						makeRequestInt(method, "GetAttributes", params, GetAttributesResponse.class);
@@ -111,8 +111,6 @@ public class Item extends AWSQueryConnection {
 			return ret;
 		} catch (UnsupportedEncodingException ex) {
 			throw new SDBException(ex.getMessage(), ex);
-		} finally {
-			method.releaseConnection();
 		}
 	}
 
@@ -135,7 +133,7 @@ public class Item extends AWSQueryConnection {
 				idx++;
 			}
 		}
-		GetMethod method = new GetMethod();
+		HttpGet method = new HttpGet();
 		try {
 			GetAttributesResponse response =
 						makeRequestInt(method, "GetAttributes", params, GetAttributesResponse.class);
@@ -147,8 +145,6 @@ public class Item extends AWSQueryConnection {
 			return ret;
 		} catch (UnsupportedEncodingException ex) {
 			throw new SDBException(ex.getMessage(), ex);
-		} finally {
-			method.releaseConnection();
 		}
 	}
 
@@ -171,7 +167,7 @@ public class Item extends AWSQueryConnection {
 				idx++;
 			}
 		}
-		GetMethod method = new GetMethod();
+		HttpGet method = new HttpGet();
 		try {
 			GetAttributesResponse response =
 						makeRequestInt(method, "GetAttributes", params, GetAttributesResponse.class);
@@ -198,8 +194,6 @@ public class Item extends AWSQueryConnection {
 			return ret;
 		} catch (UnsupportedEncodingException ex) {
 			throw new SDBException(ex.getMessage(), ex);
-		} finally {
-			method.releaseConnection();
 		}
 	}
 
@@ -254,16 +248,12 @@ public class Item extends AWSQueryConnection {
 				i++;
 			}
 		}
-		GetMethod method = new GetMethod();
-		try {
-			PutAttributesResponse response =
-				makeRequestInt(method, "PutAttributes", params, PutAttributesResponse.class);
-			return new SDBResult(null, 
-						response.getResponseMetadata().getRequestId(),
-						response.getResponseMetadata().getBoxUsage());
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		PutAttributesResponse response =
+			makeRequestInt(method, "PutAttributes", params, PutAttributesResponse.class);
+		return new SDBResult(null, 
+					response.getResponseMetadata().getRequestId(),
+					response.getResponseMetadata().getBoxUsage());
 	}
 
 	/**
@@ -312,19 +302,15 @@ public class Item extends AWSQueryConnection {
 				i++;
 			}
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DeleteAttributesResponse response =
-				makeRequestInt(method, "DeleteAttributes", params, DeleteAttributesResponse.class);
-			return new SDBResult(null, 
-						response.getResponseMetadata().getRequestId(),
-						response.getResponseMetadata().getBoxUsage());
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		DeleteAttributesResponse response =
+			makeRequestInt(method, "DeleteAttributes", params, DeleteAttributesResponse.class);
+		return new SDBResult(null, 
+					response.getResponseMetadata().getRequestId(),
+					response.getResponseMetadata().getBoxUsage());
 	}
 
-	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+	protected <T> T makeRequestInt(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
 		throws SDBException {
 		try {
 			return makeRequest(method, action, params, respType);

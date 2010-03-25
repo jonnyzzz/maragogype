@@ -29,9 +29,10 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpGet;
+
 
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
@@ -141,16 +142,12 @@ public class DevPayLS extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ActivationKey", activationKey);
 		params.put("ProductToken", productToken);
-		GetMethod method = new GetMethod();
-		try {
-			ActivateDesktopProductResponse response =
-						makeRequestInt(method, "ActivateDesktopProduct", params, ActivateDesktopProductResponse.class);
+		HttpGet method = new HttpGet();
+		ActivateDesktopProductResponse response =
+					makeRequestInt(method, "ActivateDesktopProduct", params, ActivateDesktopProductResponse.class);
 
-			ActivateDesktopProductResult result = response.getActivateDesktopProductResult();
-			return new DesktopProductInfo(result.getAWSAccessKeyId(), result.getSecretAccessKey(), result.getUserToken());
-		} finally {
-			method.releaseConnection();
-		}
+		ActivateDesktopProductResult result = response.getActivateDesktopProductResult();
+		return new DesktopProductInfo(result.getAWSAccessKeyId(), result.getSecretAccessKey(), result.getUserToken());
 	}
 
 	/**
@@ -165,16 +162,12 @@ public class DevPayLS extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ActivationKey", activationKey);
 		params.put("ProductToken", productToken);
-		GetMethod method = new GetMethod();
-		try {
-			ActivateHostedProductResponse response =
-						makeRequestInt(method, "ActivateHostedProduct", params, ActivateHostedProductResponse.class);
+		HttpGet method = new HttpGet();
+		ActivateHostedProductResponse response =
+					makeRequestInt(method, "ActivateHostedProduct", params, ActivateHostedProductResponse.class);
 
-			ActivateHostedProductResult result = response.getActivateHostedProductResult();
-			return new HostedProductInfo(result.getPersistentIdentifier(), result.getUserToken());
-		} finally {
-			method.releaseConnection();
-		}
+		ActivateHostedProductResult result = response.getActivateHostedProductResult();
+		return new HostedProductInfo(result.getPersistentIdentifier(), result.getUserToken());
 	}
 
 	/**
@@ -187,16 +180,12 @@ public class DevPayLS extends AWSQueryConnection {
 	public List<String> getActiveSubscriptionsByPid(String persistentIdentifier) throws DevPayException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("PersistentIdentifier", persistentIdentifier);
-		GetMethod method = new GetMethod();
-		try {
-			GetActiveSubscriptionsByPidResponse response =
-						makeRequestInt(method, "GetActiveSubscriptionsByPid", params, GetActiveSubscriptionsByPidResponse.class);
+		HttpGet method = new HttpGet();
+		GetActiveSubscriptionsByPidResponse response =
+					makeRequestInt(method, "GetActiveSubscriptionsByPid", params, GetActiveSubscriptionsByPidResponse.class);
 
-			GetActiveSubscriptionsByPidResult result = response.getGetActiveSubscriptionsByPidResult();
-			return result.getProductCodes();
-		} finally {
-			method.releaseConnection();
-		}
+		GetActiveSubscriptionsByPidResult result = response.getGetActiveSubscriptionsByPidResult();
+		return result.getProductCodes();
 	}
 
 	/**
@@ -211,16 +200,12 @@ public class DevPayLS extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("PersistentIdentifier", persistentIdentifier);
 		params.put("ProductCode", productCode);
-		GetMethod method = new GetMethod();
-		try {
-			VerifyProductSubscriptionByPidResponse response =
-						makeRequestInt(method, "VerifyProductSubscriptionByPid", params, VerifyProductSubscriptionByPidResponse.class);
+		HttpGet method = new HttpGet();
+		VerifyProductSubscriptionByPidResponse response =
+					makeRequestInt(method, "VerifyProductSubscriptionByPid", params, VerifyProductSubscriptionByPidResponse.class);
 
-			VerifyProductSubscriptionByPidResult result = response.getVerifyProductSubscriptionByPidResult();
-			return result.isSubscribed();
-		} finally {
-			method.releaseConnection();
-		}
+		VerifyProductSubscriptionByPidResult result = response.getVerifyProductSubscriptionByPidResult();
+		return result.isSubscribed();
 	}
 
 	/**
@@ -235,16 +220,12 @@ public class DevPayLS extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ProductToken", productToken);
 		params.put("UserToken", userToken);
-		GetMethod method = new GetMethod();
-		try {
-			VerifyProductSubscriptionByTokensResponse response =
-						makeRequestInt(method, "VerifyProductSubscriptionByTokens", params, VerifyProductSubscriptionByTokensResponse.class);
+		HttpGet method = new HttpGet();
+		VerifyProductSubscriptionByTokensResponse response =
+					makeRequestInt(method, "VerifyProductSubscriptionByTokens", params, VerifyProductSubscriptionByTokensResponse.class);
 
-			VerifyProductSubscriptionByTokensResult result = response.getVerifyProductSubscriptionByTokensResult();
-			return result.isSubscribed();
-		} finally {
-			method.releaseConnection();
-		}
+		VerifyProductSubscriptionByTokensResult result = response.getVerifyProductSubscriptionByTokensResult();
+		return result.isSubscribed();
 	}
 
 	/**
@@ -261,19 +242,15 @@ public class DevPayLS extends AWSQueryConnection {
 		if (additionalTokens != null) {
 			params.put("AdditionalTokens", additionalTokens);
 		}
-		GetMethod method = new GetMethod();
-		try {
-			RefreshUserTokenResponse response =
-						makeRequestInt(method, "RefreshUserToken", params, RefreshUserTokenResponse.class);
+		HttpGet method = new HttpGet();
+		RefreshUserTokenResponse response =
+					makeRequestInt(method, "RefreshUserToken", params, RefreshUserTokenResponse.class);
 
-			RefreshUserTokenResult result = response.getRefreshUserTokenResult();
-			return result.getUserToken();
-		} finally {
-			method.releaseConnection();
-		}
+		RefreshUserTokenResult result = response.getRefreshUserTokenResult();
+		return result.getUserToken();
 	}
 
-	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+	protected <T> T makeRequestInt(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
 		throws DevPayException {
 		try {
 			return makeRequest(method, action, params, respType);
@@ -289,7 +266,7 @@ public class DevPayLS extends AWSQueryConnection {
 	}
 
 	static void setVersionHeader(AWSQueryConnection connection) {
-		ArrayList vals = new ArrayList();
+		ArrayList<String> vals = new ArrayList<String>();
 		vals.add("2008-04-28");
 		connection.getHeaders().put("Version", vals);
 	}

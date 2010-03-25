@@ -36,12 +36,11 @@ import java.util.Map;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.http.client.HttpClient;
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
@@ -131,14 +130,10 @@ public class MessageQueue extends AWSQueryConnection {
 			throw new SQSException("Message is to large (encoding:"+enableEncoding+")");
 		}
 		params.put("MessageBody", encodedMsg);
-		PostMethod method = new PostMethod();
-		try {
-			SendMessageResponse response =
-					makeRequestInt(method, "SendMessage", params, SendMessageResponse.class);
-			return response.getSendMessageResult().getMessageId();
-		} finally {
-			method.releaseConnection();
-		}
+		HttpPost method = new HttpPost();
+		SendMessageResponse response =
+				makeRequestInt(method, "SendMessage", params, SendMessageResponse.class);
+		return response.getSendMessageResult().getMessageId();
 	}
 
 	/**
@@ -243,29 +238,25 @@ public class MessageQueue extends AWSQueryConnection {
 				i++;
 			}
 		}
-		GetMethod method = new GetMethod();
-		try {
-			ReceiveMessageResponse response =
-					makeRequestInt(method, "ReceiveMessage", params, ReceiveMessageResponse.class);
-			if (response.getReceiveMessageResult().getMessages() == null) {
-				return new Message[0];
-			}
-			else {
-				ArrayList<Message> msgs = new ArrayList();
-				for (com.xerox.amazonws.typica.sqs2.jaxb.Message msg : response.getReceiveMessageResult().getMessages()) {
-					String decodedMsg = enableEncoding?
-								new String(Base64.decodeBase64(msg.getBody().getBytes())):
-											msg.getBody();
-					Message newMsg = new Message(msg.getMessageId(), msg.getReceiptHandle(), decodedMsg, msg.getMD5OfBody());
-					for (Attribute attr : msg.getAttributes()) {
-						newMsg.setAttribute(attr.getName(), attr.getValue());
-					}
-					msgs.add(newMsg);
+		HttpGet method = new HttpGet();
+		ReceiveMessageResponse response =
+				makeRequestInt(method, "ReceiveMessage", params, ReceiveMessageResponse.class);
+		if (response.getReceiveMessageResult().getMessages() == null) {
+			return new Message[0];
+		}
+		else {
+			ArrayList<Message> msgs = new ArrayList();
+			for (com.xerox.amazonws.typica.sqs2.jaxb.Message msg : response.getReceiveMessageResult().getMessages()) {
+				String decodedMsg = enableEncoding?
+							new String(Base64.decodeBase64(msg.getBody().getBytes())):
+										msg.getBody();
+				Message newMsg = new Message(msg.getMessageId(), msg.getReceiptHandle(), decodedMsg, msg.getMD5OfBody());
+				for (Attribute attr : msg.getAttributes()) {
+					newMsg.setAttribute(attr.getName(), attr.getValue());
 				}
-				return msgs.toArray(new Message [msgs.size()]);
+				msgs.add(newMsg);
 			}
-		} finally {
-			method.releaseConnection();
+			return msgs.toArray(new Message [msgs.size()]);
 		}
 	}
 
@@ -288,13 +279,9 @@ public class MessageQueue extends AWSQueryConnection {
     public void deleteMessage(String receiptHandle) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ReceiptHandle", receiptHandle);
-		GetMethod method = new GetMethod();
-		try {
-			//DeleteMessageResponse response =
+		HttpGet method = new HttpGet();
+	//	DeleteMessageResponse response =
 			makeRequestInt(method, "DeleteMessage", params, DeleteMessageResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
 	}
 
 	/**
@@ -304,13 +291,9 @@ public class MessageQueue extends AWSQueryConnection {
 	 */
     public void deleteQueue() throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
-		GetMethod method = new GetMethod();
-		try {
-			//DeleteQueueResponse response =
+		HttpGet method = new HttpGet();
+	//	DeleteQueueResponse response =
 			makeRequestInt(method, "DeleteQueue", params, DeleteQueueResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
 	}
 
 	/**
@@ -337,12 +320,8 @@ public class MessageQueue extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ReceiptHandle", receiptHandle);
 		params.put("VisibilityTimeout", ""+timeout);
-		GetMethod method = new GetMethod();
-		try {
-			makeRequestInt(method, "ChangeMessageVisibility", params, ChangeMessageVisibilityResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		makeRequestInt(method, "ChangeMessageVisibility", params, ChangeMessageVisibilityResponse.class);
 	}
 
 	/**
@@ -381,19 +360,15 @@ public class MessageQueue extends AWSQueryConnection {
 	public Map<String,String> getQueueAttributes(QueueAttribute qAttr) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("AttributeName", qAttr.queryAttribute());
-		GetMethod method = new GetMethod();
-		try {
-			GetQueueAttributesResponse response =
-					makeRequestInt(method, "GetQueueAttributes", params, GetQueueAttributesResponse.class);
-			Map<String,String> ret = new HashMap<String,String>();
-			List<Attribute> attrs = response.getGetQueueAttributesResult().getAttributes();
-			for (Attribute attr : attrs) {
-				ret.put(attr.getName(), attr.getValue());
-			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		GetQueueAttributesResponse response =
+				makeRequestInt(method, "GetQueueAttributes", params, GetQueueAttributesResponse.class);
+		Map<String,String> ret = new HashMap<String,String>();
+		List<Attribute> attrs = response.getGetQueueAttributesResult().getAttributes();
+		for (Attribute attr : attrs) {
+			ret.put(attr.getName(), attr.getValue());
 		}
+		return ret;
 	}
 
 	/**
@@ -419,13 +394,9 @@ public class MessageQueue extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("Attribute.Name", attribute);
 		params.put("Attribute.Value", value);
-		GetMethod method = new GetMethod();
-		try {
-			//SetQueueAttributesResponse response =
+		HttpGet method = new HttpGet();
+	//	SetQueueAttributesResponse response =
 			makeRequestInt(method, "SetQueueAttributes", params, SetQueueAttributesResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
 	}
 
 	/**
@@ -441,13 +412,9 @@ public class MessageQueue extends AWSQueryConnection {
 		params.put("Label", label);
 		params.put("AWSAccountId", accountId);
 		params.put("ActionName", action);
-		GetMethod method = new GetMethod();
-		try {
-			AddPermissionResponse response =
+		HttpGet method = new HttpGet();
+		AddPermissionResponse response =
 				makeRequestInt(method, "AddPermission", params, AddPermissionResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
 	}
 
 	/**
@@ -459,13 +426,9 @@ public class MessageQueue extends AWSQueryConnection {
 	public void removePermission(String label) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("Label", label);
-		GetMethod method = new GetMethod();
-		try {
-			RemovePermissionResponse response =
-				makeRequestInt(method, "RemovePermission", params, RemovePermissionResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		RemovePermissionResponse response =
+			makeRequestInt(method, "RemovePermission", params, RemovePermissionResponse.class);
 	}
 
 	/**
@@ -478,7 +441,7 @@ public class MessageQueue extends AWSQueryConnection {
 		return super.makeURL(queueId+resource);
 	}
 
-	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+	protected <T> T makeRequestInt(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
 		throws SQSException {
 		try {
 			return makeRequest(method, action, params, respType);

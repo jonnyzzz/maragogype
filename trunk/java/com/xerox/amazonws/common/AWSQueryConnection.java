@@ -22,35 +22,54 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.SocketException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.Collator;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TimeZone;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
 
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HostConfiguration;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.apache.commons.httpclient.NTCredentials;
-import org.apache.commons.httpclient.URI;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
-import org.apache.commons.httpclient.methods.multipart.Part;
-import org.apache.commons.httpclient.methods.multipart.FilePart;
-import org.apache.commons.httpclient.methods.multipart.StringPart;
-import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
-import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpException;
+import org.apache.http.ParseException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.params.AllClientPNames;
+import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.auth.AuthScope;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -102,7 +121,8 @@ public class AWSQueryConnection extends AWSConnection {
 			try {
 				props.load(verStream);
 			} finally {
-				verStream.close();
+				close(verStream);
+
 			}
 			version = props.getProperty("version");
 		} catch (Exception ex) { }
@@ -214,7 +234,7 @@ public class AWSQueryConnection extends AWSConnection {
 	}
 
  	/**
-	 * @see org.apache.commons.httpclient.params.HttpClientParams.getConnectionManagerTimeout()
+	 * @see org.apache.http.params.HttpClientParams.getConnectionManagerTimeout()
 	 * @return connection manager timeout in milliseconds
 	 */
 	public int getConnectionManagerTimeout()
@@ -223,7 +243,7 @@ public class AWSQueryConnection extends AWSConnection {
 	}
 
 	/**
-	 * @see org.apache.commons.httpclient.params.HttpClientParams.getConnectionManagerTimeout()
+	 * @see org.apache.http.params.HttpClientParams.getConnectionManagerTimeout()
 	 * @param connection manager timeout in milliseconds
 	 */
 	public void setConnectionManagerTimeout(int timeout)
@@ -233,8 +253,8 @@ public class AWSQueryConnection extends AWSConnection {
 	}
 
 	/**
-	 * @see org.apache.commons.httpclient.params.HttpConnectionParams.getSoTimeout()
-	 * @see org.apache.commons.httpclient.params.HttpMethodParams.getSoTimeout()
+	 * @see org.apache.http.params.HttpConnectionParams.getSoTimeout()
+	 * @see org.apache.http.params.HttpMethodParams.getSoTimeout()
 	 * @return socket timeout in milliseconds
 	 */
 	public int getSoTimeout()
@@ -243,8 +263,8 @@ public class AWSQueryConnection extends AWSConnection {
 	}
 
 	/**
-	 * @see org.apache.commons.httpclient.params.HttpConnectionParams.getSoTimeout()
-	 * @see org.apache.commons.httpclient.params.HttpMethodParams.getSoTimeout()
+	 * @see org.apache.http.params.HttpConnectionParams.getSoTimeout()
+	 * @see org.apache.http.params.HttpMethodParams.getSoTimeout()
 	 * @param socket timeout in milliseconds
 	 */
 	public void setSoTimeout(int timeout)
@@ -254,7 +274,7 @@ public class AWSQueryConnection extends AWSConnection {
 	}
 
 	/**
-	 * @see org.apache.commons.httpclient.params.HttpConnectionParams.getConnectionTimeout()
+	 * @see org.apache.http.params.HttpConnectionParams.getConnectionTimeout()
 	 * @return connection timeout in milliseconds
 	 */
 	public int getConnectionTimeout()
@@ -263,7 +283,7 @@ public class AWSQueryConnection extends AWSConnection {
 	}
 
 	/**
-	 * @see org.apache.commons.httpclient.params.HttpConnectionParams.getConnectionTimeout()
+	 * @see org.apache.http.params.HttpConnectionParams.getConnectionTimeout()
 	 * @param connection timeout in milliseconds
 	 */
 	public void setConnectionTimeout(int timeout)
@@ -320,7 +340,7 @@ public class AWSQueryConnection extends AWSConnection {
      * @param params map of request params
      * @param respType the class that represents the desired/expected return type
      */
-	protected <T> T makeRequest(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+	protected <T> T makeRequest(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
 		throws HttpException, IOException, JAXBException, AWSException {
 
 		// add auth params, and protocol specific headers
@@ -363,7 +383,7 @@ public class AWSQueryConnection extends AWSConnection {
 			resource.append(qParams.get("Timestamp"));
 		}
 		else if (getSignatureVersion() == 2) {
-			resource.append(method.getName());
+			resource.append(method.getMethod());
 			resource.append("\n");
 			resource.append(getServer().toLowerCase());
 			resource.append("\n/");
@@ -394,7 +414,7 @@ public class AWSQueryConnection extends AWSConnection {
 				resource.append(qParams.get(key));
 			}
 		}
-//		System.err.println("String to sign :"+resource.toString());
+		System.err.println("String to sign :"+resource.toString());
 
 		// calculate signature
        	String unencoded = encode(getSecretAccessKey(), resource.toString(), false);
@@ -403,12 +423,15 @@ public class AWSQueryConnection extends AWSConnection {
 
 		// build param string, encoding values and adding request signature
 		resource = new StringBuilder();
-		if (method.getName().equals("POST")) {
+		if (method.getMethod().equals("POST")) {
+			ArrayList<BasicNameValuePair> postParams = new ArrayList<BasicNameValuePair>();
 			for (String key : keys) {
-				((PostMethod)method).setParameter(key, qParams.get(key));
+				postParams.add(new BasicNameValuePair(key, qParams.get(key)));
 			}
-			((PostMethod)method).setParameter("Signature", unencoded);
-			method.setRequestHeader(new Header("Content-Type", "application/x-www-form-urlencoded; charset=utf-8"));
+			postParams.add(new BasicNameValuePair("Signature", unencoded));
+			UrlEncodedFormEntity entity = new UrlEncodedFormEntity(postParams, "UTF-8");
+			method.setHeader(new BasicHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8"));
+			((HttpPost)method).setEntity(entity);
 		}
 		else {
 			for (String key : keys) {
@@ -424,20 +447,26 @@ public class AWSQueryConnection extends AWSConnection {
 
 		// finally, build request object
         URL url = makeURL(resource.toString());
-		method.setURI(new URI(url.toString(), true));
-		method.setRequestHeader(new Header("User-Agent", userAgent));
+		try {
+			method.setURI(new java.net.URI(url.toString()));
+		} catch (URISyntaxException ex) {
+			throw new RuntimeException(ex);
+		}
+		method.setHeader(new BasicHeader("User-Agent", userAgent));
 		if (getSignatureVersion() == 0) {
-			method.setRequestHeader(new Header("Content-Type", "application/x-www-form-urlencoded; charset=utf-8"));
+			method.setHeader(new BasicHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8"));
 		}
 		Object response = null;
 		boolean done = false;
 		int retries = 0;
 		boolean doRetry = false;
 		AWSException error = null;
+		HttpResponse httpResponse = null;
 		do {
 			int responseCode = 600;	// default to high value, so we don't think it is valid
 			try {
-				responseCode = getHttpClient().executeMethod(method);
+				httpResponse = getHttpClient().execute(method);
+				responseCode = httpResponse.getStatusLine().getStatusCode();
 			} catch (SocketException ex) {
 				// these can generally be retried. Treat it like a 500 error
 				doRetry = true;
@@ -447,7 +476,7 @@ public class AWSQueryConnection extends AWSConnection {
 			if (responseCode < 300) {
 				// 200's : parse normal response into requested object
 				if (respType != null) {
-					InputStream iStr = method.getResponseBodyAsStream();
+					InputStream iStr = httpResponse.getEntity().getContent();
 					response = JAXBuddy.deserializeXMLStream(respType, iStr);
 				}
 				done = true;
@@ -458,13 +487,13 @@ public class AWSQueryConnection extends AWSConnection {
 			}
 			else if (responseCode < 500) {
 				// 400's : parse client error message
-				String body = getStringFromStream(method.getResponseBodyAsStream());
+				String body = getString(httpResponse.getEntity());
 				throw createException(body, "Client error : ");
 			}
 			else if (responseCode < 600) {
 				// 500's : retry...
 				doRetry = true;
-				String body = getStringFromStream(method.getResponseBodyAsStream());
+				String body = getString(httpResponse.getEntity());
 				error = createException(body, "");
 			}
 			if (doRetry) {
@@ -480,49 +509,79 @@ public class AWSQueryConnection extends AWSConnection {
 	}
 
 	private void configureHttpClient() {
-		MultiThreadedHttpConnectionManager connMgr = new MultiThreadedHttpConnectionManager();
-		HttpConnectionManagerParams connParams = connMgr.getParams();
-		connParams.setMaxTotalConnections(maxConnections);
-		connParams.setMaxConnectionsPerHost(HostConfiguration.ANY_HOST_CONFIGURATION, maxConnections);
-		connParams.setConnectionTimeout(connectionTimeout);
-		connParams.setSoTimeout(soTimeout);
-		connMgr.setParams(connParams);
-		hc = new HttpClient(connMgr);
-// NOTE: These didn't seem to help in my initial testing
-//			hc.getParams().setParameter("http.tcp.nodelay", true);
-//			hc.getParams().setParameter("http.connection.stalecheck", false); 
-		hc.getParams().setConnectionManagerTimeout(connectionManagerTimeout);
-		hc.getParams().setSoTimeout(soTimeout);
+		HttpParams params = new BasicHttpParams();
+
+		HttpConnectionParams.setConnectionTimeout(params, connectionTimeout);
+		HttpConnectionParams.setSoTimeout(params, soTimeout);
+
+		params.setParameter(AllClientPNames.MAX_TOTAL_CONNECTIONS, new Integer(maxConnections));
+//		params.setParameter(AllClientPNames.MAX_CONNECTIONS_PER_ROUTE, new ConnPerRouteBean(maxConnections));
+
+		SchemeRegistry registry = new SchemeRegistry();
+		registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+		registry.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
+
+		ThreadSafeClientConnManager connMgr = new ThreadSafeClientConnManager(params, registry);
+
+		hc = new DefaultHttpClient(connMgr, params);
+		
 		if (proxyHost != null) {
-			HostConfiguration hostConfig = new HostConfiguration();
-			hostConfig.setProxy(proxyHost, proxyPort);
-			hc.setHostConfiguration(hostConfig);
-			log.info("Proxy Host set to "+proxyHost+":"+proxyPort);
-			if (proxyUser != null && !proxyUser.trim().equals("")) {
-				if (proxyDomain != null) {
-					hc.getState().setProxyCredentials(new AuthScope(proxyHost, proxyPort),
-							new NTCredentials(proxyUser, proxyPassword, proxyHost, proxyDomain));
-				}
-				else {
-					hc.getState().setProxyCredentials(new AuthScope(proxyHost, proxyPort),
-							new UsernamePasswordCredentials(proxyUser, proxyPassword));
-				}
+			DefaultHttpClient defaultHC = (DefaultHttpClient) hc;
+ 			log.info("Proxy Host set to "+proxyHost+":"+proxyPort);
+
+	        HttpHost proxy = new HttpHost(proxyHost, proxyPort); 
+
+	        defaultHC.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+
+ 			if (proxyUser != null && !proxyUser.trim().equals("")) {
+				AuthScope scope = new AuthScope(proxyHost, proxyPort);
+				Credentials creds = null;
+
+ 				if (proxyDomain != null) {
+					creds = new NTCredentials(proxyUser, proxyPassword, proxyHost, proxyDomain);
+ 				}
+ 				else {
+					creds =	new UsernamePasswordCredentials(proxyUser, proxyPassword);
+ 				}
+				defaultHC.getCredentialsProvider().setCredentials(scope, creds);
 			}
 		}
 	}
 
-	private String getStringFromStream(InputStream iStr) throws IOException {
-		InputStreamReader rdr = new InputStreamReader(iStr, "UTF-8");
-		StringWriter wtr = new StringWriter();
-		char [] buf = new char[1024];
-		int bytes;
-		while ((bytes = rdr.read(buf)) > -1) {
-			if (bytes > 0) {
-				wtr.write(buf, 0, bytes);
+	protected String getString(HttpEntity entity) {
+		if (entity == null) {
+			return null;
+		}
+		else {
+			try {
+				return EntityUtils.toString(entity);
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
 			}
 		}
-		iStr.close();
-		return wtr.toString();
+	}
+
+	protected void close(HttpEntity entity) {
+		if (entity != null) {
+			try {
+				entity.consumeContent();
+			}
+			catch (Exception ignore) {
+				// ignored
+			}
+		}
+	}
+
+	protected void close(InputStream istream) {
+		if (istream != null) {
+			try {
+				istream.close();
+			}
+			catch (Exception ignored) {
+				// ignored
+			}
+		}
 	}
 
 	/**

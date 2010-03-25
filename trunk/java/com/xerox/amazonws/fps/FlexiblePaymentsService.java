@@ -5,9 +5,10 @@ import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.sdb.DataUtils;
 import com.xerox.amazonws.typica.fps.jaxb.*;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
+
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import javax.servlet.http.HttpServletRequest;
@@ -176,12 +177,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         Map<String, String> params = new HashMap<String, String>();
         params.put("TokenId", tokenID);
         params.put("ReasonText", reason);
-        GetMethod method = new GetMethod();
-        try {
-            makeRequestInt(method, "CancelToken", params, CancelTokenResponse.class);
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+        makeRequestInt(method, "CancelToken", params, CancelTokenResponse.class);
     }
 
     /**
@@ -194,12 +191,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         Map<String, String> params = new HashMap<String, String>();
         for (int i = 0; i < transactionIDs.length; i++)
             params.put("TransactionID." + i, transactionIDs[i]);
-        GetMethod method = new GetMethod();
-        try {
-            makeRequestInt(method, "DiscardResults", params, DiscardResultsResponse.class);
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+        makeRequestInt(method, "DiscardResults", params, DiscardResultsResponse.class);
     }
 
     /**
@@ -287,20 +280,16 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("TemporaryDeclinePolicy.TemporaryDeclinePolicyType", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
             params.put("ImplicitRetryTimeoutInMins", Integer.toString(tempDeclinePolicy.getImplicitRetryTimeoutInMins()));
         }
-        GetMethod method = new GetMethod();
-        try {
-            FundPrepaidResponse response =
-                    makeRequestInt(method, "FundPrepaid", params, FundPrepaidResponse.class);
-            TransactionResponse transactionResponse = response.getTransactionResponse();
-            return new Transaction(
-                    transactionResponse.getTransactionId(),
-                    Transaction.Status.valueOf(transactionResponse.getStatus().value()),
-                    transactionResponse.getStatusDetail()
-                    // todo: transactionResponse.getNewSenderTokenUsage()
-            );
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		FundPrepaidResponse response =
+				makeRequestInt(method, "FundPrepaid", params, FundPrepaidResponse.class);
+		TransactionResponse transactionResponse = response.getTransactionResponse();
+		return new Transaction(
+				transactionResponse.getTransactionId(),
+				Transaction.Status.valueOf(transactionResponse.getStatus().value()),
+				transactionResponse.getStatusDetail()
+				// todo: transactionResponse.getNewSenderTokenUsage()
+		);
     }
 
     public AccountActivity getAccountActivity(Date startDate) throws FPSException {
@@ -346,38 +335,34 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("Role", role.value());
         if (transactionStatus != null)
             params.put("Status", transactionStatus.value());
-        GetMethod method = new GetMethod();
-        try {
-            GetAccountActivityResponse response =
-                    makeRequestInt(method, "GetAccountActivity", params, GetAccountActivityResponse.class);
-            Date nextStartDate = null;
-            if (response.getStartTimeForNextTransaction() != null)
-                nextStartDate = response.getStartTimeForNextTransaction().toGregorianCalendar().getTime();
-            BigInteger nbTransactions = response.getResponseBatchSize();
-            List<com.xerox.amazonws.typica.fps.jaxb.Transaction> rawTransactions = response.getTransactions();
-            List<Transaction> transactions = new ArrayList<Transaction>(rawTransactions.size());
-            for (com.xerox.amazonws.typica.fps.jaxb.Transaction txn : rawTransactions) {
-                com.xerox.amazonws.typica.fps.jaxb.Amount txnAmount = txn.getTransactionAmount();
-                com.xerox.amazonws.typica.fps.jaxb.Amount fees = txn.getFees();
-                com.xerox.amazonws.typica.fps.jaxb.Amount balance = txn.getBalance();
-                transactions.add(new Transaction(
-                        txn.getTransactionId(), Transaction.Status.fromValue(txn.getStatus().value()),
-                        txn.getDateReceived().toGregorianCalendar().getTime(),
-                        txn.getDateCompleted().toGregorianCalendar().getTime(),
-                        new Amount(new BigDecimal(txnAmount.getAmount()), txnAmount.getCurrencyCode().toString()),
-                        FPSOperation.fromValue(txn.getOperation().value()),
-                        PaymentMethod.fromValue(txn.getPaymentMethod().value()),
-                        txn.getSenderName(), txn.getCallerName(), txn.getRecipientName(),
-                        new Amount(new BigDecimal(fees.getAmount()), fees.getCurrencyCode().toString()),
-                        new Amount(new BigDecimal(balance.getAmount()), balance.getCurrencyCode().toString()),
-                        txn.getCallerTokenId(), txn.getSenderTokenId(), txn.getRecipientTokenId()
-                ));
-            }
-            return new AccountActivity(nextStartDate, nbTransactions, transactions,
-                    filter, paymentMethod, maxBatchSize, endDate, transactionStatus, this);
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		GetAccountActivityResponse response =
+				makeRequestInt(method, "GetAccountActivity", params, GetAccountActivityResponse.class);
+		Date nextStartDate = null;
+		if (response.getStartTimeForNextTransaction() != null)
+			nextStartDate = response.getStartTimeForNextTransaction().toGregorianCalendar().getTime();
+		BigInteger nbTransactions = response.getResponseBatchSize();
+		List<com.xerox.amazonws.typica.fps.jaxb.Transaction> rawTransactions = response.getTransactions();
+		List<Transaction> transactions = new ArrayList<Transaction>(rawTransactions.size());
+		for (com.xerox.amazonws.typica.fps.jaxb.Transaction txn : rawTransactions) {
+			com.xerox.amazonws.typica.fps.jaxb.Amount txnAmount = txn.getTransactionAmount();
+			com.xerox.amazonws.typica.fps.jaxb.Amount fees = txn.getFees();
+			com.xerox.amazonws.typica.fps.jaxb.Amount balance = txn.getBalance();
+			transactions.add(new Transaction(
+					txn.getTransactionId(), Transaction.Status.fromValue(txn.getStatus().value()),
+					txn.getDateReceived().toGregorianCalendar().getTime(),
+					txn.getDateCompleted().toGregorianCalendar().getTime(),
+					new Amount(new BigDecimal(txnAmount.getAmount()), txnAmount.getCurrencyCode().toString()),
+					FPSOperation.fromValue(txn.getOperation().value()),
+					PaymentMethod.fromValue(txn.getPaymentMethod().value()),
+					txn.getSenderName(), txn.getCallerName(), txn.getRecipientName(),
+					new Amount(new BigDecimal(fees.getAmount()), fees.getCurrencyCode().toString()),
+					new Amount(new BigDecimal(balance.getAmount()), balance.getCurrencyCode().toString()),
+					txn.getCallerTokenId(), txn.getSenderTokenId(), txn.getRecipientTokenId()
+			));
+		}
+		return new AccountActivity(nextStartDate, nbTransactions, transactions,
+				filter, paymentMethod, maxBatchSize, endDate, transactionStatus, this);
     }
 
     /**
@@ -400,14 +385,10 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         Map<String, String> params = new HashMap<String, String>();
         if (instrumentStatus != null)
             params.put("InstrumentStatus", instrumentStatus.value());
-        GetMethod method = new GetMethod();
-        try {
-            GetAllPrepaidInstrumentsResponse response =
-                    makeRequestInt(method, "GetAllPrepaidInstruments", params, GetAllPrepaidInstrumentsResponse.class);
-            return response.getPrepaidInstrumentIds();
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		GetAllPrepaidInstrumentsResponse response =
+				makeRequestInt(method, "GetAllPrepaidInstruments", params, GetAllPrepaidInstrumentsResponse.class);
+		return response.getPrepaidInstrumentIds();
     }
 
     /**
@@ -441,14 +422,10 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         Map<String, String> params = new HashMap<String, String>();
         if (instrumentStatus != null)
             params.put("InstrumentStatus", instrumentStatus.value());
-        GetMethod method = new GetMethod();
-        try {
-            GetAllCreditInstrumentsResponse response =
-                    makeRequestInt(method, "GetAllCreditInstruments", params, GetAllCreditInstrumentsResponse.class);
-            return response.getCreditInstrumentIds();
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		GetAllCreditInstrumentsResponse response =
+				makeRequestInt(method, "GetAllCreditInstruments", params, GetAllCreditInstrumentsResponse.class);
+		return response.getCreditInstrumentIds();
     }
 
     /**
@@ -477,20 +454,16 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     public DebtBalance getDebtBalance(String creditInstrumentId) throws FPSException {
         Map<String, String> params = new HashMap<String, String>();
         params.put("CreditInstrumentId", creditInstrumentId);
-        GetMethod method = new GetMethod();
-        try {
-            GetDebtBalanceResponse response =
-                    makeRequestInt(method, "GetDebtBalance", params, GetDebtBalanceResponse.class);
-            com.xerox.amazonws.typica.fps.jaxb.DebtBalance balance = response.getDebtBalance();
-            com.xerox.amazonws.typica.fps.jaxb.Amount availableBalance = balance.getAvailableBalance();
-            com.xerox.amazonws.typica.fps.jaxb.Amount pendingOutBalance = balance.getPendingOutBalance();
-            return new DebtBalance(
-                    new Amount(new BigDecimal(availableBalance.getAmount()), availableBalance.getCurrencyCode().toString()),
-                    new Amount(new BigDecimal(pendingOutBalance.getAmount()), pendingOutBalance.getCurrencyCode().toString())
-            );
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		GetDebtBalanceResponse response =
+				makeRequestInt(method, "GetDebtBalance", params, GetDebtBalanceResponse.class);
+		com.xerox.amazonws.typica.fps.jaxb.DebtBalance balance = response.getDebtBalance();
+		com.xerox.amazonws.typica.fps.jaxb.Amount availableBalance = balance.getAvailableBalance();
+		com.xerox.amazonws.typica.fps.jaxb.Amount pendingOutBalance = balance.getPendingOutBalance();
+		return new DebtBalance(
+				new Amount(new BigDecimal(availableBalance.getAmount()), availableBalance.getCurrencyCode().toString()),
+				new Amount(new BigDecimal(pendingOutBalance.getAmount()), pendingOutBalance.getCurrencyCode().toString())
+		);
     }
 
     /**
@@ -502,20 +475,16 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      */
     public DebtBalance getOutstandingDebtBalance() throws FPSException {
         Map<String, String> params = new HashMap<String, String>();
-        GetMethod method = new GetMethod();
-        try {
-            GetOutstandingDebtBalanceResponse response =
-                    makeRequestInt(method, "GetOutstandingDebtBalance", params, GetOutstandingDebtBalanceResponse.class);
-            OutstandingDebtBalance balance = response.getOutstandingDebt();
-            com.xerox.amazonws.typica.fps.jaxb.Amount outstanding = balance.getOutstandingBalance();
-            com.xerox.amazonws.typica.fps.jaxb.Amount pendingOut = balance.getPendingOutBalance();
-            return new DebtBalance(
-                    new Amount(new BigDecimal(outstanding.getAmount()), outstanding.getCurrencyCode().toString()),
-                    new Amount(new BigDecimal(pendingOut.getAmount()), pendingOut.getCurrencyCode().toString())
-            );
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		GetOutstandingDebtBalanceResponse response =
+				makeRequestInt(method, "GetOutstandingDebtBalance", params, GetOutstandingDebtBalanceResponse.class);
+		OutstandingDebtBalance balance = response.getOutstandingDebt();
+		com.xerox.amazonws.typica.fps.jaxb.Amount outstanding = balance.getOutstandingBalance();
+		com.xerox.amazonws.typica.fps.jaxb.Amount pendingOut = balance.getPendingOutBalance();
+		return new DebtBalance(
+				new Amount(new BigDecimal(outstanding.getAmount()), outstanding.getCurrencyCode().toString()),
+				new Amount(new BigDecimal(pendingOut.getAmount()), pendingOut.getCurrencyCode().toString())
+		);
     }
 
     /**
@@ -528,25 +497,21 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     public PaymentInstructionDetail getPaymentInstruction(String tokenID) throws FPSException {
         Map<String, String> params = new HashMap<String, String>();
         params.put("TokenId", tokenID);
-        GetMethod method = new GetMethod();
-        try {
-            GetPaymentInstructionResponse response =
-                    makeRequestInt(method, "GetPaymentInstruction", params, GetPaymentInstructionResponse.class);
-            Token token = new Token(
-                    response.getToken().getTokenId(),
-                    response.getToken().getFriendlyName(),
-                    Token.Status.fromValue(response.getToken().getStatus().value()),
-                    response.getToken().getDateInstalled().toGregorianCalendar().getTime(),
-                    response.getToken().getCallerInstalled(),
-                    TokenType.fromValue(response.getToken().getTokenType().value()),
-                    response.getToken().getOldTokenId(),
-                    response.getToken().getPaymentReason()
-            );
-            return new PaymentInstructionDetail(token, response.getPaymentInstruction(),
-                    response.getAccountId(), response.getTokenFriendlyName());
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		GetPaymentInstructionResponse response =
+				makeRequestInt(method, "GetPaymentInstruction", params, GetPaymentInstructionResponse.class);
+		Token token = new Token(
+				response.getToken().getTokenId(),
+				response.getToken().getFriendlyName(),
+				Token.Status.fromValue(response.getToken().getStatus().value()),
+				response.getToken().getDateInstalled().toGregorianCalendar().getTime(),
+				response.getToken().getCallerInstalled(),
+				TokenType.fromValue(response.getToken().getTokenType().value()),
+				response.getToken().getOldTokenId(),
+				response.getToken().getPaymentReason()
+		);
+		return new PaymentInstructionDetail(token, response.getPaymentInstruction(),
+				response.getAccountId(), response.getTokenFriendlyName());
     }
 
     /**
@@ -560,20 +525,16 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     public PrepaidBalance getPrepaidBalance(String prepaidInstrumentId) throws FPSException {
         Map<String, String> params = new HashMap<String, String>();
         params.put("PrepaidInstrumentId", prepaidInstrumentId);
-        GetMethod method = new GetMethod();
-        try {
-            GetPrepaidBalanceResponse response =
-                    makeRequestInt(method, "GetPrepaidBalance", params, GetPrepaidBalanceResponse.class);
-            com.xerox.amazonws.typica.fps.jaxb.PrepaidBalance balance = response.getPrepaidBalance();
-            com.xerox.amazonws.typica.fps.jaxb.Amount availableBalance = balance.getAvailableBalance();
-            com.xerox.amazonws.typica.fps.jaxb.Amount pendingOutBalance = balance.getPendingInBalance();
-            return new PrepaidBalance(
-                    new Amount(new BigDecimal(availableBalance.getAmount()), availableBalance.getCurrencyCode().toString()),
-                    new Amount(new BigDecimal(pendingOutBalance.getAmount()), pendingOutBalance.getCurrencyCode().toString())
-            );
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		GetPrepaidBalanceResponse response =
+				makeRequestInt(method, "GetPrepaidBalance", params, GetPrepaidBalanceResponse.class);
+		com.xerox.amazonws.typica.fps.jaxb.PrepaidBalance balance = response.getPrepaidBalance();
+		com.xerox.amazonws.typica.fps.jaxb.Amount availableBalance = balance.getAvailableBalance();
+		com.xerox.amazonws.typica.fps.jaxb.Amount pendingOutBalance = balance.getPendingInBalance();
+		return new PrepaidBalance(
+				new Amount(new BigDecimal(availableBalance.getAmount()), availableBalance.getCurrencyCode().toString()),
+				new Amount(new BigDecimal(pendingOutBalance.getAmount()), pendingOutBalance.getCurrencyCode().toString())
+		);
     }
 
     /**
@@ -599,24 +560,20 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("Operation", operation.toString());
         if (maxResultsCount != null)
             params.put("MaxResultsCount", maxResultsCount.toString());
-        GetMethod method = new GetMethod();
-        try {
-            GetResultsResponse response =
-                    makeRequestInt(method, "GetResults", params, GetResultsResponse.class);
-            List<com.xerox.amazonws.typica.fps.jaxb.TransactionResult> rawTransactions = response.getTransactionResults();
-            List<TransactionResult> transactionResults = new ArrayList<TransactionResult>(rawTransactions.size());
-            for (com.xerox.amazonws.typica.fps.jaxb.TransactionResult txn : rawTransactions) {
-                transactionResults.add(new TransactionResult(
-                        txn.getTransactionId(),
-                        FPSOperation.fromValue(txn.getOperation().value()),
-                        txn.getCallerReference(),
-                        Transaction.Status.fromValue(txn.getStatus().value())
-                ));
-            }
-            return transactionResults;
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		GetResultsResponse response =
+				makeRequestInt(method, "GetResults", params, GetResultsResponse.class);
+		List<com.xerox.amazonws.typica.fps.jaxb.TransactionResult> rawTransactions = response.getTransactionResults();
+		List<TransactionResult> transactionResults = new ArrayList<TransactionResult>(rawTransactions.size());
+		for (com.xerox.amazonws.typica.fps.jaxb.TransactionResult txn : rawTransactions) {
+			transactionResults.add(new TransactionResult(
+					txn.getTransactionId(),
+					FPSOperation.fromValue(txn.getOperation().value()),
+					txn.getCallerReference(),
+					Transaction.Status.fromValue(txn.getStatus().value())
+			));
+		}
+		return transactionResults;
     }
 
     /**
@@ -680,28 +637,24 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("TokenStatus", tokenStatus.value());
         if (callerReference != null)
             params.put("CallerReference", callerReference);
-        GetMethod method = new GetMethod();
-        try {
-            GetTokensResponse response =
-                    makeRequestInt(method, "GetTokens", params, GetTokensResponse.class);
-            List<com.xerox.amazonws.typica.fps.jaxb.Token> rawTokens = response.getTokens();
-            List<Token> tokens = new ArrayList<Token>(rawTokens.size());
-            for (com.xerox.amazonws.typica.fps.jaxb.Token token : rawTokens) {
-                tokens.add(new Token(
-                    token.getTokenId(),
-                    token.getFriendlyName(),
-                    Token.Status.fromValue(token.getStatus().value()),
-                    token.getDateInstalled().toGregorianCalendar().getTime(),
-                    token.getCallerInstalled(),
-                    TokenType.fromValue(token.getTokenType().value()),
-                    token.getOldTokenId(),
-                    token.getPaymentReason()
-                ));
-            }
-            return tokens;
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		GetTokensResponse response =
+				makeRequestInt(method, "GetTokens", params, GetTokensResponse.class);
+		List<com.xerox.amazonws.typica.fps.jaxb.Token> rawTokens = response.getTokens();
+		List<Token> tokens = new ArrayList<Token>(rawTokens.size());
+		for (com.xerox.amazonws.typica.fps.jaxb.Token token : rawTokens) {
+			tokens.add(new Token(
+				token.getTokenId(),
+				token.getFriendlyName(),
+				Token.Status.fromValue(token.getStatus().value()),
+				token.getDateInstalled().toGregorianCalendar().getTime(),
+				token.getCallerInstalled(),
+				TokenType.fromValue(token.getTokenType().value()),
+				token.getOldTokenId(),
+				token.getPaymentReason()
+			));
+		}
+		return tokens;
     }
 
     /**
@@ -744,23 +697,19 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("TokenId", tokenID);
         if (callerReference != null)
             params.put("CallerReference", callerReference);
-        GetMethod method = new GetMethod();
-        try {
-            GetTokenByCallerResponse response =
-                    makeRequestInt(method, "GetTokenByCaller", params, GetTokenByCallerResponse.class);
-            return new Token(
-                    response.getToken().getTokenId(),
-                    response.getToken().getFriendlyName(),
-                    Token.Status.fromValue(response.getToken().getStatus().value()),
-                    response.getToken().getDateInstalled().toGregorianCalendar().getTime(),
-                    response.getToken().getCallerInstalled(),
-                    TokenType.fromValue(response.getToken().getTokenType().value()),
-                    response.getToken().getOldTokenId(),
-                    response.getToken().getPaymentReason()
-            );
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		GetTokenByCallerResponse response =
+				makeRequestInt(method, "GetTokenByCaller", params, GetTokenByCallerResponse.class);
+		return new Token(
+				response.getToken().getTokenId(),
+				response.getToken().getFriendlyName(),
+				Token.Status.fromValue(response.getToken().getStatus().value()),
+				response.getToken().getDateInstalled().toGregorianCalendar().getTime(),
+				response.getToken().getCallerInstalled(),
+				TokenType.fromValue(response.getToken().getTokenType().value()),
+				response.getToken().getOldTokenId(),
+				response.getToken().getPaymentReason()
+		);
     }
 
     /**
@@ -777,30 +726,26 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         if (tokenID.length() != 64)
             throw new IllegalArgumentException("The token must have a length of 64 bytes");
         params.put("TokenId", tokenID);
-        GetMethod method = new GetMethod();
-        try {
-            GetTokenUsageResponse response =
-                    makeRequestInt(method, "GetTokenUsage", params, GetTokenUsageResponse.class);
-            List<TokenUsageLimit> limits = new ArrayList<TokenUsageLimit>(response.getTokenUsageLimits().size());
-            for (com.xerox.amazonws.typica.fps.jaxb.TokenUsageLimit limit : response.getTokenUsageLimits()) {
-                limits.add(new TokenUsageLimit(
-                        limit.getCount(),
-                        new Amount(
-                                new BigDecimal(limit.getAmount().getAmount()),
-                                limit.getAmount().getCurrencyCode().value()
-                        ),
-                        limit.getLastResetCount(),
-                        new Amount(
-                                new BigDecimal(limit.getLastResetAmount().getAmount()),
-                                limit.getLastResetAmount().getCurrencyCode().value()
-                        ),
-                        limit.getLastResetTimeStamp().toGregorianCalendar().getTime()
-                ));
-            }
-            return limits;
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		GetTokenUsageResponse response =
+				makeRequestInt(method, "GetTokenUsage", params, GetTokenUsageResponse.class);
+		List<TokenUsageLimit> limits = new ArrayList<TokenUsageLimit>(response.getTokenUsageLimits().size());
+		for (com.xerox.amazonws.typica.fps.jaxb.TokenUsageLimit limit : response.getTokenUsageLimits()) {
+			limits.add(new TokenUsageLimit(
+					limit.getCount(),
+					new Amount(
+							new BigDecimal(limit.getAmount().getAmount()),
+							limit.getAmount().getCurrencyCode().value()
+					),
+					limit.getLastResetCount(),
+					new Amount(
+							new BigDecimal(limit.getLastResetAmount().getAmount()),
+							limit.getLastResetAmount().getCurrencyCode().value()
+					),
+					limit.getLastResetTimeStamp().toGregorianCalendar().getTime()
+			));
+		}
+		return limits;
     }
 
     /**
@@ -810,24 +755,20 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      */
     public OutstandingPrepaidLiability getTotalPrepaidLiability() throws FPSException {
         Map<String, String> params = new HashMap<String, String>();
-        GetMethod method = new GetMethod();
-        try {
-            GetTotalPrepaidLiabilityResponse response =
-                    makeRequestInt(method, "GetTotalPrepaidLiability", params, GetTotalPrepaidLiabilityResponse.class);
-            com.xerox.amazonws.typica.fps.jaxb.OutstandingPrepaidLiability liability = response.getOutstandingPrepaidLiability();
-            return new OutstandingPrepaidLiability(
-                    new Amount(
-                            new BigDecimal(liability.getOutstandingBalance().getAmount()),
-                            liability.getOutstandingBalance().getCurrencyCode().value()
-                    ),
-                    new Amount(
-                            new BigDecimal(liability.getPendingInBalance().getAmount()),
-                            liability.getPendingInBalance().getCurrencyCode().value()
-                    )
-            );
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		GetTotalPrepaidLiabilityResponse response =
+				makeRequestInt(method, "GetTotalPrepaidLiability", params, GetTotalPrepaidLiabilityResponse.class);
+		com.xerox.amazonws.typica.fps.jaxb.OutstandingPrepaidLiability liability = response.getOutstandingPrepaidLiability();
+		return new OutstandingPrepaidLiability(
+				new Amount(
+						new BigDecimal(liability.getOutstandingBalance().getAmount()),
+						liability.getOutstandingBalance().getCurrencyCode().value()
+				),
+				new Amount(
+						new BigDecimal(liability.getPendingInBalance().getAmount()),
+						liability.getPendingInBalance().getCurrencyCode().value()
+				)
+		);
     }
 
     /**
@@ -840,35 +781,31 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
     public TransactionDetail getTransaction(String transactionID) throws FPSException {
         Map<String, String> params = new HashMap<String, String>();
         params.put("TransactionId", transactionID);
-        GetMethod method = new GetMethod();
-        try {
-            GetTransactionResponse response =
-                    makeRequestInt(method, "GetTransaction", params, GetTransactionResponse.class);
-            com.xerox.amazonws.typica.fps.jaxb.TransactionDetail txn = response.getTransaction();
-            return new TransactionDetail(
-                    txn.getTransactionId(),
-                    txn.getCallerTransactionDate().toGregorianCalendar().getTime(),
-                    txn.getDateReceived().toGregorianCalendar().getTime(),
-                    txn.getDateCompleted().toGregorianCalendar().getTime(),
-                    new Amount(
-                            new BigDecimal(txn.getTransactionAmount().getAmount()),
-                            txn.getTransactionAmount().getCurrencyCode().value()
-                    ),
-                    new Amount(
-                            new BigDecimal(txn.getFees().getAmount()),
-                            txn.getFees().getCurrencyCode().value()
-                    ),
-                    txn.getCallerTokenId(), txn.getSenderTokenId(), txn.getRecipientTokenId(),
-                    txn.getPrepaidInstrumentId(), txn.getCreditInstrumentId(),
-                    FPSOperation.fromValue(txn.getOperation().value()),
-                    PaymentMethod.fromValue(txn.getPaymentMethod().value()),
-                    Transaction.Status.fromValue(txn.getStatus().value()),
-                    txn.getErrorCode(), txn.getErrorMessage(), txn.getMetaData(),
-                    txn.getSenderName(), txn.getCallerName(), txn.getRecipientName()
-            );
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		GetTransactionResponse response =
+				makeRequestInt(method, "GetTransaction", params, GetTransactionResponse.class);
+		com.xerox.amazonws.typica.fps.jaxb.TransactionDetail txn = response.getTransaction();
+		return new TransactionDetail(
+				txn.getTransactionId(),
+				txn.getCallerTransactionDate().toGregorianCalendar().getTime(),
+				txn.getDateReceived().toGregorianCalendar().getTime(),
+				txn.getDateCompleted().toGregorianCalendar().getTime(),
+				new Amount(
+						new BigDecimal(txn.getTransactionAmount().getAmount()),
+						txn.getTransactionAmount().getCurrencyCode().value()
+				),
+				new Amount(
+						new BigDecimal(txn.getFees().getAmount()),
+						txn.getFees().getCurrencyCode().value()
+				),
+				txn.getCallerTokenId(), txn.getSenderTokenId(), txn.getRecipientTokenId(),
+				txn.getPrepaidInstrumentId(), txn.getCreditInstrumentId(),
+				FPSOperation.fromValue(txn.getOperation().value()),
+				PaymentMethod.fromValue(txn.getPaymentMethod().value()),
+				Transaction.Status.fromValue(txn.getStatus().value()),
+				txn.getErrorCode(), txn.getErrorMessage(), txn.getMetaData(),
+				txn.getSenderName(), txn.getCallerName(), txn.getRecipientName()
+		);
     }
 
     /**
@@ -936,14 +873,10 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         params.put("TokenType", type.value());
         if (comment != null)
             params.put("PaymentReason", comment);
-        GetMethod method = new GetMethod();
-        try {
-            InstallPaymentInstructionResponse response =
-                    makeRequestInt(method, "InstallPaymentInstruction", params, InstallPaymentInstructionResponse.class);
-            return response.getTokenId();
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		InstallPaymentInstructionResponse response =
+				makeRequestInt(method, "InstallPaymentInstruction", params, InstallPaymentInstructionResponse.class);
+		return response.getTokenId();
     }
 
     /**
@@ -1086,20 +1019,16 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("TemporaryDeclinePolicy.TemporaryDeclinePolicyType", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
             params.put("TemporaryDeclinePolicy.ImplicitRetryTimeoutInMins", Integer.toString(tempDeclinePolicy.getImplicitRetryTimeoutInMins()));
         }
-        GetMethod method = new GetMethod();
-        try {
-            PayResponse response =
-                    makeRequestInt(method, "Pay", params, PayResponse.class);
-            TransactionResponse transactionResponse = response.getTransactionResponse();
-            return new Transaction(
-                    transactionResponse.getTransactionId(),
-                    Transaction.Status.fromValue(transactionResponse.getStatus().value()),
-                    transactionResponse.getStatusDetail()
-                    // todo: transactionResponse.getNewSenderTokenUsage()
-            );
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		PayResponse response =
+				makeRequestInt(method, "Pay", params, PayResponse.class);
+		TransactionResponse transactionResponse = response.getTransactionResponse();
+		return new Transaction(
+				transactionResponse.getTransactionId(),
+				Transaction.Status.fromValue(transactionResponse.getStatus().value()),
+				transactionResponse.getStatusDetail()
+				// todo: transactionResponse.getNewSenderTokenUsage()
+		);
     }
 
     /**
@@ -1175,20 +1104,16 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("MetaData", metadata);
         if (policy != null)
             params.put("MarketplaceRefundPolicy", policy.value());
-        GetMethod method = new GetMethod();
-        try {
-            RefundResponse response =
-                    makeRequestInt(method, "Refund", params, RefundResponse.class);
-            TransactionResponse transactionResponse = response.getTransactionResponse();
-            return new Transaction(
-                    transactionResponse.getTransactionId(),
-                    Transaction.Status.fromValue(transactionResponse.getStatus().value()),
-                    transactionResponse.getStatusDetail()
-                    // todo: transactionResponse.getNewSenderTokenUsage()
-            );
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		RefundResponse response =
+				makeRequestInt(method, "Refund", params, RefundResponse.class);
+		TransactionResponse transactionResponse = response.getTransactionResponse();
+		return new Transaction(
+				transactionResponse.getTransactionId(),
+				Transaction.Status.fromValue(transactionResponse.getStatus().value()),
+				transactionResponse.getStatusDetail()
+				// todo: transactionResponse.getNewSenderTokenUsage()
+		);
     }
 
     /**
@@ -1284,19 +1209,15 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("TemporaryDeclinePolicy.TemporaryDeclinePolicyType", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
             params.put("ImplicitRetryTimeoutInMins", Integer.toString(tempDeclinePolicy.getImplicitRetryTimeoutInMins()));
         }
-        GetMethod method = new GetMethod();
-        try {
-            ReserveResponse response = makeRequestInt(method, "Reserve", params, ReserveResponse.class);
-            TransactionResponse transactionResponse = response.getTransactionResponse();
-            return new Transaction(
-                    transactionResponse.getTransactionId(),
-                    Transaction.Status.fromValue(transactionResponse.getStatus().value()),
-                    transactionResponse.getStatusDetail()
-                    // todo: transactionResponse.getNewSenderTokenUsage()
-            );
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		ReserveResponse response = makeRequestInt(method, "Reserve", params, ReserveResponse.class);
+		TransactionResponse transactionResponse = response.getTransactionResponse();
+		return new Transaction(
+				transactionResponse.getTransactionId(),
+				Transaction.Status.fromValue(transactionResponse.getStatus().value()),
+				transactionResponse.getStatusDetail()
+				// todo: transactionResponse.getNewSenderTokenUsage()
+		);
     }
 
     /**
@@ -1314,19 +1235,15 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             logger.info("Retry tranasction: " + transactionID);
         Map<String, String> params = new HashMap<String, String>();
         params.put("OriginalTransactionId", transactionID);
-        GetMethod method = new GetMethod();
-        try {
-            RetryTransactionResponse response = makeRequestInt(method, "RetryTransaction", params, RetryTransactionResponse.class);
-            TransactionResponse transactionResponse = response.getTransactionResponse();
-            return new Transaction(
-                    transactionResponse.getTransactionId(),
-                    Transaction.Status.fromValue(transactionResponse.getStatus().value()),
-                    transactionResponse.getStatusDetail()
-                    // todo: transactionResponse.getNewSenderTokenUsage()
-            );
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		RetryTransactionResponse response = makeRequestInt(method, "RetryTransaction", params, RetryTransactionResponse.class);
+		TransactionResponse transactionResponse = response.getTransactionResponse();
+		return new Transaction(
+				transactionResponse.getTransactionId(),
+				Transaction.Status.fromValue(transactionResponse.getStatus().value()),
+				transactionResponse.getStatusDetail()
+				// todo: transactionResponse.getNewSenderTokenUsage()
+		);
      }
 
     /**
@@ -1361,19 +1278,15 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         params.put("TransactionAmount.CurrencyCode", amount.getCurrencyCode());
         if (transactionDate != null)
             params.put("TransactionDate", DataUtils.encodeDate(transactionDate));
-        GetMethod method = new GetMethod();
-        try {
-            SettleResponse response = makeRequestInt(method, "Settle", params, SettleResponse.class);
-            TransactionResponse transactionResponse = response.getTransactionResponse();
-            return new Transaction(
-                    transactionResponse.getTransactionId(),
-                    Transaction.Status.fromValue(transactionResponse.getStatus().value()),
-                    transactionResponse.getStatusDetail()
-                    // todo: transactionResponse.getNewSenderTokenUsage()
-            );
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		SettleResponse response = makeRequestInt(method, "Settle", params, SettleResponse.class);
+		TransactionResponse transactionResponse = response.getTransactionResponse();
+		return new Transaction(
+				transactionResponse.getTransactionId(),
+				Transaction.Status.fromValue(transactionResponse.getStatus().value()),
+				transactionResponse.getStatusDetail()
+				// todo: transactionResponse.getNewSenderTokenUsage()
+		);
     }
 
     /**
@@ -1475,20 +1388,16 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("TemporaryDeclinePolicy.TemporaryDeclinePolicyType", tempDeclinePolicy.getTemporaryDeclinePolicyType().value());
             params.put("ImplicitRetryTimeoutInMins", Integer.toString(tempDeclinePolicy.getImplicitRetryTimeoutInMins()));
         }
-        GetMethod method = new GetMethod();
-        try {
-            SettleDebtResponse response =
-                    makeRequestInt(method, "SettleDebt", params, SettleDebtResponse.class);
-            TransactionResponse transactionResponse = response.getTransactionResponse();
-            return new Transaction(
-                    transactionResponse.getTransactionId(),
-                    Transaction.Status.fromValue(transactionResponse.getStatus().value()),
-                    transactionResponse.getStatusDetail()
-                    // todo: transactionResponse.getNewSenderTokenUsage()
-            );
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		SettleDebtResponse response =
+				makeRequestInt(method, "SettleDebt", params, SettleDebtResponse.class);
+		TransactionResponse transactionResponse = response.getTransactionResponse();
+		return new Transaction(
+				transactionResponse.getTransactionId(),
+				Transaction.Status.fromValue(transactionResponse.getStatus().value()),
+				transactionResponse.getStatusDetail()
+				// todo: transactionResponse.getNewSenderTokenUsage()
+		);
     }
 
     /**
@@ -1509,12 +1418,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         Map<String, String> params = new HashMap<String, String>();
         params.put("NotificationOperationName", operationType.value());
         params.put("WebServiceAPIURLt", webService.toString());
-        GetMethod method = new GetMethod();
-        try {
-            makeRequestInt(method, "SubscribeForCallerNotification", params, SubscribeForCallerNotificationResponse.class);
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+        makeRequestInt(method, "SubscribeForCallerNotification", params, SubscribeForCallerNotificationResponse.class);
     }
 
     /**
@@ -1529,12 +1434,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             logger.info("Unsubscribe for caller notification for operations " + operationType);
         Map<String, String> params = new HashMap<String, String>();
         params.put("NotificationOperationName", operationType.value());
-        GetMethod method = new GetMethod();
-        try {
-            makeRequestInt(method, "UnSubscribeForCallerNotification", params, UnSubscribeForCallerNotificationResponse.class);
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+        makeRequestInt(method, "UnSubscribeForCallerNotification", params, UnSubscribeForCallerNotificationResponse.class);
     }
 
     /**
@@ -1603,20 +1504,16 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
             params.put("CallerDescription", callerDescription);
         if (metadata != null)
             params.put("MetaData", metadata);
-        GetMethod method = new GetMethod();
-        try {
-            WriteOffDebtResponse response =
-                    makeRequestInt(method, "WriteOffDebt", params, WriteOffDebtResponse.class);
-            TransactionResponse transactionResponse = response.getTransactionResponse();
-            return new Transaction(
-                    transactionResponse.getTransactionId(),
-                    Transaction.Status.fromValue(transactionResponse.getStatus().value()),
-                    transactionResponse.getStatusDetail()
-                    // todo: transactionResponse.getNewSenderTokenUsage()
-            );
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		WriteOffDebtResponse response =
+				makeRequestInt(method, "WriteOffDebt", params, WriteOffDebtResponse.class);
+		TransactionResponse transactionResponse = response.getTransactionResponse();
+		return new Transaction(
+				transactionResponse.getTransactionId(),
+				Transaction.Status.fromValue(transactionResponse.getStatus().value()),
+				transactionResponse.getStatusDetail()
+				// todo: transactionResponse.getNewSenderTokenUsage()
+		);
     }
 
     /**
@@ -1627,26 +1524,22 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
      */
     public AccountBalance getAccountBalance() throws FPSException {
         Map<String, String> params = new HashMap<String, String>();
-        GetMethod method = new GetMethod();
-        try {
-            GetAccountBalanceResponse response =
-                    makeRequestInt(method, "GetAccountBalance", params, GetAccountBalanceResponse.class);
-            com.xerox.amazonws.typica.fps.jaxb.AccountBalance balance = response.getAccountBalance();
-            com.xerox.amazonws.typica.fps.jaxb.Amount available = balance.getTotalBalance();
-            com.xerox.amazonws.typica.fps.jaxb.Amount pendingIn = balance.getPendingInBalance();
-            com.xerox.amazonws.typica.fps.jaxb.Amount pendingOut = balance.getPendingOutBalance();
-            com.xerox.amazonws.typica.fps.jaxb.Amount disburse = balance.getAvailableBalances().getDisburseBalance();
-            com.xerox.amazonws.typica.fps.jaxb.Amount refund = balance.getAvailableBalances().getRefundBalance();
-            return new AccountBalance(
-                    new Amount(new BigDecimal(available.getAmount()), available.getCurrencyCode().toString()),
-                    new Amount(new BigDecimal(pendingIn.getAmount()), pendingIn.getCurrencyCode().toString()),
-                    new Amount(new BigDecimal(pendingOut.getAmount()), pendingOut.getCurrencyCode().toString()),
-                    new Amount(new BigDecimal(disburse.getAmount()), disburse.getCurrencyCode().toString()),
-                    new Amount(new BigDecimal(refund.getAmount()), refund.getCurrencyCode().toString())
-            );
-        } finally {
-            method.releaseConnection();
-        }
+		HttpGet method = new HttpGet();
+		GetAccountBalanceResponse response =
+				makeRequestInt(method, "GetAccountBalance", params, GetAccountBalanceResponse.class);
+		com.xerox.amazonws.typica.fps.jaxb.AccountBalance balance = response.getAccountBalance();
+		com.xerox.amazonws.typica.fps.jaxb.Amount available = balance.getTotalBalance();
+		com.xerox.amazonws.typica.fps.jaxb.Amount pendingIn = balance.getPendingInBalance();
+		com.xerox.amazonws.typica.fps.jaxb.Amount pendingOut = balance.getPendingOutBalance();
+		com.xerox.amazonws.typica.fps.jaxb.Amount disburse = balance.getAvailableBalances().getDisburseBalance();
+		com.xerox.amazonws.typica.fps.jaxb.Amount refund = balance.getAvailableBalances().getRefundBalance();
+		return new AccountBalance(
+				new Amount(new BigDecimal(available.getAmount()), available.getCurrencyCode().toString()),
+				new Amount(new BigDecimal(pendingIn.getAmount()), pendingIn.getCurrencyCode().toString()),
+				new Amount(new BigDecimal(pendingOut.getAmount()), pendingOut.getCurrencyCode().toString()),
+				new Amount(new BigDecimal(disburse.getAmount()), disburse.getCurrencyCode().toString()),
+				new Amount(new BigDecimal(refund.getAmount()), refund.getCurrencyCode().toString())
+		);
     }
 
     /**
@@ -2370,7 +2263,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         return ourSignature.equals(signature);
     }
 
-    protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+    protected <T> T makeRequestInt(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
 		throws FPSException {
 		try {
 			T response = makeRequest(method, action, params, respType);

@@ -2,7 +2,7 @@ package com.xerox.amazonws.fps;
 
 import com.xerox.amazonws.sdb.DataUtils;
 import com.xerox.amazonws.typica.fps.jaxb.GetAccountActivityResponse;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.client.methods.HttpGet;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -87,7 +87,7 @@ public class AccountActivity implements Iterable<Transaction>, Serializable {
             if (nextStartDate == null)
                 throw new NoSuchElementException();
 
-            GetMethod method = new GetMethod();
+            HttpGet method = new HttpGet();
             Map<String, String> params = new HashMap<String, String>();
             if (filter != null)
                 params.put("Operation", filter.value());
@@ -127,9 +127,7 @@ public class AccountActivity implements Iterable<Transaction>, Serializable {
                 transactionsIterator = transactions.iterator();
             } catch (Exception e) {
                 throw new NoSuchElementException(e.getMessage());
-            } finally {
-                method.releaseConnection();
-            }
+			}
             return transactionsIterator.next();
         }
 

@@ -17,26 +17,15 @@
 
 package com.xerox.amazonws.common;
 
-import java.io.InputStream;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.SortedMap;
-import java.util.StringTokenizer;
-import java.util.TimeZone;
 import java.util.TreeMap;
 
 import javax.crypto.Mac;

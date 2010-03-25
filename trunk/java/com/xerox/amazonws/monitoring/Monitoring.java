@@ -31,8 +31,9 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -151,23 +152,19 @@ public class Monitoring extends AWSQueryConnection {
 			}
 		}
 		params.put("MeasureName", measureName);
-		GetMethod method = new GetMethod();
-		try {
-			GetMetricStatisticsResponse response =
-					makeRequestInt(method, "GetMetricStatistics", params, GetMetricStatisticsResponse.class);
-			GetMetricStatisticsResult result = response.getGetMetricStatisticsResult();
-			MetricStatisticsResult ret = new MetricStatisticsResult(result.getLabel());
-			List<Datapoint> dpList = ret.getDatapoints();
-			List<com.xerox.amazonws.typica.monitor.jaxb.Datapoint> dps = result.getDatapoints().getMembers();
-			for (com.xerox.amazonws.typica.monitor.jaxb.Datapoint dp : dps) {
-				dpList.add(new Datapoint(dp.getTimestamp().toGregorianCalendar(), dp.getSamples(),
-								dp.getAverage(), dp.getSum(), dp.getMinimum(), dp.getMaximum(),
-								dp.getUnit(), dp.getCustomUnit()));
-			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		GetMetricStatisticsResponse response =
+				makeRequestInt(method, "GetMetricStatistics", params, GetMetricStatisticsResponse.class);
+		GetMetricStatisticsResult result = response.getGetMetricStatisticsResult();
+		MetricStatisticsResult ret = new MetricStatisticsResult(result.getLabel());
+		List<Datapoint> dpList = ret.getDatapoints();
+		List<com.xerox.amazonws.typica.monitor.jaxb.Datapoint> dps = result.getDatapoints().getMembers();
+		for (com.xerox.amazonws.typica.monitor.jaxb.Datapoint dp : dps) {
+			dpList.add(new Datapoint(dp.getTimestamp().toGregorianCalendar(), dp.getSamples(),
+							dp.getAverage(), dp.getSum(), dp.getMinimum(), dp.getMaximum(),
+							dp.getUnit(), dp.getCustomUnit()));
 		}
+		return ret;
 	}
 
 	/**
@@ -178,35 +175,31 @@ public class Monitoring extends AWSQueryConnection {
 	 */
 	public List<Metric> listMetrics() throws MonitoringException {
 		Map<String, String> params = new HashMap<String, String>();
-		GetMethod method = new GetMethod();
-		try {
-			List<Metric> ret = new ArrayList<Metric>();
-			String nextToken = null;
-			do {
-				if (nextToken != null) {
-					params.put("NextToken", nextToken);
+		HttpGet method = new HttpGet();
+		List<Metric> ret = new ArrayList<Metric>();
+		String nextToken = null;
+		do {
+			if (nextToken != null) {
+				params.put("NextToken", nextToken);
+			}
+			ListMetricsResponse response =
+					makeRequestInt(method, "ListMetrics", params, ListMetricsResponse.class);
+			ListMetricsResult result = response.getListMetricsResult();
+			Metrics mtrx = result.getMetrics();
+			for (com.xerox.amazonws.typica.monitor.jaxb.Metric m : mtrx.getMembers()) {
+				Metric met = new Metric(m.getMeasureName(), m.getNamespace());
+				for (Dimension d : m.getDimensions().getMembers()) {
+					met.addDimension(d.getName(), d.getValue());
 				}
-				ListMetricsResponse response =
-						makeRequestInt(method, "ListMetrics", params, ListMetricsResponse.class);
-				ListMetricsResult result = response.getListMetricsResult();
-				Metrics mtrx = result.getMetrics();
-				for (com.xerox.amazonws.typica.monitor.jaxb.Metric m : mtrx.getMembers()) {
-					Metric met = new Metric(m.getMeasureName(), m.getNamespace());
-					for (Dimension d : m.getDimensions().getMembers()) {
-						met.addDimension(d.getName(), d.getValue());
-					}
-					ret.add(met);
-				}
-				nextToken = result.getNextToken();
-			} while (nextToken != null);
+				ret.add(met);
+			}
+			nextToken = result.getNextToken();
+		} while (nextToken != null);
 
-			return ret;
-		} finally {
-			method.releaseConnection();
-		}
+		return ret;
 	}
 
-	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+	protected <T> T makeRequestInt(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
 		throws MonitoringException {
 		try {
 			return makeRequest(method, action, params, respType);
@@ -217,6 +210,8 @@ public class Monitoring extends AWSQueryConnection {
 		} catch (MalformedURLException ex) {
 			throw new MonitoringException(ex.getMessage(), ex);
 		} catch (IOException ex) {
+			throw new MonitoringException(ex.getMessage(), ex);
+		} catch (HttpException ex) {
 			throw new MonitoringException(ex.getMessage(), ex);
 		}
 	}

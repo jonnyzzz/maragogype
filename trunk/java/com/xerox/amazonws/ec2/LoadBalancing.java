@@ -17,32 +17,18 @@
 
 package com.xerox.amazonws.ec2;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.StringWriter;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -57,7 +43,6 @@ import com.xerox.amazonws.typica.loadbalance.jaxb.DescribeLoadBalancersResponse;
 import com.xerox.amazonws.typica.loadbalance.jaxb.DescribeInstanceHealthResponse;
 import com.xerox.amazonws.typica.loadbalance.jaxb.RegisterInstancesWithLoadBalancerResponse;
 import com.xerox.amazonws.typica.loadbalance.jaxb.DisableAvailabilityZonesForLoadBalancerResponse;
-//import com.xerox.amazonws.typica.loadbalance.jaxb.;
 
 /**
  * A Java wrapper for the EC2 web services API
@@ -136,14 +121,10 @@ public class LoadBalancing extends AWSQueryConnection {
 			params.put("AvailabilityZones.member."+(i+1), zone);
 			i++;
 		}
-		GetMethod method = new GetMethod();
-		try {
-			EnableAvailabilityZonesForLoadBalancerResponse response =
-					makeRequestInt(method, "EnableAvailabilityZonesForLoadBalancer", params, EnableAvailabilityZonesForLoadBalancerResponse.class);
-			return response.getEnableAvailabilityZonesForLoadBalancerResult().getAvailabilityZones().getMembers();
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		EnableAvailabilityZonesForLoadBalancerResponse response =
+				makeRequestInt(method, "EnableAvailabilityZonesForLoadBalancer", params, EnableAvailabilityZonesForLoadBalancerResponse.class);
+		return response.getEnableAvailabilityZonesForLoadBalancerResult().getAvailabilityZones().getMembers();
 	}
 
 	/**
@@ -170,14 +151,10 @@ public class LoadBalancing extends AWSQueryConnection {
 			params.put("AvailabilityZones.member."+i, zone);
 			i++;
 		}
-		GetMethod method = new GetMethod();
-		try {
-			CreateLoadBalancerResponse response =
-					makeRequestInt(method, "CreateLoadBalancer", params, CreateLoadBalancerResponse.class);
-			return response.getCreateLoadBalancerResult().getDNSName();
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		CreateLoadBalancerResponse response =
+				makeRequestInt(method, "CreateLoadBalancer", params, CreateLoadBalancerResponse.class);
+		return response.getCreateLoadBalancerResult().getDNSName();
 	}
 
 	/**
@@ -195,19 +172,15 @@ public class LoadBalancing extends AWSQueryConnection {
 		params.put("HealthCheck.Timeout", ""+healthCheck.getTimeout());
 		params.put("HealthCheck.UnhealthyThreshold", ""+healthCheck.getUnhealthyThreshold());
 		params.put("HealthCheck.HealthyThreshold", ""+healthCheck.getHealthyThreshold());
-		GetMethod method = new GetMethod();
-		try {
-			ConfigureHealthCheckResponse response =
-					makeRequestInt(method, "ConfigureHealthCheck", params, ConfigureHealthCheckResponse.class);
-			com.xerox.amazonws.typica.loadbalance.jaxb.HealthCheck hc =
-						response.getConfigureHealthCheckResult().getHealthCheck();
-			return new HealthCheck(hc.getTarget(), hc.getInterval().intValue(),
-							hc.getTimeout().intValue(),
-							hc.getUnhealthyThreshold().intValue(),
-							hc.getHealthyThreshold().intValue());
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		ConfigureHealthCheckResponse response =
+				makeRequestInt(method, "ConfigureHealthCheck", params, ConfigureHealthCheckResponse.class);
+		com.xerox.amazonws.typica.loadbalance.jaxb.HealthCheck hc =
+					response.getConfigureHealthCheckResult().getHealthCheck();
+		return new HealthCheck(hc.getTarget(), hc.getInterval().intValue(),
+						hc.getTimeout().intValue(),
+						hc.getUnhealthyThreshold().intValue(),
+						hc.getHealthyThreshold().intValue());
 	}
 
 	/**
@@ -219,13 +192,9 @@ public class LoadBalancing extends AWSQueryConnection {
 	public void deleteLoadBalancer(String loadBalancerName) throws LoadBalancingException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("LoadBalancerName", loadBalancerName);
-		GetMethod method = new GetMethod();
-		try {
-//			DeleteLoadBalancerResponse response =
-					makeRequestInt(method, "DeleteLoadBalancer", params, DeleteLoadBalancerResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+//		DeleteLoadBalancerResponse response =
+			makeRequestInt(method, "DeleteLoadBalancer", params, DeleteLoadBalancerResponse.class);
 	}
 
 	/**
@@ -245,19 +214,15 @@ public class LoadBalancing extends AWSQueryConnection {
 			params.put("Instances.member."+i+".InstanceId", inst);
 			i++;
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DeregisterInstancesFromLoadBalancerResponse response =
-					makeRequestInt(method, "DeregisterInstancesFromLoadBalancer", params, DeregisterInstancesFromLoadBalancerResponse.class);
-			List<com.xerox.amazonws.typica.loadbalance.jaxb.Instance> instList = response.getDeregisterInstancesFromLoadBalancerResult().getInstances().getMembers();
-			List<String> ret = new ArrayList<String>();
-			for (com.xerox.amazonws.typica.loadbalance.jaxb.Instance inst : instList) {
-				ret.add(inst.getInstanceId());
-			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		DeregisterInstancesFromLoadBalancerResponse response =
+				makeRequestInt(method, "DeregisterInstancesFromLoadBalancer", params, DeregisterInstancesFromLoadBalancerResponse.class);
+		List<com.xerox.amazonws.typica.loadbalance.jaxb.Instance> instList = response.getDeregisterInstancesFromLoadBalancerResult().getInstances().getMembers();
+		List<String> ret = new ArrayList<String>();
+		for (com.xerox.amazonws.typica.loadbalance.jaxb.Instance inst : instList) {
+			ret.add(inst.getInstanceId());
 		}
+		return ret;
 	}
 
 
@@ -288,44 +253,40 @@ public class LoadBalancing extends AWSQueryConnection {
 				i++;
 			}
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeLoadBalancersResponse response =
-					makeRequestInt(method, "DescribeLoadBalancers", params, DescribeLoadBalancersResponse.class);
-			List<com.xerox.amazonws.typica.loadbalance.jaxb.LoadBalancerDescription> result =
-						response.getDescribeLoadBalancersResult().getLoadBalancerDescriptions().getMembers();
-			List<LoadBalancer> ret = new ArrayList<LoadBalancer>();
-			for (com.xerox.amazonws.typica.loadbalance.jaxb.LoadBalancerDescription lb : result) {
-				List<com.xerox.amazonws.typica.loadbalance.jaxb.Instance> instList = lb.getInstances().getMembers();
-				List<String> instances = new ArrayList<String>();
-				for (com.xerox.amazonws.typica.loadbalance.jaxb.Instance inst : instList) {
-					instances.add(inst.getInstanceId());
-				}
-				List<com.xerox.amazonws.typica.loadbalance.jaxb.Listener> listenerList = lb.getListeners().getMembers();
-				List<Listener> listeners = new ArrayList<Listener>();
-				for (com.xerox.amazonws.typica.loadbalance.jaxb.Listener listnr : listenerList) {
-					listeners.add(new Listener(listnr.getProtocol(),
-												listnr.getLoadBalancerPort().intValue(),
-												listnr.getInstancePort().intValue()));
-				}
-				com.xerox.amazonws.typica.loadbalance.jaxb.HealthCheck hc = lb.getHealthCheck();
-				HealthCheck healthCheck = new HealthCheck(hc.getTarget(),
-									hc.getInterval().intValue(),
-									hc.getTimeout().intValue(),
-									hc.getUnhealthyThreshold().intValue(),
-									hc.getHealthyThreshold().intValue());
-				LoadBalancer newPoint = new LoadBalancer(lb.getLoadBalancerName(),
-								lb.getDNSName(),
-								listeners,
-								lb.getAvailabilityZones().getMembers(),
-								instances, healthCheck,
-								lb.getCreatedTime().toGregorianCalendar());
-				ret.add(newPoint);
+		HttpGet method = new HttpGet();
+		DescribeLoadBalancersResponse response =
+				makeRequestInt(method, "DescribeLoadBalancers", params, DescribeLoadBalancersResponse.class);
+		List<com.xerox.amazonws.typica.loadbalance.jaxb.LoadBalancerDescription> result =
+					response.getDescribeLoadBalancersResult().getLoadBalancerDescriptions().getMembers();
+		List<LoadBalancer> ret = new ArrayList<LoadBalancer>();
+		for (com.xerox.amazonws.typica.loadbalance.jaxb.LoadBalancerDescription lb : result) {
+			List<com.xerox.amazonws.typica.loadbalance.jaxb.Instance> instList = lb.getInstances().getMembers();
+			List<String> instances = new ArrayList<String>();
+			for (com.xerox.amazonws.typica.loadbalance.jaxb.Instance inst : instList) {
+				instances.add(inst.getInstanceId());
 			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+			List<com.xerox.amazonws.typica.loadbalance.jaxb.Listener> listenerList = lb.getListeners().getMembers();
+			List<Listener> listeners = new ArrayList<Listener>();
+			for (com.xerox.amazonws.typica.loadbalance.jaxb.Listener listnr : listenerList) {
+				listeners.add(new Listener(listnr.getProtocol(),
+											listnr.getLoadBalancerPort().intValue(),
+											listnr.getInstancePort().intValue()));
+			}
+			com.xerox.amazonws.typica.loadbalance.jaxb.HealthCheck hc = lb.getHealthCheck();
+			HealthCheck healthCheck = new HealthCheck(hc.getTarget(),
+								hc.getInterval().intValue(),
+								hc.getTimeout().intValue(),
+								hc.getUnhealthyThreshold().intValue(),
+								hc.getHealthyThreshold().intValue());
+			LoadBalancer newPoint = new LoadBalancer(lb.getLoadBalancerName(),
+							lb.getDNSName(),
+							listeners,
+							lb.getAvailabilityZones().getMembers(),
+							instances, healthCheck,
+							lb.getCreatedTime().toGregorianCalendar());
+			ret.add(newPoint);
 		}
+		return ret;
 	}
 
     /**
@@ -355,24 +316,20 @@ public class LoadBalancing extends AWSQueryConnection {
 				i++;
 			}
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeInstanceHealthResponse response =
-					makeRequestInt(method, "DescribeInstanceHealth", params, DescribeInstanceHealthResponse.class);
-			List<com.xerox.amazonws.typica.loadbalance.jaxb.InstanceState> result =
-						response.getDescribeInstanceHealthResult().getInstanceStates().getMembers();
-			List<InstanceState> ret = new ArrayList<InstanceState>();
-			for (com.xerox.amazonws.typica.loadbalance.jaxb.InstanceState state : result) {
-				InstanceState newState = new InstanceState(state.getInstanceId(),
-								state.getState(),
-								state.getReasonCode(),
-								state.getDescription());
-				ret.add(newState);
-			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		DescribeInstanceHealthResponse response =
+				makeRequestInt(method, "DescribeInstanceHealth", params, DescribeInstanceHealthResponse.class);
+		List<com.xerox.amazonws.typica.loadbalance.jaxb.InstanceState> result =
+					response.getDescribeInstanceHealthResult().getInstanceStates().getMembers();
+		List<InstanceState> ret = new ArrayList<InstanceState>();
+		for (com.xerox.amazonws.typica.loadbalance.jaxb.InstanceState state : result) {
+			InstanceState newState = new InstanceState(state.getInstanceId(),
+							state.getState(),
+							state.getReasonCode(),
+							state.getDescription());
+			ret.add(newState);
 		}
+		return ret;
 	}
 
 	/**
@@ -391,19 +348,15 @@ public class LoadBalancing extends AWSQueryConnection {
 			params.put("Instances.member."+i+".InstanceId", inst);
 			i++;
 		}
-		GetMethod method = new GetMethod();
-		try {
-			RegisterInstancesWithLoadBalancerResponse response =
-					makeRequestInt(method, "RegisterInstancesWithLoadBalancer", params, RegisterInstancesWithLoadBalancerResponse.class);
-			List<com.xerox.amazonws.typica.loadbalance.jaxb.Instance> instList = response.getRegisterInstancesWithLoadBalancerResult().getInstances().getMembers();
-			List<String> ret = new ArrayList<String>();
-			for (com.xerox.amazonws.typica.loadbalance.jaxb.Instance inst : instList) {
-				ret.add(inst.getInstanceId());
-			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		RegisterInstancesWithLoadBalancerResponse response =
+				makeRequestInt(method, "RegisterInstancesWithLoadBalancer", params, RegisterInstancesWithLoadBalancerResponse.class);
+		List<com.xerox.amazonws.typica.loadbalance.jaxb.Instance> instList = response.getRegisterInstancesWithLoadBalancerResult().getInstances().getMembers();
+		List<String> ret = new ArrayList<String>();
+		for (com.xerox.amazonws.typica.loadbalance.jaxb.Instance inst : instList) {
+			ret.add(inst.getInstanceId());
 		}
+		return ret;
 	}
 
 	/**
@@ -422,17 +375,13 @@ public class LoadBalancing extends AWSQueryConnection {
 			params.put("AvailabilityZones.member."+(i+1), zone);
 			i++;
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DisableAvailabilityZonesForLoadBalancerResponse response =
-					makeRequestInt(method, "DisableAvailabilityZonesForLoadBalancer", params, DisableAvailabilityZonesForLoadBalancerResponse.class);
-			return response.getDisableAvailabilityZonesForLoadBalancerResult().getAvailabilityZones().getMembers();
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		DisableAvailabilityZonesForLoadBalancerResponse response =
+				makeRequestInt(method, "DisableAvailabilityZonesForLoadBalancer", params, DisableAvailabilityZonesForLoadBalancerResponse.class);
+		return response.getDisableAvailabilityZonesForLoadBalancerResult().getAvailabilityZones().getMembers();
 	}
 
-	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+	protected <T> T makeRequestInt(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
 		throws LoadBalancingException {
 		try {
 			return makeRequest(method, action, params, respType);
@@ -443,6 +392,8 @@ public class LoadBalancing extends AWSQueryConnection {
 		} catch (MalformedURLException ex) {
 			throw new LoadBalancingException(ex.getMessage(), ex);
 		} catch (IOException ex) {
+			throw new LoadBalancingException(ex.getMessage(), ex);
+		} catch (HttpException ex) {
 			throw new LoadBalancingException(ex.getMessage(), ex);
 		}
 	}

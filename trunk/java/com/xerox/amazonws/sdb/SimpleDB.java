@@ -28,9 +28,9 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpGet;
 
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSQueryConnection;
@@ -150,18 +150,14 @@ public class SimpleDB extends AWSQueryConnection {
 	public Domain createDomain(String name) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", name);
-		GetMethod method = new GetMethod();
-		try {
-			CreateDomainResponse response =
-						makeRequestInt(method, "CreateDomain", params, CreateDomainResponse.class);
-			Domain ret = new Domain(name, getAwsAccessKeyId(), getSecretAccessKey(),
-									isSecure(), getServer(), getPort());
-			ret.setSignatureVersion(getSignatureVersion());
-			ret.setHttpClient(getHttpClient());
-			return ret;
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		CreateDomainResponse response =
+					makeRequestInt(method, "CreateDomain", params, CreateDomainResponse.class);
+		Domain ret = new Domain(name, getAwsAccessKeyId(), getSecretAccessKey(),
+								isSecure(), getServer(), getPort());
+		ret.setSignatureVersion(getSignatureVersion());
+		ret.setHttpClient(getHttpClient());
+		return ret;
 	}
 
 	/**
@@ -183,13 +179,9 @@ public class SimpleDB extends AWSQueryConnection {
 	public void deleteDomain(String name) throws SDBException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("DomainName", name);
-		GetMethod method = new GetMethod();
-		try {
-			//DeleteDomainResponse response =
+		HttpGet method = new HttpGet();
+	//	DeleteDomainResponse response =
 			makeRequestInt(method, "DeleteDomain", params, DeleteDomainResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
 	}
 
 	/**
@@ -221,22 +213,18 @@ public class SimpleDB extends AWSQueryConnection {
 		if (maxResults > 0) {
 			params.put("MaxNumberOfDomains", ""+maxResults);
 		}
-		GetMethod method = new GetMethod();
-		try {
-			ListDomainsResponse response =
-						makeRequestInt(method, "ListDomains", params, ListDomainsResponse.class);
-			return new ListDomainsResult(response.getListDomainsResult().getNextToken(),
-							response.getResponseMetadata().getRequestId(),
-							response.getResponseMetadata().getBoxUsage(),
-							Domain.createList(response.getListDomainsResult().getDomainNames().toArray(new String[] {}),
-								getAwsAccessKeyId(), getSecretAccessKey(),
-								isSecure(), getServer(), getPort(), getSignatureVersion(), getHttpClient()));
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		ListDomainsResponse response =
+					makeRequestInt(method, "ListDomains", params, ListDomainsResponse.class);
+		return new ListDomainsResult(response.getListDomainsResult().getNextToken(),
+						response.getResponseMetadata().getRequestId(),
+						response.getResponseMetadata().getBoxUsage(),
+						Domain.createList(response.getListDomainsResult().getDomainNames().toArray(new String[] {}),
+							getAwsAccessKeyId(), getSecretAccessKey(),
+							isSecure(), getServer(), getPort(), getSignatureVersion(), getHttpClient()));
 	}
 
-	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+	protected <T> T makeRequestInt(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
 		throws SDBException {
 		try {
 			return makeRequest(method, action, params, respType);

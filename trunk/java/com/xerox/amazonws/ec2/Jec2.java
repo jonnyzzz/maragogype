@@ -30,9 +30,10 @@ import java.util.Map;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -234,14 +235,10 @@ public class Jec2 extends AWSQueryConnection {
 		if (noReboot) {
 			params.put("NoReboot", "true");
 		}
-		GetMethod method = new GetMethod();
-		try {
-			CreateImageResponse response =
-					makeRequestInt(method, "CreateImage", params, CreateImageResponse.class);
-			return response.getImageId();
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		CreateImageResponse response =
+				makeRequestInt(method, "CreateImage", params, CreateImageResponse.class);
+		return response.getImageId();
 	}
 
 	/**
@@ -321,14 +318,10 @@ public class Jec2 extends AWSQueryConnection {
 				}
 			}
 		}
-		GetMethod method = new GetMethod();
-		try {
-			RegisterImageResponse response =
-					makeRequestInt(method, "RegisterImage", params, RegisterImageResponse.class);
-			return response.getImageId();
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		RegisterImageResponse response =
+				makeRequestInt(method, "RegisterImage", params, RegisterImageResponse.class);
+		return response.getImageId();
 	}
 
 	/**
@@ -341,15 +334,11 @@ public class Jec2 extends AWSQueryConnection {
 	public void deregisterImage(String imageId) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ImageId", imageId);
-		GetMethod method = new GetMethod();
-		try {
-			DeregisterImageResponse response =
-					makeRequestInt(method, "DeregisterImage", params, DeregisterImageResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not deregister image : "+imageId+". No reason given.");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		DeregisterImageResponse response =
+				makeRequestInt(method, "DeregisterImage", params, DeregisterImageResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not deregister image : "+imageId+". No reason given.");
 		}
 	}
 
@@ -435,57 +424,53 @@ public class Jec2 extends AWSQueryConnection {
 
 
 	protected List<ImageDescription> describeImages(Map<String, String> params) throws EC2Exception {
-		GetMethod method = new GetMethod();
-		try {
-			DescribeImagesResponse response =
-					makeRequestInt(method, "DescribeImages", params, DescribeImagesResponse.class);
-			List<ImageDescription> result = new ArrayList<ImageDescription>();
-			DescribeImagesResponseInfoType set = response.getImagesSet();
-			Iterator set_iter = set.getItems().iterator();
-			while (set_iter.hasNext()) {
-				DescribeImagesResponseItemType item = (DescribeImagesResponseItemType) set_iter
-						.next();
-				ArrayList<String> codes = new ArrayList<String>();
-				ProductCodesSetType code_set = item.getProductCodes();
-				if (code_set != null) {
-					for (ProductCodesSetItemType code : code_set.getItems()) {
-						codes.add(code.getProductCode());
-					}
+		HttpGet method = new HttpGet();
+		DescribeImagesResponse response =
+				makeRequestInt(method, "DescribeImages", params, DescribeImagesResponse.class);
+		List<ImageDescription> result = new ArrayList<ImageDescription>();
+		DescribeImagesResponseInfoType set = response.getImagesSet();
+		Iterator set_iter = set.getItems().iterator();
+		while (set_iter.hasNext()) {
+			DescribeImagesResponseItemType item = (DescribeImagesResponseItemType) set_iter
+					.next();
+			ArrayList<String> codes = new ArrayList<String>();
+			ProductCodesSetType code_set = item.getProductCodes();
+			if (code_set != null) {
+				for (ProductCodesSetItemType code : code_set.getItems()) {
+					codes.add(code.getProductCode());
 				}
-				ArrayList<BlockDeviceMapping> bdm = new ArrayList<BlockDeviceMapping>();
-				BlockDeviceMappingType bdmType = item.getBlockDeviceMapping();
-				if (bdmType != null) {
-					for (BlockDeviceMappingItemType mapping : bdmType.getItems()) {
-						if (mapping.getVirtualName() != null) {
-							bdm.add(new BlockDeviceMapping(mapping.getVirtualName(), mapping.getDeviceName()));
-						}
-						else if (mapping.getEbs() != null) {
-							EbsBlockDeviceType ebs = mapping.getEbs();
-							bdm.add(new BlockDeviceMapping(mapping.getDeviceName(), ebs.getSnapshotId(),
-											ebs.getVolumeSize(), ebs.isDeleteOnTermination()));
-						}
-						else {
-							bdm.add(new BlockDeviceMapping("", mapping.getDeviceName()));
-						}
-					}
-				}
-				String reason = "";
-				if (item.getStateReason() != null) {
-					reason = item.getStateReason().getMessage();
-				}
-				result.add(new ImageDescription(item.getImageId(),
-						item.getImageLocation(), item.getImageOwnerId(),
-						item.getImageState(), item.isIsPublic(), codes,
-						item.getArchitecture(), item.getImageType(),
-						item.getKernelId(), item.getRamdiskId(), item.getPlatform(),
-						reason, item.getImageOwnerAlias(),
-						item.getName(), item.getDescription(), item.getRootDeviceType(),
-						item.getRootDeviceName(), bdm));
 			}
-			return result;
-		} finally {
-			method.releaseConnection();
+			ArrayList<BlockDeviceMapping> bdm = new ArrayList<BlockDeviceMapping>();
+			BlockDeviceMappingType bdmType = item.getBlockDeviceMapping();
+			if (bdmType != null) {
+				for (BlockDeviceMappingItemType mapping : bdmType.getItems()) {
+					if (mapping.getVirtualName() != null) {
+						bdm.add(new BlockDeviceMapping(mapping.getVirtualName(), mapping.getDeviceName()));
+					}
+					else if (mapping.getEbs() != null) {
+						EbsBlockDeviceType ebs = mapping.getEbs();
+						bdm.add(new BlockDeviceMapping(mapping.getDeviceName(), ebs.getSnapshotId(),
+										ebs.getVolumeSize(), ebs.isDeleteOnTermination()));
+					}
+					else {
+						bdm.add(new BlockDeviceMapping("", mapping.getDeviceName()));
+					}
+				}
+			}
+			String reason = "";
+			if (item.getStateReason() != null) {
+				reason = item.getStateReason().getMessage();
+			}
+			result.add(new ImageDescription(item.getImageId(),
+					item.getImageLocation(), item.getImageOwnerId(),
+					item.getImageState(), item.isIsPublic(), codes,
+					item.getArchitecture(), item.getImageType(),
+					item.getKernelId(), item.getRamdiskId(), item.getPlatform(),
+					reason, item.getImageOwnerAlias(),
+					item.getName(), item.getDescription(), item.getRootDeviceType(),
+					item.getRootDeviceName(), bdm));
 		}
+		return result;
 	}
 
 	/**
@@ -658,18 +643,14 @@ public class Jec2 extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
         lc.prepareQueryParams("", true, params);
 
-		PostMethod method = new PostMethod();
-		try {
-			RunInstancesResponse response =
-					makeRequestInt(method, "RunInstances", params, RunInstancesResponse.class);
-			ReservationDescription res = new ReservationDescription(response.getRequestId(),
-												response.getOwnerId(), response.getReservationId(),
-												response.getRequesterId(), response.getGroupSet(),
-												response.getInstancesSet());
-			return res;
-		} finally {
-			method.releaseConnection();
-		}
+		HttpPost method = new HttpPost();
+		RunInstancesResponse response =
+				makeRequestInt(method, "RunInstances", params, RunInstancesResponse.class);
+		ReservationDescription res = new ReservationDescription(response.getRequestId(),
+											response.getOwnerId(), response.getReservationId(),
+											response.getRequesterId(), response.getGroupSet(),
+											response.getInstancesSet());
+		return res;
 	}
 
     /**
@@ -697,27 +678,23 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<instanceIds.size(); i++) {
 			params.put("InstanceId."+(i+1), instanceIds.get(i));
 		}
-		GetMethod method = new GetMethod();
-		try {
-			StartInstancesResponse response =
-					makeRequestInt(method, "StartInstances", params, StartInstancesResponse.class);
-			List<InstanceStateChangeDescription> res =
-						new ArrayList<InstanceStateChangeDescription>();
-			InstanceStateChangeSetType set = response.getInstancesSet();
-			Iterator instances_iter = set.getItems().iterator();
-			while (instances_iter.hasNext()) {
-				InstanceStateChangeType rsp_item =
-						(InstanceStateChangeType)instances_iter.next();
-				res.add(new InstanceStateChangeDescription(
-						rsp_item.getInstanceId(), rsp_item.getPreviousState().getName(),
-						rsp_item.getPreviousState().getCode(),
-						rsp_item.getCurrentState().getName(),
-						rsp_item.getCurrentState().getCode()));
-			}
-			return res;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		StartInstancesResponse response =
+				makeRequestInt(method, "StartInstances", params, StartInstancesResponse.class);
+		List<InstanceStateChangeDescription> res =
+					new ArrayList<InstanceStateChangeDescription>();
+		InstanceStateChangeSetType set = response.getInstancesSet();
+		Iterator instances_iter = set.getItems().iterator();
+		while (instances_iter.hasNext()) {
+			InstanceStateChangeType rsp_item =
+					(InstanceStateChangeType)instances_iter.next();
+			res.add(new InstanceStateChangeDescription(
+					rsp_item.getInstanceId(), rsp_item.getPreviousState().getName(),
+					rsp_item.getPreviousState().getCode(),
+					rsp_item.getCurrentState().getName(),
+					rsp_item.getCurrentState().getCode()));
 		}
+		return res;
 	}
 
 	/**
@@ -747,27 +724,23 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<instanceIds.size(); i++) {
 			params.put("InstanceId."+(i+1), instanceIds.get(i));
 		}
-		GetMethod method = new GetMethod();
-		try {
-			StopInstancesResponse response =
-					makeRequestInt(method, "StopInstances", params, StopInstancesResponse.class);
-			List<InstanceStateChangeDescription> res =
-						new ArrayList<InstanceStateChangeDescription>();
-			InstanceStateChangeSetType set = response.getInstancesSet();
-			Iterator instances_iter = set.getItems().iterator();
-			while (instances_iter.hasNext()) {
-				InstanceStateChangeType rsp_item =
-						(InstanceStateChangeType)instances_iter.next();
-				res.add(new InstanceStateChangeDescription(
-						rsp_item.getInstanceId(), rsp_item.getPreviousState().getName(),
-						rsp_item.getPreviousState().getCode(),
-						rsp_item.getCurrentState().getName(),
-						rsp_item.getCurrentState().getCode()));
-			}
-			return res;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		StopInstancesResponse response =
+				makeRequestInt(method, "StopInstances", params, StopInstancesResponse.class);
+		List<InstanceStateChangeDescription> res =
+					new ArrayList<InstanceStateChangeDescription>();
+		InstanceStateChangeSetType set = response.getInstancesSet();
+		Iterator instances_iter = set.getItems().iterator();
+		while (instances_iter.hasNext()) {
+			InstanceStateChangeType rsp_item =
+					(InstanceStateChangeType)instances_iter.next();
+			res.add(new InstanceStateChangeDescription(
+					rsp_item.getInstanceId(), rsp_item.getPreviousState().getName(),
+					rsp_item.getPreviousState().getCode(),
+					rsp_item.getCurrentState().getName(),
+					rsp_item.getCurrentState().getCode()));
 		}
+		return res;
 	}
 
 	/**
@@ -795,27 +768,23 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<instanceIds.size(); i++) {
 			params.put("InstanceId."+(i+1), instanceIds.get(i));
 		}
-		PostMethod method = new PostMethod();
-		try {
-			TerminateInstancesResponse response =
-					makeRequestInt(method, "TerminateInstances", params, TerminateInstancesResponse.class);
-			List<InstanceStateChangeDescription> res =
-						new ArrayList<InstanceStateChangeDescription>();
-			InstanceStateChangeSetType set = response.getInstancesSet();
-			Iterator instances_iter = set.getItems().iterator();
-			while (instances_iter.hasNext()) {
-				InstanceStateChangeType rsp_item =
-						(InstanceStateChangeType)instances_iter.next();
-				res.add(new InstanceStateChangeDescription(
-						rsp_item.getInstanceId(), rsp_item.getPreviousState().getName(),
-						rsp_item.getPreviousState().getCode(),
-						rsp_item.getCurrentState().getName(),
-						rsp_item.getCurrentState().getCode()));
-			}
-			return res;
-		} finally {
-			method.releaseConnection();
+		HttpPost method = new HttpPost();
+		TerminateInstancesResponse response =
+				makeRequestInt(method, "TerminateInstances", params, TerminateInstancesResponse.class);
+		List<InstanceStateChangeDescription> res =
+					new ArrayList<InstanceStateChangeDescription>();
+		InstanceStateChangeSetType set = response.getInstancesSet();
+		Iterator instances_iter = set.getItems().iterator();
+		while (instances_iter.hasNext()) {
+			InstanceStateChangeType rsp_item =
+					(InstanceStateChangeType)instances_iter.next();
+			res.add(new InstanceStateChangeDescription(
+					rsp_item.getInstanceId(), rsp_item.getPreviousState().getName(),
+					rsp_item.getPreviousState().getCode(),
+					rsp_item.getCurrentState().getName(),
+					rsp_item.getCurrentState().getCode()));
 		}
+		return res;
 	}
 
 	/**
@@ -849,23 +818,19 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<instanceIds.size(); i++) {
 			params.put("InstanceId."+(i+1), instanceIds.get(i));
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeInstancesResponse response =
-					makeRequestInt(method, "DescribeInstances", params, DescribeInstancesResponse.class);
-			List<ReservationDescription> result = new ArrayList<ReservationDescription>();
-			ReservationSetType res_set = response.getReservationSet();
-            for (ReservationInfoType item : res_set.getItems()) {
+		HttpGet method = new HttpGet();
+		DescribeInstancesResponse response =
+				makeRequestInt(method, "DescribeInstances", params, DescribeInstancesResponse.class);
+		List<ReservationDescription> result = new ArrayList<ReservationDescription>();
+		ReservationSetType res_set = response.getReservationSet();
+			for (ReservationInfoType item : res_set.getItems()) {
 				ReservationDescription res = new ReservationDescription(response.getRequestId(),
-												item.getOwnerId(), item.getReservationId(),
-												item.getRequesterId(), item.getGroupSet(),
-												item.getInstancesSet());
-                result.add(res);
-            }
-			return result;
-		} finally {
-			method.releaseConnection();
+											item.getOwnerId(), item.getReservationId(),
+											item.getRequesterId(), item.getGroupSet(),
+											item.getInstancesSet());
+			result.add(res);
 		}
+		return result;
 	}
 
 	/**
@@ -891,15 +856,11 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<instanceIds.size(); i++) {
 			params.put("InstanceId."+(i+1), instanceIds.get(i));
 		}
-		GetMethod method = new GetMethod();
-		try {
-			RebootInstancesResponse response =
-					makeRequestInt(method, "RebootInstances", params, RebootInstancesResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not reboot instances. No reason given.");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		RebootInstancesResponse response =
+				makeRequestInt(method, "RebootInstances", params, RebootInstancesResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not reboot instances. No reason given.");
 		}
 	}
 
@@ -916,15 +877,11 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("InstanceId", instanceId);
 		params.put("Attribute", attribute);
 		params.put("Value", value);
-		PostMethod method = new PostMethod();
-		try {
-			ModifyInstanceAttributeResponse response =
-					makeRequestInt(method, "ModifyInstanceAttribute", params, ModifyInstanceAttributeResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not modify instance attribute : "+attribute+". No reason given.");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpPost method = new HttpPost();
+		ModifyInstanceAttributeResponse response =
+				makeRequestInt(method, "ModifyInstanceAttribute", params, ModifyInstanceAttributeResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not modify instance attribute : "+attribute+". No reason given.");
 		}
 	}
 
@@ -939,15 +896,11 @@ public class Jec2 extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("InstanceId", instanceId);
 		params.put("Attribute", attribute);
-		GetMethod method = new GetMethod();
-		try {
-			ResetInstanceAttributeResponse response =
-					makeRequestInt(method, "ResetInstanceAttribute", params, ResetInstanceAttributeResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not reset instance attribute. No reason given.");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		ResetInstanceAttributeResponse response =
+				makeRequestInt(method, "ResetInstanceAttribute", params, ResetInstanceAttributeResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not reset instance attribute. No reason given.");
 		}
 	}
 	
@@ -964,15 +917,11 @@ public class Jec2 extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("InstanceId", instanceId);
 		params.put("Attribute", attribute);
-		GetMethod method = new GetMethod();
-		try {
-			DescribeInstanceAttributeResponse response =
-					makeRequestInt(method, "DescribeInstanceAttribute", params, DescribeInstanceAttributeResponse.class);
+		HttpGet method = new HttpGet();
+		DescribeInstanceAttributeResponse response =
+				makeRequestInt(method, "DescribeInstanceAttribute", params, DescribeInstanceAttributeResponse.class);
 			
-			return new DescribeInstanceAttributeResult(response);
-		} finally {
-			method.releaseConnection();
-		}
+		return new DescribeInstanceAttributeResult(response);
 	}
 
 	/**
@@ -985,16 +934,12 @@ public class Jec2 extends AWSQueryConnection {
 	public ConsoleOutput getConsoleOutput(String instanceId) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("InstanceId", instanceId);
-		GetMethod method = new GetMethod();
-		try {
-			GetConsoleOutputResponse response =
-					makeRequestInt(method, "GetConsoleOutput", params, GetConsoleOutputResponse.class);
-			return new ConsoleOutput(response.getRequestId(), response.getInstanceId(),
-				response.getTimestamp().toGregorianCalendar(),
-				new String(Base64.decodeBase64(response.getOutput().getBytes())));
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		GetConsoleOutputResponse response =
+				makeRequestInt(method, "GetConsoleOutput", params, GetConsoleOutputResponse.class);
+		return new ConsoleOutput(response.getRequestId(), response.getInstanceId(),
+			response.getTimestamp().toGregorianCalendar(),
+			new String(Base64.decodeBase64(response.getOutput().getBytes())));
 	}
 
 	/**
@@ -1007,14 +952,10 @@ public class Jec2 extends AWSQueryConnection {
 	public String getPasswordData(String instanceId) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("InstanceId", instanceId);
-		GetMethod method = new GetMethod();
-		try {
-			GetPasswordDataResponse response =
-					makeRequestInt(method, "GetPasswordData", params, GetPasswordDataResponse.class);
-			return response.getPasswordData();
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		GetPasswordDataResponse response =
+				makeRequestInt(method, "GetPasswordData", params, GetPasswordDataResponse.class);
+		return response.getPasswordData();
 	}
 
 	/**
@@ -1028,15 +969,11 @@ public class Jec2 extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("GroupName", name);
 		params.put("GroupDescription", desc);
-		GetMethod method = new GetMethod();
-		try {
-			CreateSecurityGroupResponse response =
-					makeRequestInt(method, "CreateSecurityGroup", params, CreateSecurityGroupResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not create security group : "+name+". No reason given.");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		CreateSecurityGroupResponse response =
+				makeRequestInt(method, "CreateSecurityGroup", params, CreateSecurityGroupResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not create security group : "+name+". No reason given.");
 		}
 	}
 
@@ -1049,15 +986,11 @@ public class Jec2 extends AWSQueryConnection {
 	public void deleteSecurityGroup(String name) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("GroupName", name);
-		GetMethod method = new GetMethod();
-		try {
-			DeleteSecurityGroupResponse response =
-					makeRequestInt(method, "DeleteSecurityGroup", params, DeleteSecurityGroupResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not delete security group : "+name+". No reason given.");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		DeleteSecurityGroupResponse response =
+				makeRequestInt(method, "DeleteSecurityGroup", params, DeleteSecurityGroupResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not delete security group : "+name+". No reason given.");
 		}
 	}
 
@@ -1086,46 +1019,40 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<groupNames.size(); i++) {
 			params.put("GroupName."+(i+1), groupNames.get(i));
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeSecurityGroupsResponse response =
-					makeRequestInt(method, "DescribeSecurityGroups", params, DescribeSecurityGroupsResponse.class);
-			List<GroupDescription> result = new ArrayList<GroupDescription>();
-			SecurityGroupSetType rsp_set = response.getSecurityGroupInfo();
-			Iterator set_iter = rsp_set.getItems().iterator();
-			while (set_iter.hasNext()) {
-				SecurityGroupItemType item = (SecurityGroupItemType) set_iter
-						.next();
-				GroupDescription group = new GroupDescription(item.getGroupName(),
-						item.getGroupDescription(), item.getOwnerId());
-				IpPermissionSetType perms = item.getIpPermissions();
-				Iterator perm_iter = perms.getItems().iterator();
-				while (perm_iter.hasNext()) {
-					IpPermissionType perm = (IpPermissionType) perm_iter.next();
-					GroupDescription.IpPermission group_perms = group
-							.addPermission(perm.getIpProtocol(),
-									perm.getFromPort(), perm.getToPort());
+		HttpGet method = new HttpGet();
+		DescribeSecurityGroupsResponse response =
+				makeRequestInt(method, "DescribeSecurityGroups", params, DescribeSecurityGroupsResponse.class);
+		List<GroupDescription> result = new ArrayList<GroupDescription>();
+		SecurityGroupSetType rsp_set = response.getSecurityGroupInfo();
+		Iterator set_iter = rsp_set.getItems().iterator();
+		while (set_iter.hasNext()) {
+			SecurityGroupItemType item = (SecurityGroupItemType) set_iter.next();
+			GroupDescription group = new GroupDescription(item.getGroupName(),
+					item.getGroupDescription(), item.getOwnerId());
+			IpPermissionSetType perms = item.getIpPermissions();
+			Iterator perm_iter = perms.getItems().iterator();
+			while (perm_iter.hasNext()) {
+				IpPermissionType perm = (IpPermissionType) perm_iter.next();
+				GroupDescription.IpPermission group_perms = group
+						.addPermission(perm.getIpProtocol(),
+								perm.getFromPort(), perm.getToPort());
 
-					Iterator group_iter = perm.getGroups().getItems().iterator();
-					while (group_iter.hasNext()) {
-						UserIdGroupPairType uid_group = (UserIdGroupPairType) group_iter
-								.next();
-						group_perms.addUserGroupPair(uid_group.getUserId(),
-								uid_group.getGroupName());
-					}
-					Iterator iprange_iter = perm.getIpRanges().getItems().iterator();
-					while (iprange_iter.hasNext()) {
-						IpRangeItemType range = (IpRangeItemType) iprange_iter
-								.next();
-						group_perms.addIpRange(range.getCidrIp());
-					}
+				Iterator group_iter = perm.getGroups().getItems().iterator();
+				while (group_iter.hasNext()) {
+					UserIdGroupPairType uid_group = (UserIdGroupPairType) group_iter.next();
+					group_perms.addUserGroupPair(uid_group.getUserId(),
+							uid_group.getGroupName());
 				}
-				result.add(group);
+				Iterator iprange_iter = perm.getIpRanges().getItems().iterator();
+				while (iprange_iter.hasNext()) {
+					IpRangeItemType range = (IpRangeItemType) iprange_iter
+							.next();
+					group_perms.addIpRange(range.getCidrIp());
+				}
 			}
-			return result;
-		} finally {
-			method.releaseConnection();
+			result.add(group);
 		}
+		return result;
 	}
 
 	/**
@@ -1142,15 +1069,11 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("GroupName", groupName);
 		params.put("SourceSecurityGroupOwnerId", secGroupOwnerId);
 		params.put("SourceSecurityGroupName", secGroupName);
-		GetMethod method = new GetMethod();
-		try {
-			AuthorizeSecurityGroupIngressResponse response =
-					makeRequestInt(method, "AuthorizeSecurityGroupIngress", params, AuthorizeSecurityGroupIngressResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not authorize security ingress : "+groupName+". No reason given.");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		AuthorizeSecurityGroupIngressResponse response =
+				makeRequestInt(method, "AuthorizeSecurityGroupIngress", params, AuthorizeSecurityGroupIngressResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not authorize security ingress : "+groupName+". No reason given.");
 		}
 	}
 
@@ -1173,15 +1096,11 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("FromPort", ""+fromPort);
 		params.put("ToPort", ""+toPort);
 		params.put("CidrIp", cidrIp);
-		GetMethod method = new GetMethod();
-		try {
-			AuthorizeSecurityGroupIngressResponse response =
-					makeRequestInt(method, "AuthorizeSecurityGroupIngress", params, AuthorizeSecurityGroupIngressResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not authorize security ingress : "+groupName+". No reason given.");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		AuthorizeSecurityGroupIngressResponse response =
+				makeRequestInt(method, "AuthorizeSecurityGroupIngress", params, AuthorizeSecurityGroupIngressResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not authorize security ingress : "+groupName+". No reason given.");
 		}
 	}
 
@@ -1199,15 +1118,11 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("GroupName", groupName);
 		params.put("SourceSecurityGroupOwnerId", secGroupOwnerId);
 		params.put("SourceSecurityGroupName", secGroupName);
-		GetMethod method = new GetMethod();
-		try {
-			RevokeSecurityGroupIngressResponse response =
-					makeRequestInt(method, "RevokeSecurityGroupIngress", params, RevokeSecurityGroupIngressResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not revoke security ingress : "+groupName+". No reason given.");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		RevokeSecurityGroupIngressResponse response =
+				makeRequestInt(method, "RevokeSecurityGroupIngress", params, RevokeSecurityGroupIngressResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not revoke security ingress : "+groupName+". No reason given.");
 		}
 	}
 
@@ -1230,15 +1145,11 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("FromPort", ""+fromPort);
 		params.put("ToPort", ""+toPort);
 		params.put("CidrIp", cidrIp);
-		GetMethod method = new GetMethod();
-		try {
-			RevokeSecurityGroupIngressResponse response =
-					makeRequestInt(method, "RevokeSecurityGroupIngress", params, RevokeSecurityGroupIngressResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not revoke security ingress : "+groupName+". No reason given.");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		RevokeSecurityGroupIngressResponse response =
+				makeRequestInt(method, "RevokeSecurityGroupIngress", params, RevokeSecurityGroupIngressResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not revoke security ingress : "+groupName+". No reason given.");
 		}
 	}
 
@@ -1254,16 +1165,12 @@ public class Jec2 extends AWSQueryConnection {
 	public KeyPairInfo createKeyPair(String keyName) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("KeyName", keyName);
-		GetMethod method = new GetMethod();
-		try {
-			CreateKeyPairResponse response =
-					makeRequestInt(method, "CreateKeyPair", params, CreateKeyPairResponse.class);
-			return new KeyPairInfo(response.getKeyName(),
-									response.getKeyFingerprint(),
-									response.getKeyMaterial());
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		CreateKeyPairResponse response =
+				makeRequestInt(method, "CreateKeyPair", params, CreateKeyPairResponse.class);
+		return new KeyPairInfo(response.getKeyName(),
+								response.getKeyFingerprint(),
+								response.getKeyMaterial());
 	}
 
 	/**
@@ -1292,21 +1199,17 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<keyIds.size(); i++) {
 			params.put("KeyName."+(i+1), keyIds.get(i));
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeKeyPairsResponse response =
-					makeRequestInt(method, "DescribeKeyPairs", params, DescribeKeyPairsResponse.class);
-			List<KeyPairInfo> result = new ArrayList<KeyPairInfo>();
-			DescribeKeyPairsResponseInfoType set = response.getKeySet();
-			Iterator set_iter = set.getItems().iterator();
-			while (set_iter.hasNext()) {
-				DescribeKeyPairsResponseItemType item = (DescribeKeyPairsResponseItemType) set_iter.next();
-				result.add(new KeyPairInfo(item.getKeyName(), item.getKeyFingerprint(), null));
-			}
-			return result;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		DescribeKeyPairsResponse response =
+				makeRequestInt(method, "DescribeKeyPairs", params, DescribeKeyPairsResponse.class);
+		List<KeyPairInfo> result = new ArrayList<KeyPairInfo>();
+		DescribeKeyPairsResponseInfoType set = response.getKeySet();
+		Iterator set_iter = set.getItems().iterator();
+		while (set_iter.hasNext()) {
+			DescribeKeyPairsResponseItemType item = (DescribeKeyPairsResponseItemType) set_iter.next();
+			result.add(new KeyPairInfo(item.getKeyName(), item.getKeyFingerprint(), null));
 		}
+		return result;
 	}
 
 	/**
@@ -1319,15 +1222,11 @@ public class Jec2 extends AWSQueryConnection {
 	public void deleteKeyPair(String keyName) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("KeyName", keyName);
-		GetMethod method = new GetMethod();
-		try {
-			DeleteKeyPairResponse response =
-					makeRequestInt(method, "DeleteKeyPair", params, DeleteKeyPairResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not delete keypair : "+keyName+". No reason given.");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		DeleteKeyPairResponse response =
+				makeRequestInt(method, "DeleteKeyPair", params, DeleteKeyPairResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not delete keypair : "+keyName+". No reason given.");
 		}
 	}
 
@@ -1376,15 +1275,11 @@ public class Jec2 extends AWSQueryConnection {
 					throw new IllegalArgumentException("Unknown item type.");
 			}
 		}
-		GetMethod method = new GetMethod();
-		try {
-			ModifyImageAttributeResponse response =
-					makeRequestInt(method, "ModifyImageAttribute", params, ModifyImageAttributeResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not reset image attribute. No reason given.");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		ModifyImageAttributeResponse response =
+				makeRequestInt(method, "ModifyImageAttribute", params, ModifyImageAttributeResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not reset image attribute. No reason given.");
 		}
 	}
 	
@@ -1404,15 +1299,11 @@ public class Jec2 extends AWSQueryConnection {
 		else if (imageAttribute.equals(ImageAttribute.ImageAttributeType.productCodes)) {
 			throw new IllegalArgumentException("Cannot reset productCodes attribute");
 		}
-		GetMethod method = new GetMethod();
-		try {
-			ResetImageAttributeResponse response =
-					makeRequestInt(method, "ResetImageAttribute", params, ResetImageAttributeResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not reset image attribute. No reason given.");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		ResetImageAttributeResponse response =
+				makeRequestInt(method, "ResetImageAttribute", params, ResetImageAttributeResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not reset image attribute. No reason given.");
 		}
 	}
 	
@@ -1434,61 +1325,57 @@ public class Jec2 extends AWSQueryConnection {
 		else if (imageAttribute.equals(ImageAttribute.ImageAttributeType.productCodes)) {
 			params.put("Attribute", "productCodes");
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeImageAttributeResponse response =
-					makeRequestInt(method, "DescribeImageAttribute", params, DescribeImageAttributeResponse.class);
-			ImageListAttribute attribute = null;
-			if (response.getLaunchPermission() != null) {
-				LaunchPermissionListType list = response.getLaunchPermission();
-				attribute = new LaunchPermissionAttribute();
-				java.util.ListIterator i = list.getItems().listIterator();
-				while (i.hasNext()) {
-					LaunchPermissionItemType item = (LaunchPermissionItemType) i.next();
-					if (item.getGroup() != null) {
-						attribute.addImageListAttributeItem(ImageListAttribute.ImageListAttributeItemType.group,
-													item.getGroup());
-					} else if (item.getUserId() != null) {
-						attribute.addImageListAttributeItem(ImageListAttribute.ImageListAttributeItemType.userId,
-													item.getUserId());
-					}
+		HttpGet method = new HttpGet();
+		DescribeImageAttributeResponse response =
+				makeRequestInt(method, "DescribeImageAttribute", params, DescribeImageAttributeResponse.class);
+		ImageListAttribute attribute = null;
+		if (response.getLaunchPermission() != null) {
+			LaunchPermissionListType list = response.getLaunchPermission();
+			attribute = new LaunchPermissionAttribute();
+			java.util.ListIterator i = list.getItems().listIterator();
+			while (i.hasNext()) {
+				LaunchPermissionItemType item = (LaunchPermissionItemType) i.next();
+				if (item.getGroup() != null) {
+					attribute.addImageListAttributeItem(ImageListAttribute.ImageListAttributeItemType.group,
+												item.getGroup());
+				} else if (item.getUserId() != null) {
+					attribute.addImageListAttributeItem(ImageListAttribute.ImageListAttributeItemType.userId,
+												item.getUserId());
 				}
 			}
-			else if (response.getProductCodes() != null) {
-				ProductCodeListType list = response.getProductCodes();
-				attribute = new ProductCodesAttribute();
-				java.util.ListIterator i = list.getItems().listIterator();
-				while (i.hasNext()) {
-					ProductCodeItemType item = (ProductCodeItemType) i.next();
-					if (item.getProductCode() != null) {
-						attribute.addImageListAttributeItem(ImageListAttribute.ImageListAttributeItemType.productCode,
-													item.getProductCode());
-					}
-				}
-			}
-			ArrayList<String> codes = new ArrayList<String>();
-			ProductCodeListType set = response.getProductCodes();
-			if (set != null) {
-				for (ProductCodeItemType code : set.getItems()) {
-					codes.add(code.getProductCode());
-				}
-			}
-			NullableAttributeValueType val = response.getKernel();
-			String kernel = (val != null)?val.getValue():"";
-			val = response.getRamdisk();
-			String ramdisk = (val != null)?val.getValue():"";
-			ArrayList<BlockDeviceMapping> bdm = new ArrayList<BlockDeviceMapping>();
-			BlockDeviceMappingType bdmSet = response.getBlockDeviceMapping();
-			if (bdmSet != null) {
-				for (BlockDeviceMappingItemType mapping : bdmSet.getItems()) {
-					bdm.add(new BlockDeviceMapping(mapping.getVirtualName(), mapping.getDeviceName()));
-				}
-			}
-
-			return new DescribeImageAttributeResult(response.getImageId(), attribute, codes, kernel, ramdisk, bdm);
-		} finally {
-			method.releaseConnection();
 		}
+		else if (response.getProductCodes() != null) {
+			ProductCodeListType list = response.getProductCodes();
+			attribute = new ProductCodesAttribute();
+			java.util.ListIterator i = list.getItems().listIterator();
+			while (i.hasNext()) {
+				ProductCodeItemType item = (ProductCodeItemType) i.next();
+				if (item.getProductCode() != null) {
+					attribute.addImageListAttributeItem(ImageListAttribute.ImageListAttributeItemType.productCode,
+												item.getProductCode());
+				}
+			}
+		}
+		ArrayList<String> codes = new ArrayList<String>();
+		ProductCodeListType set = response.getProductCodes();
+		if (set != null) {
+			for (ProductCodeItemType code : set.getItems()) {
+				codes.add(code.getProductCode());
+			}
+		}
+		NullableAttributeValueType val = response.getKernel();
+		String kernel = (val != null)?val.getValue():"";
+		val = response.getRamdisk();
+		String ramdisk = (val != null)?val.getValue():"";
+		ArrayList<BlockDeviceMapping> bdm = new ArrayList<BlockDeviceMapping>();
+		BlockDeviceMappingType bdmSet = response.getBlockDeviceMapping();
+		if (bdmSet != null) {
+			for (BlockDeviceMappingItemType mapping : bdmSet.getItems()) {
+				bdm.add(new BlockDeviceMapping(mapping.getVirtualName(), mapping.getDeviceName()));
+			}
+		}
+
+		return new DescribeImageAttributeResult(response.getImageId(), attribute, codes, kernel, ramdisk, bdm);
 	}
 
 	/**
@@ -1503,17 +1390,13 @@ public class Jec2 extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("InstanceId", instanceId);
 		params.put("ProductCode", productCode);
-		GetMethod method = new GetMethod();
-		try {
-			ConfirmProductInstanceResponse response =
-					makeRequestInt(method, "ConfirmProductInstance", params, ConfirmProductInstanceResponse.class);
-			if (response.isReturn()) {
-				return new ProductInstanceInfo(instanceId, productCode, response.getOwnerId());
-			}
-			else return null;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		ConfirmProductInstanceResponse response =
+				makeRequestInt(method, "ConfirmProductInstance", params, ConfirmProductInstanceResponse.class);
+		if (response.isReturn()) {
+			return new ProductInstanceInfo(instanceId, productCode, response.getOwnerId());
 		}
+		else return null;
 	}
 
 	/**
@@ -1530,25 +1413,21 @@ public class Jec2 extends AWSQueryConnection {
 				params.put("ZoneName."+(i+1), zones.get(i));
 			}
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeAvailabilityZonesResponse response =
-					makeRequestInt(method, "DescribeAvailabilityZones", params, DescribeAvailabilityZonesResponse.class);
-			List<AvailabilityZone> ret = new ArrayList<AvailabilityZone>();
-			AvailabilityZoneSetType set = response.getAvailabilityZoneInfo();
-			Iterator set_iter = set.getItems().iterator();
-			while (set_iter.hasNext()) {
-				AvailabilityZoneItemType item = (AvailabilityZoneItemType) set_iter.next();
-				List<String> messages = new ArrayList<String>();
-				for (AvailabilityZoneMessageType msg : item.getMessageSet().getItems()) {
-					messages.add(msg.getMessage());
-				}
-				ret.add(new AvailabilityZone(item.getZoneName(), item.getZoneState(), item.getRegionName(), messages));
+		HttpGet method = new HttpGet();
+		DescribeAvailabilityZonesResponse response =
+				makeRequestInt(method, "DescribeAvailabilityZones", params, DescribeAvailabilityZonesResponse.class);
+		List<AvailabilityZone> ret = new ArrayList<AvailabilityZone>();
+		AvailabilityZoneSetType set = response.getAvailabilityZoneInfo();
+		Iterator set_iter = set.getItems().iterator();
+		while (set_iter.hasNext()) {
+			AvailabilityZoneItemType item = (AvailabilityZoneItemType) set_iter.next();
+			List<String> messages = new ArrayList<String>();
+			for (AvailabilityZoneMessageType msg : item.getMessageSet().getItems()) {
+				messages.add(msg.getMessage());
 			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+			ret.add(new AvailabilityZone(item.getZoneName(), item.getZoneState(), item.getRegionName(), messages));
 		}
+		return ret;
 	}
 
 	/**
@@ -1565,21 +1444,17 @@ public class Jec2 extends AWSQueryConnection {
 				params.put("PublicIp."+(i+1), addresses.get(i));
 			}
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeAddressesResponse response =
-					makeRequestInt(method, "DescribeAddresses", params, DescribeAddressesResponse.class);
-			List<AddressInfo> ret = new ArrayList<AddressInfo>();
-			DescribeAddressesResponseInfoType set = response.getAddressesSet();
-			Iterator set_iter = set.getItems().iterator();
-			while (set_iter.hasNext()) {
-				DescribeAddressesResponseItemType item = (DescribeAddressesResponseItemType) set_iter.next();
-				ret.add(new AddressInfo(item.getPublicIp(), item.getInstanceId()));
-			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		DescribeAddressesResponse response =
+				makeRequestInt(method, "DescribeAddresses", params, DescribeAddressesResponse.class);
+		List<AddressInfo> ret = new ArrayList<AddressInfo>();
+		DescribeAddressesResponseInfoType set = response.getAddressesSet();
+		Iterator set_iter = set.getItems().iterator();
+		while (set_iter.hasNext()) {
+			DescribeAddressesResponseItemType item = (DescribeAddressesResponseItemType) set_iter.next();
+			ret.add(new AddressInfo(item.getPublicIp(), item.getInstanceId()));
 		}
+		return ret;
 	}
 
 	/**
@@ -1590,14 +1465,10 @@ public class Jec2 extends AWSQueryConnection {
 	 */
 	public String allocateAddress() throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
-		GetMethod method = new GetMethod();
-		try {
-			AllocateAddressResponse response =
-					makeRequestInt(method, "AllocateAddress", params, AllocateAddressResponse.class);
-			return response.getPublicIp();
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		AllocateAddressResponse response =
+				makeRequestInt(method, "AllocateAddress", params, AllocateAddressResponse.class);
+		return response.getPublicIp();
 	}
 
 	/**
@@ -1611,15 +1482,11 @@ public class Jec2 extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("InstanceId", instanceId);
 		params.put("PublicIp", publicIp);
-		GetMethod method = new GetMethod();
-		try {
-			AssociateAddressResponse response =
-					makeRequestInt(method, "AssociateAddress", params, AssociateAddressResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not associate address with instance (no reason given).");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		AssociateAddressResponse response =
+				makeRequestInt(method, "AssociateAddress", params, AssociateAddressResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not associate address with instance (no reason given).");
 		}
 	}
 
@@ -1632,15 +1499,11 @@ public class Jec2 extends AWSQueryConnection {
 	public void disassociateAddress(String publicIp) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("PublicIp", publicIp);
-		GetMethod method = new GetMethod();
-		try {
-			DisassociateAddressResponse response =
-					makeRequestInt(method, "DisassociateAddress", params, DisassociateAddressResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not disassociate address with instance (no reason given).");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		DisassociateAddressResponse response =
+				makeRequestInt(method, "DisassociateAddress", params, DisassociateAddressResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not disassociate address with instance (no reason given).");
 		}
 	}
 
@@ -1653,15 +1516,11 @@ public class Jec2 extends AWSQueryConnection {
 	public void releaseAddress(String publicIp) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("PublicIp", publicIp);
-		GetMethod method = new GetMethod();
-		try {
-			ReleaseAddressResponse response =
-					makeRequestInt(method, "ReleaseAddress", params, ReleaseAddressResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not release address (no reason given).");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		ReleaseAddressResponse response =
+				makeRequestInt(method, "ReleaseAddress", params, ReleaseAddressResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not release address (no reason given).");
 		}
 	}
 
@@ -1682,16 +1541,12 @@ public class Jec2 extends AWSQueryConnection {
 		}
 		params.put("SnapshotId", (snapshotId==null)?"":snapshotId);
 		params.put("AvailabilityZone", zoneName);
-		GetMethod method = new GetMethod();
-		try {
-			CreateVolumeResponse response =
-					makeRequestInt(method, "CreateVolume", params, CreateVolumeResponse.class);
-			return new VolumeInfo(response.getVolumeId(), response.getSize(),
-								response.getSnapshotId(), response.getAvailabilityZone(), response.getStatus(),
-								response.getCreateTime().toGregorianCalendar());
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		CreateVolumeResponse response =
+				makeRequestInt(method, "CreateVolume", params, CreateVolumeResponse.class);
+		return new VolumeInfo(response.getVolumeId(), response.getSize(),
+							response.getSnapshotId(), response.getAvailabilityZone(), response.getStatus(),
+							response.getCreateTime().toGregorianCalendar());
 	}
 
 	/**
@@ -1703,15 +1558,11 @@ public class Jec2 extends AWSQueryConnection {
 	public void deleteVolume(String volumeId) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("VolumeId", volumeId);
-		GetMethod method = new GetMethod();
-		try {
-			DeleteVolumeResponse response =
-					makeRequestInt(method, "DeleteVolume", params, DeleteVolumeResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not release delete volume (no reason given).");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		DeleteVolumeResponse response =
+				makeRequestInt(method, "DeleteVolume", params, DeleteVolumeResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not release delete volume (no reason given).");
 		}
 	}
 
@@ -1746,35 +1597,31 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<volumeIds.size(); i++) {
 			params.put("VolumeId."+(i+1), volumeIds.get(i));
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeVolumesResponse response =
-					makeRequestInt(method, "DescribeVolumes", params, DescribeVolumesResponse.class);
-			List<VolumeInfo> result = new ArrayList<VolumeInfo>();
-			DescribeVolumesSetResponseType res_set = response.getVolumeSet();
-			Iterator reservations_iter = res_set.getItems().iterator();
-			while (reservations_iter.hasNext()) {
-				DescribeVolumesSetItemResponseType item = (DescribeVolumesSetItemResponseType) reservations_iter.next();
-				VolumeInfo vol = new VolumeInfo(item.getVolumeId(), item.getSize(),
-									item.getSnapshotId(), item.getAvailabilityZone(), item.getStatus(),
-									item.getCreateTime().toGregorianCalendar());
-				AttachmentSetResponseType set = item.getAttachmentSet();
-				Iterator attachments_iter = set.getItems().iterator();
-				while (attachments_iter.hasNext()) {
-					AttachmentSetItemResponseType as_item = (AttachmentSetItemResponseType) attachments_iter
-														.next();
-					vol.addAttachmentInfo(as_item.getVolumeId(),
-									as_item.getInstanceId(),
-									as_item.getDevice(),
-									as_item.getStatus(),
-									as_item.getAttachTime().toGregorianCalendar());
-				}
-				result.add(vol);
+		HttpGet method = new HttpGet();
+		DescribeVolumesResponse response =
+				makeRequestInt(method, "DescribeVolumes", params, DescribeVolumesResponse.class);
+		List<VolumeInfo> result = new ArrayList<VolumeInfo>();
+		DescribeVolumesSetResponseType res_set = response.getVolumeSet();
+		Iterator reservations_iter = res_set.getItems().iterator();
+		while (reservations_iter.hasNext()) {
+			DescribeVolumesSetItemResponseType item = (DescribeVolumesSetItemResponseType) reservations_iter.next();
+			VolumeInfo vol = new VolumeInfo(item.getVolumeId(), item.getSize(),
+								item.getSnapshotId(), item.getAvailabilityZone(), item.getStatus(),
+								item.getCreateTime().toGregorianCalendar());
+			AttachmentSetResponseType set = item.getAttachmentSet();
+			Iterator attachments_iter = set.getItems().iterator();
+			while (attachments_iter.hasNext()) {
+				AttachmentSetItemResponseType as_item = (AttachmentSetItemResponseType) attachments_iter
+													.next();
+				vol.addAttachmentInfo(as_item.getVolumeId(),
+								as_item.getInstanceId(),
+								as_item.getDevice(),
+								as_item.getStatus(),
+								as_item.getAttachTime().toGregorianCalendar());
 			}
-			return result;
-		} finally {
-			method.releaseConnection();
+			result.add(vol);
 		}
+		return result;
 	}
 
 	/**
@@ -1791,16 +1638,12 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("VolumeId", volumeId);
 		params.put("InstanceId", instanceId);
 		params.put("Device", device);
-		GetMethod method = new GetMethod();
-		try {
-			AttachVolumeResponse response =
-					makeRequestInt(method, "AttachVolume", params, AttachVolumeResponse.class);
-			return new AttachmentInfo(response.getVolumeId(), response.getInstanceId(),
-								response.getDevice(), response.getStatus(),
-								response.getAttachTime().toGregorianCalendar());
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		AttachVolumeResponse response =
+				makeRequestInt(method, "AttachVolume", params, AttachVolumeResponse.class);
+		return new AttachmentInfo(response.getVolumeId(), response.getInstanceId(),
+							response.getDevice(), response.getStatus(),
+							response.getAttachTime().toGregorianCalendar());
 	}
 
 	/**
@@ -1819,16 +1662,12 @@ public class Jec2 extends AWSQueryConnection {
 		params.put("InstanceId", (instanceId==null)?"":instanceId);
 		params.put("Device", (device==null)?"":device);
 		params.put("Force", force?"true":"false");
-		GetMethod method = new GetMethod();
-		try {
-			DetachVolumeResponse response =
-					makeRequestInt(method, "DetachVolume", params, DetachVolumeResponse.class);
-			return new AttachmentInfo(response.getVolumeId(), response.getInstanceId(),
-								response.getDevice(), response.getStatus(),
-								response.getAttachTime().toGregorianCalendar());
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		DetachVolumeResponse response =
+				makeRequestInt(method, "DetachVolume", params, DetachVolumeResponse.class);
+		return new AttachmentInfo(response.getVolumeId(), response.getInstanceId(),
+							response.getDevice(), response.getStatus(),
+							response.getAttachTime().toGregorianCalendar());
 	}
 
 	/**
@@ -1843,19 +1682,15 @@ public class Jec2 extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("VolumeId", volumeId);
 		params.put("Description", description);
-		GetMethod method = new GetMethod();
-		try {
-			CreateSnapshotResponse response =
-					makeRequestInt(method, "CreateSnapshot", params, CreateSnapshotResponse.class);
-			return new SnapshotInfo(response.getSnapshotId(), response.getVolumeId(),
-								response.getStatus(),
-								response.getStartTime().toGregorianCalendar(),
-								response.getProgress(), response.getOwnerId(),
-								response.getVolumeSize(), response.getDescription(),
-								null);
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		CreateSnapshotResponse response =
+				makeRequestInt(method, "CreateSnapshot", params, CreateSnapshotResponse.class);
+		return new SnapshotInfo(response.getSnapshotId(), response.getVolumeId(),
+							response.getStatus(),
+							response.getStartTime().toGregorianCalendar(),
+							response.getProgress(), response.getOwnerId(),
+							response.getVolumeSize(), response.getDescription(),
+							null);
 	}
 
 	/**
@@ -1867,15 +1702,11 @@ public class Jec2 extends AWSQueryConnection {
 	public void deleteSnapshot(String snapshotId) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("SnapshotId", snapshotId);
-		GetMethod method = new GetMethod();
-		try {
-			DeleteSnapshotResponse response =
-					makeRequestInt(method, "DeleteSnapshot", params, DeleteSnapshotResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not release delete snapshot (no reason given).");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		DeleteSnapshotResponse response =
+				makeRequestInt(method, "DeleteSnapshot", params, DeleteSnapshotResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not release delete snapshot (no reason given).");
 		}
 	}
 
@@ -1934,27 +1765,23 @@ public class Jec2 extends AWSQueryConnection {
 		if (restorableBy != null) {
 			params.put("RestorableBy", owner);
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeSnapshotsResponse response =
-					makeRequestInt(method, "DescribeSnapshots", params, DescribeSnapshotsResponse.class);
-			List<SnapshotInfo> result = new ArrayList<SnapshotInfo>();
-			DescribeSnapshotsSetResponseType res_set = response.getSnapshotSet();
-			Iterator reservations_iter = res_set.getItems().iterator();
-			while (reservations_iter.hasNext()) {
-				DescribeSnapshotsSetItemResponseType item = (DescribeSnapshotsSetItemResponseType) reservations_iter.next();
-				SnapshotInfo vol = new SnapshotInfo(item.getSnapshotId(), item.getVolumeId(),
-									item.getStatus(),
-									item.getStartTime().toGregorianCalendar(),
-									item.getProgress(), item.getOwnerId(),
-									item.getVolumeSize(), item.getDescription(),
-									item.getOwnerAlias());
-				result.add(vol);
-			}
-			return result;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		DescribeSnapshotsResponse response =
+				makeRequestInt(method, "DescribeSnapshots", params, DescribeSnapshotsResponse.class);
+		List<SnapshotInfo> result = new ArrayList<SnapshotInfo>();
+		DescribeSnapshotsSetResponseType res_set = response.getSnapshotSet();
+		Iterator reservations_iter = res_set.getItems().iterator();
+		while (reservations_iter.hasNext()) {
+			DescribeSnapshotsSetItemResponseType item = (DescribeSnapshotsSetItemResponseType) reservations_iter.next();
+			SnapshotInfo vol = new SnapshotInfo(item.getSnapshotId(), item.getVolumeId(),
+								item.getStatus(),
+								item.getStartTime().toGregorianCalendar(),
+								item.getProgress(), item.getOwnerId(),
+								item.getVolumeSize(), item.getDescription(),
+								item.getOwnerAlias());
+			result.add(vol);
 		}
+		return result;
 	}
 
 	/**
@@ -1980,15 +1807,11 @@ public class Jec2 extends AWSQueryConnection {
 		}
 		params.put("Attribute", attribute);
 		params.put("OperationType", opType.getTypeId());
-		GetMethod method = new GetMethod();
-		try {
-			ModifySnapshotAttributeResponse response =
-					makeRequestInt(method, "ModifySnapshotAttribute", params, ModifySnapshotAttributeResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not modify snapshot attribute : "+attribute+". No reason given.");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		ModifySnapshotAttributeResponse response =
+				makeRequestInt(method, "ModifySnapshotAttribute", params, ModifySnapshotAttributeResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not modify snapshot attribute : "+attribute+". No reason given.");
 		}
 	}
 
@@ -2003,15 +1826,11 @@ public class Jec2 extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("SnapshotId", snapshotId);
 		params.put("Attribute", attribute);
-		GetMethod method = new GetMethod();
-		try {
-			ResetSnapshotAttributeResponse response =
-					makeRequestInt(method, "ResetSnapshotAttribute", params, ResetSnapshotAttributeResponse.class);
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not reset snapshot attribute. No reason given.");
-			}
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		ResetSnapshotAttributeResponse response =
+				makeRequestInt(method, "ResetSnapshotAttribute", params, ResetSnapshotAttributeResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not reset snapshot attribute. No reason given.");
 		}
 	}
 	
@@ -2028,23 +1847,19 @@ public class Jec2 extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("SnapshotId", snapshotId);
 		params.put("Attribute", attribute);
-		GetMethod method = new GetMethod();
-		try {
-			DescribeSnapshotAttributeResponse response =
-					makeRequestInt(method, "DescribeSnapshotAttribute", params, DescribeSnapshotAttributeResponse.class);
-			
-			DescribeSnapshotAttributeResult ret = new DescribeSnapshotAttributeResult(response.getSnapshotId());
-			List<CreateVolumePermissionItemType> list = response.getCreateVolumePermission().getItems();
-			if (list != null) {
-				for (CreateVolumePermissionItemType item : list) {
-					ret.addCreateVolumePermission(item.getUserId(), item.getGroup());
-				}
+		HttpGet method = new HttpGet();
+		DescribeSnapshotAttributeResponse response =
+				makeRequestInt(method, "DescribeSnapshotAttribute", params, DescribeSnapshotAttributeResponse.class);
+		
+		DescribeSnapshotAttributeResult ret = new DescribeSnapshotAttributeResult(response.getSnapshotId());
+		List<CreateVolumePermissionItemType> list = response.getCreateVolumePermission().getItems();
+		if (list != null) {
+			for (CreateVolumePermissionItemType item : list) {
+				ret.addCreateVolumePermission(item.getUserId(), item.getGroup());
 			}
-
-			return ret;
-		} finally {
-			method.releaseConnection();
 		}
+
+		return ret;
 	}
 
 	/**
@@ -2061,21 +1876,17 @@ public class Jec2 extends AWSQueryConnection {
 				params.put("Region."+(i+1), regions.get(i));
 			}
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeRegionsResponse response =
-					makeRequestInt(method, "DescribeRegions", params, DescribeRegionsResponse.class);
-			List<RegionInfo> ret = new ArrayList<RegionInfo>();
-			RegionSetType set = response.getRegionInfo();
-			Iterator set_iter = set.getItems().iterator();
-			while (set_iter.hasNext()) {
-				RegionItemType item = (RegionItemType) set_iter.next();
-				ret.add(new RegionInfo(item.getRegionName(), item.getRegionEndpoint()));
-			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		DescribeRegionsResponse response =
+				makeRequestInt(method, "DescribeRegions", params, DescribeRegionsResponse.class);
+		List<RegionInfo> ret = new ArrayList<RegionInfo>();
+		RegionSetType set = response.getRegionInfo();
+		Iterator set_iter = set.getItems().iterator();
+		while (set_iter.hasNext()) {
+			RegionItemType item = (RegionItemType) set_iter.next();
+			ret.add(new RegionInfo(item.getRegionName(), item.getRegionEndpoint()));
 		}
+		return ret;
 	}
 
 	/**
@@ -2116,18 +1927,14 @@ public class Jec2 extends AWSQueryConnection {
 		String jsonPolicy = policy.getPolicyString();
 		params.put("Storage.S3.UploadPolicy", jsonPolicy);
 		params.put("Storage.S3.UploadPolicySignature", encode(getSecretAccessKey(), jsonPolicy, false, "HmacSHA1"));
-		GetMethod method = new GetMethod();
-		try {
-			BundleInstanceResponse response =
-					makeRequestInt(method, "BundleInstance", params, BundleInstanceResponse.class);
-			BundleInstanceTaskType task = response.getBundleInstanceTask();
-			return new BundleInstanceInfo(response.getRequestId(), task.getInstanceId(), task.getBundleId(),
-							task.getState(), task.getStartTime().toGregorianCalendar(),
-							task.getUpdateTime().toGregorianCalendar(), task.getStorage(),
-							task.getProgress(), task.getError());
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		BundleInstanceResponse response =
+				makeRequestInt(method, "BundleInstance", params, BundleInstanceResponse.class);
+		BundleInstanceTaskType task = response.getBundleInstanceTask();
+		return new BundleInstanceInfo(response.getRequestId(), task.getInstanceId(), task.getBundleId(),
+						task.getState(), task.getStartTime().toGregorianCalendar(),
+						task.getUpdateTime().toGregorianCalendar(), task.getStorage(),
+						task.getProgress(), task.getError());
 	}
 
 	/**
@@ -2140,18 +1947,14 @@ public class Jec2 extends AWSQueryConnection {
 	public BundleInstanceInfo cancelBundleInstance(String bundleId) throws EC2Exception {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("BundleId", bundleId);
-		GetMethod method = new GetMethod();
-		try {
-			CancelBundleTaskResponse response =
-					makeRequestInt(method, "CancelBundleTask", params, CancelBundleTaskResponse.class);
-			BundleInstanceTaskType task = response.getBundleInstanceTask();
-			return new BundleInstanceInfo(response.getRequestId(), task.getInstanceId(), task.getBundleId(),
-							task.getState(), task.getStartTime().toGregorianCalendar(),
-							task.getUpdateTime().toGregorianCalendar(), task.getStorage(),
-							task.getProgress(), task.getError());
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		CancelBundleTaskResponse response =
+				makeRequestInt(method, "CancelBundleTask", params, CancelBundleTaskResponse.class);
+		BundleInstanceTaskType task = response.getBundleInstanceTask();
+		return new BundleInstanceInfo(response.getRequestId(), task.getInstanceId(), task.getBundleId(),
+						task.getState(), task.getStartTime().toGregorianCalendar(),
+						task.getUpdateTime().toGregorianCalendar(), task.getStorage(),
+						task.getProgress(), task.getError());
 	}
 
 	/**
@@ -2177,23 +1980,19 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<bundleIds.size(); i++) {
 			params.put("BundleId."+(i+1), bundleIds.get(i));
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeBundleTasksResponse response =
-					makeRequestInt(method, "DescribeBundleTasks", params, DescribeBundleTasksResponse.class);
-			List<BundleInstanceInfo> ret = new ArrayList<BundleInstanceInfo>();
-			Iterator task_iter = response.getBundleInstanceTasksSet().getItems().iterator();
-			while (task_iter.hasNext()) {
-				BundleInstanceTaskType task = (BundleInstanceTaskType) task_iter.next();
-				ret.add(new BundleInstanceInfo(response.getRequestId(), task.getInstanceId(), task.getBundleId(),
-							task.getState(), task.getStartTime().toGregorianCalendar(),
-							task.getUpdateTime().toGregorianCalendar(), task.getStorage(),
-							task.getProgress(), task.getError()));
-			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		DescribeBundleTasksResponse response =
+				makeRequestInt(method, "DescribeBundleTasks", params, DescribeBundleTasksResponse.class);
+		List<BundleInstanceInfo> ret = new ArrayList<BundleInstanceInfo>();
+		Iterator task_iter = response.getBundleInstanceTasksSet().getItems().iterator();
+		while (task_iter.hasNext()) {
+			BundleInstanceTaskType task = (BundleInstanceTaskType) task_iter.next();
+			ret.add(new BundleInstanceInfo(response.getRequestId(), task.getInstanceId(), task.getBundleId(),
+						task.getState(), task.getStartTime().toGregorianCalendar(),
+						task.getUpdateTime().toGregorianCalendar(), task.getStorage(),
+						task.getProgress(), task.getError()));
 		}
+		return ret;
 	}
 
 	/**
@@ -2209,26 +2008,22 @@ public class Jec2 extends AWSQueryConnection {
 				params.put("ReservedInstanceId."+(i+1), instanceIds.get(i));
 			}
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeReservedInstancesResponse response =
-					makeRequestInt(method, "DescribeReservedInstances", params, DescribeReservedInstancesResponse.class);
-			List<ReservedInstances> ret = new ArrayList<ReservedInstances>();
-			Iterator task_iter = response.getReservedInstancesSet().getItems().iterator();
-			while (task_iter.hasNext()) {
-				DescribeReservedInstancesResponseSetItemType type =
-						(DescribeReservedInstancesResponseSetItemType) task_iter.next();
-				ret.add(new ReservedInstances(type.getReservedInstancesId(),
-							InstanceType.getTypeFromString(type.getInstanceType()),
-							type.getAvailabilityZone(), type.getStart().toGregorianCalendar(),
-							type.getDuration(), type.getFixedPrice(), type.getUsagePrice(),
-							type.getProductDescription(),
-							type.getInstanceCount().intValue(), type.getState()));
-			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		DescribeReservedInstancesResponse response =
+				makeRequestInt(method, "DescribeReservedInstances", params, DescribeReservedInstancesResponse.class);
+		List<ReservedInstances> ret = new ArrayList<ReservedInstances>();
+		Iterator task_iter = response.getReservedInstancesSet().getItems().iterator();
+		while (task_iter.hasNext()) {
+			DescribeReservedInstancesResponseSetItemType type =
+					(DescribeReservedInstancesResponseSetItemType) task_iter.next();
+			ret.add(new ReservedInstances(type.getReservedInstancesId(),
+						InstanceType.getTypeFromString(type.getInstanceType()),
+						type.getAvailabilityZone(), type.getStart().toGregorianCalendar(),
+						type.getDuration(), type.getFixedPrice(), type.getUsagePrice(),
+						type.getProductDescription(),
+						type.getInstanceCount().intValue(), type.getState()));
 		}
+		return ret;
 	}
 
 	/**
@@ -2259,25 +2054,21 @@ public class Jec2 extends AWSQueryConnection {
 		if (productDescription != null) {
 			params.put("ProductDescription", productDescription);
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeReservedInstancesOfferingsResponse response =
-					makeRequestInt(method, "DescribeReservedInstancesOfferings", params, DescribeReservedInstancesOfferingsResponse.class);
-			List<ProductDescription> ret = new ArrayList<ProductDescription>();
-			Iterator task_iter = response.getReservedInstancesOfferingsSet().getItems().iterator();
-			while (task_iter.hasNext()) {
-				DescribeReservedInstancesOfferingsResponseSetItemType type =
-						(DescribeReservedInstancesOfferingsResponseSetItemType) task_iter.next();
-				ret.add(new ProductDescription(type.getReservedInstancesOfferingId(),
-							InstanceType.getTypeFromString(type.getInstanceType()),
-							type.getAvailabilityZone(),
-							type.getDuration(), type.getFixedPrice(), type.getUsagePrice(),
-							type.getProductDescription()));
-			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		DescribeReservedInstancesOfferingsResponse response =
+				makeRequestInt(method, "DescribeReservedInstancesOfferings", params, DescribeReservedInstancesOfferingsResponse.class);
+		List<ProductDescription> ret = new ArrayList<ProductDescription>();
+		Iterator task_iter = response.getReservedInstancesOfferingsSet().getItems().iterator();
+		while (task_iter.hasNext()) {
+			DescribeReservedInstancesOfferingsResponseSetItemType type =
+					(DescribeReservedInstancesOfferingsResponseSetItemType) task_iter.next();
+			ret.add(new ProductDescription(type.getReservedInstancesOfferingId(),
+						InstanceType.getTypeFromString(type.getInstanceType()),
+						type.getAvailabilityZone(),
+						type.getDuration(), type.getFixedPrice(), type.getUsagePrice(),
+						type.getProductDescription()));
 		}
+		return ret;
 	}
 
 	/**
@@ -2294,14 +2085,10 @@ public class Jec2 extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("ReservedInstancesOfferingId", offeringId);
 		params.put("InstanceCount", ""+instanceCount);
-		GetMethod method = new GetMethod();
-		try {
-			PurchaseReservedInstancesOfferingResponse response =
-					makeRequestInt(method, "PurchaseReservedInstancesOffering", params, PurchaseReservedInstancesOfferingResponse.class);
-			return response.getReservedInstancesId();
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		PurchaseReservedInstancesOfferingResponse response =
+				makeRequestInt(method, "PurchaseReservedInstancesOffering", params, PurchaseReservedInstancesOfferingResponse.class);
+		return response.getReservedInstancesId();
 	}
 
 	/**
@@ -2316,19 +2103,15 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<instanceIds.size(); i++) {
 			params.put("InstanceId."+(i+1), instanceIds.get(i));
 		}
-		GetMethod method = new GetMethod();
-		try {
-			MonitorInstancesResponse response =
-					makeRequestInt(method, "MonitorInstances", params, MonitorInstancesResponse.class);
-			List<MonitoredInstanceInfo> ret = new ArrayList<MonitoredInstanceInfo>();
-			for (MonitorInstancesResponseSetItemType item : response.getInstancesSet().getItems()) {
-				ret.add(new MonitoredInstanceInfo(item.getInstanceId(),
-								item.getMonitoring().getState()));
-			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		MonitorInstancesResponse response =
+				makeRequestInt(method, "MonitorInstances", params, MonitorInstancesResponse.class);
+		List<MonitoredInstanceInfo> ret = new ArrayList<MonitoredInstanceInfo>();
+		for (MonitorInstancesResponseSetItemType item : response.getInstancesSet().getItems()) {
+			ret.add(new MonitoredInstanceInfo(item.getInstanceId(),
+							item.getMonitoring().getState()));
 		}
+		return ret;
 	}
 
 	/**
@@ -2343,19 +2126,15 @@ public class Jec2 extends AWSQueryConnection {
 		for (int i=0 ; i<instanceIds.size(); i++) {
 			params.put("InstanceId."+(i+1), instanceIds.get(i));
 		}
-		GetMethod method = new GetMethod();
-		try {
-			UnmonitorInstancesResponse response =
-					makeRequestInt(method, "UnmonitorInstances", params, UnmonitorInstancesResponse.class);
-			List<MonitoredInstanceInfo> ret = new ArrayList<MonitoredInstanceInfo>();
-			for (MonitorInstancesResponseSetItemType item : response.getInstancesSet().getItems()) {
-				ret.add(new MonitoredInstanceInfo(item.getInstanceId(),
-								item.getMonitoring().getState()));
-			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+		HttpGet method = new HttpGet();
+		UnmonitorInstancesResponse response =
+				makeRequestInt(method, "UnmonitorInstances", params, UnmonitorInstancesResponse.class);
+		List<MonitoredInstanceInfo> ret = new ArrayList<MonitoredInstanceInfo>();
+		for (MonitorInstancesResponseSetItemType item : response.getInstancesSet().getItems()) {
+			ret.add(new MonitoredInstanceInfo(item.getInstanceId(),
+							item.getMonitoring().getState()));
 		}
+		return ret;
 	}
     
     public List<SpotPriceHistoryItem> describeSpotPriceHistory(Calendar start, Calendar end, String productDescription, InstanceType... instanceTypes) throws EC2Exception {
@@ -2374,43 +2153,34 @@ public class Jec2 extends AWSQueryConnection {
 			params.put("InstanceType." + (i + 1), instanceType.getTypeId());
 		}
 
-		GetMethod method = new GetMethod();
-		try {
-			List<SpotPriceHistoryItem> ret = new ArrayList<SpotPriceHistoryItem>();
-			DescribeSpotPriceHistoryResponse response =
-					makeRequestInt(method, "DescribeSpotPriceHistory", params, DescribeSpotPriceHistoryResponse.class);
+		HttpGet method = new HttpGet();
+		List<SpotPriceHistoryItem> ret = new ArrayList<SpotPriceHistoryItem>();
+		DescribeSpotPriceHistoryResponse response =
+				makeRequestInt(method, "DescribeSpotPriceHistory", params, DescribeSpotPriceHistoryResponse.class);
 
-			List<SpotPriceHistorySetItemType> items = response.getSpotPriceHistorySet().getItems();
-			if (items != null) {
-				for (SpotPriceHistorySetItemType item : items) {
-					ret.add(new SpotPriceHistoryItem(item));
-				}
+		List<SpotPriceHistorySetItemType> items = response.getSpotPriceHistorySet().getItems();
+		if (items != null) {
+			for (SpotPriceHistorySetItemType item : items) {
+				ret.add(new SpotPriceHistoryItem(item));
 			}
-
-			return ret;
-		} finally {
-			method.releaseConnection();
 		}
+
+		return ret;
 	}
 
     public List<SpotInstanceRequest> describeSpotInstanceRequests() throws EC2Exception {
-        GetMethod method = new GetMethod();
-        try {
-            List<SpotInstanceRequest> ret = new ArrayList<SpotInstanceRequest>();
-            DescribeSpotInstanceRequestsResponse response =
-                    makeRequestInt(method, "DescribeSpotInstanceRequests", null, DescribeSpotInstanceRequestsResponse.class);
+		HttpGet method = new HttpGet();
+		List<SpotInstanceRequest> ret = new ArrayList<SpotInstanceRequest>();
+		DescribeSpotInstanceRequestsResponse response =
+			makeRequestInt(method, "DescribeSpotInstanceRequests", null, DescribeSpotInstanceRequestsResponse.class);
 
-            List<SpotInstanceRequestSetItemType> items = response.getSpotInstanceRequestSet().getItems();
-            if (items != null) {
-                for (SpotInstanceRequestSetItemType item : items) {
-                    ret.add(new SpotInstanceRequest(item));
-                }
-            }
-
-            return ret;
-        } finally {
-            method.releaseConnection();
-        }
+		List<SpotInstanceRequestSetItemType> items = response.getSpotInstanceRequestSet().getItems();
+		if (items != null) {
+			for (SpotInstanceRequestSetItemType item : items) {
+				ret.add(new SpotInstanceRequest(item));
+			}
+		}
+		return ret;
     }
 
     public List<SpotInstanceRequest> requestSpotInstances(SpotInstanceRequestConfiguration sirc, LaunchConfiguration lc) throws EC2Exception {
@@ -2418,23 +2188,19 @@ public class Jec2 extends AWSQueryConnection {
         lc.prepareQueryParams("LaunchSpecification.", false, params);
         sirc.prepareQueryParams(params);
 
-        GetMethod method = new GetMethod();
-        try {
-            List<SpotInstanceRequest> ret = new ArrayList<SpotInstanceRequest>();
-            RequestSpotInstancesResponse response =
-                    makeRequestInt(method, "RequestSpotInstances", params, RequestSpotInstancesResponse.class);
+		HttpGet method = new HttpGet();
+		List<SpotInstanceRequest> ret = new ArrayList<SpotInstanceRequest>();
+		RequestSpotInstancesResponse response =
+				makeRequestInt(method, "RequestSpotInstances", params, RequestSpotInstancesResponse.class);
 
-            List<SpotInstanceRequestSetItemType> items = response.getSpotInstanceRequestSet().getItems();
-            if (items != null) {
-                for (SpotInstanceRequestSetItemType item : items) {
-                    ret.add(new SpotInstanceRequest(item));
-                }
-            }
+		List<SpotInstanceRequestSetItemType> items = response.getSpotInstanceRequestSet().getItems();
+		if (items != null) {
+			for (SpotInstanceRequestSetItemType item : items) {
+				ret.add(new SpotInstanceRequest(item));
+			}
+		}
 
-            return ret;
-        } finally {
-            method.releaseConnection();
-        }
+		return ret;
     }
 
     public List<SpotInstanceCancellationResponse> cancelSpotInstanceRequests(String... sirIds) throws EC2Exception {
@@ -2444,23 +2210,19 @@ public class Jec2 extends AWSQueryConnection {
             params.put("SpotInstanceRequestId." + (i + 1), sirIds[i]);
         }
 
-        GetMethod method = new GetMethod();
-        try {
-            List<SpotInstanceCancellationResponse> ret = new ArrayList<SpotInstanceCancellationResponse>();
-            CancelSpotInstanceRequestsResponse response =
-                    makeRequestInt(method, "CancelSpotInstanceRequests", params, CancelSpotInstanceRequestsResponse.class);
+		HttpGet method = new HttpGet();
+		List<SpotInstanceCancellationResponse> ret = new ArrayList<SpotInstanceCancellationResponse>();
+		CancelSpotInstanceRequestsResponse response =
+				makeRequestInt(method, "CancelSpotInstanceRequests", params, CancelSpotInstanceRequestsResponse.class);
 
-            List<CancelSpotInstanceRequestsResponseSetItemType> items = response.getSpotInstanceRequestSet().getItems();
-            if (items != null) {
-                for (CancelSpotInstanceRequestsResponseSetItemType item : items) {
-                    ret.add(new SpotInstanceCancellationResponse(item));
-                }
-            }
+		List<CancelSpotInstanceRequestsResponseSetItemType> items = response.getSpotInstanceRequestSet().getItems();
+		if (items != null) {
+			for (CancelSpotInstanceRequestsResponseSetItemType item : items) {
+				ret.add(new SpotInstanceCancellationResponse(item));
+			}
+		}
 
-            return ret;
-        } finally {
-            method.releaseConnection();
-        }
+		return ret;
     }
 
 	/**
@@ -2479,16 +2241,12 @@ public class Jec2 extends AWSQueryConnection {
         	params.put("Prefix", prefix);
 		}
 
-        GetMethod method = new GetMethod();
-        try {
-            CreateSpotDatafeedSubscriptionResponse response =
-                    makeRequestInt(method, "CreateSpotDatafeedSubscription", params, CreateSpotDatafeedSubscriptionResponse.class);
+		HttpGet method = new HttpGet();
+		CreateSpotDatafeedSubscriptionResponse response =
+				makeRequestInt(method, "CreateSpotDatafeedSubscription", params, CreateSpotDatafeedSubscriptionResponse.class);
 
 
-            return new SpotDatafeedSubscription(response.getRequestId(), response.getSpotDatafeedSubscription());
-        } finally {
-            method.releaseConnection();
-        }
+		return new SpotDatafeedSubscription(response.getRequestId(), response.getSpotDatafeedSubscription());
 	}
 
 	/**
@@ -2498,17 +2256,12 @@ public class Jec2 extends AWSQueryConnection {
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public SpotDatafeedSubscription describeSpotDatafeedSubscription() throws EC2Exception {
-        Map<String, String> params = new HashMap<String, String>();
-        GetMethod method = new GetMethod();
-        try {
-            DescribeSpotDatafeedSubscriptionResponse response =
-                    makeRequestInt(method, "DescribeSpotDatafeedSubscription", params, DescribeSpotDatafeedSubscriptionResponse.class);
+		HttpGet method = new HttpGet();
+        DescribeSpotDatafeedSubscriptionResponse response =
+				makeRequestInt(method, "DescribeSpotDatafeedSubscription", null, DescribeSpotDatafeedSubscriptionResponse.class);
 
 
-            return new SpotDatafeedSubscription(response.getRequestId(), response.getSpotDatafeedSubscription());
-        } finally {
-            method.releaseConnection();
-        }
+		return new SpotDatafeedSubscription(response.getRequestId(), response.getSpotDatafeedSubscription());
 	}
 
 	/**
@@ -2517,22 +2270,17 @@ public class Jec2 extends AWSQueryConnection {
 	 * @throws EC2Exception wraps checked exceptions
 	 */
 	public void deleteSpotDatafeedSubscription() throws EC2Exception {
-        Map<String, String> params = new HashMap<String, String>();
-        GetMethod method = new GetMethod();
-        try {
-            DeleteSpotDatafeedSubscriptionResponse response =
-                    makeRequestInt(method, "DeleteSpotDatafeedSubscription", params, DeleteSpotDatafeedSubscriptionResponse.class);
+		HttpGet method = new HttpGet();
+		DeleteSpotDatafeedSubscriptionResponse response =
+				makeRequestInt(method, "DeleteSpotDatafeedSubscription", null, DeleteSpotDatafeedSubscriptionResponse.class);
 
 
-			if (!response.isReturn()) {
-				throw new EC2Exception("Could not delete subscription. No reason given.");
-			}
-        } finally {
-            method.releaseConnection();
-        }
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not delete subscription. No reason given.");
+		}
 	}
 
-	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+	protected <T> T makeRequestInt(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
 		throws EC2Exception {
 		try {
 			return makeRequest(method, action, params, respType);
@@ -2543,6 +2291,8 @@ public class Jec2 extends AWSQueryConnection {
 		} catch (MalformedURLException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		} catch (IOException ex) {
+			throw new EC2Exception(ex.getMessage(), ex);
+		} catch (HttpException ex) {
 			throw new EC2Exception(ex.getMessage(), ex);
 		}
 	}

@@ -17,32 +17,20 @@
 
 package com.xerox.amazonws.ec2;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.StringWriter;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -178,13 +166,9 @@ public class AutoScaling extends AWSQueryConnection {
 			}
 		}
 
-		GetMethod method = new GetMethod();
-		try {
-		//	CreateLaunchConfigurationResponse response =
-					makeRequestInt(method, "CreateLaunchConfiguration", params, CreateLaunchConfigurationResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+	//	CreateLaunchConfigurationResponse response =
+			makeRequestInt(method, "CreateLaunchConfiguration", params, CreateLaunchConfigurationResponse.class);
 	}
 
 	/**
@@ -196,13 +180,9 @@ public class AutoScaling extends AWSQueryConnection {
 	public void deleteLaunchConfiguration(String configName) throws AutoScalingException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("LaunchConfigurationName", configName);
-		GetMethod method = new GetMethod();
-		try {
-		//	DeleteLaunchConfigurationResponse response =
-					makeRequestInt(method, "DeleteLaunchConfiguration", params, DeleteLaunchConfigurationResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+	//	DeleteLaunchConfigurationResponse response =
+			makeRequestInt(method, "DeleteLaunchConfiguration", params, DeleteLaunchConfigurationResponse.class);
 	}
 
 	/**
@@ -221,33 +201,29 @@ public class AutoScaling extends AWSQueryConnection {
 				i++;
 			}
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeLaunchConfigurationsResponse response =
-					makeRequestInt(method, "DescribeLaunchConfigurations", params, DescribeLaunchConfigurationsResponse.class);
-			List<com.xerox.amazonws.typica.autoscale.jaxb.LaunchConfiguration> result =
-						response.getDescribeLaunchConfigurationsResult().getLaunchConfigurations().getMembers();
-			List<LaunchConfiguration> ret = new ArrayList<LaunchConfiguration>();
-			for (com.xerox.amazonws.typica.autoscale.jaxb.LaunchConfiguration config : result) {
-				LaunchConfiguration newConfig = new LaunchConfiguration(config.getLaunchConfigurationName(),
-												config.getImageId(), 1, 1);
-				newConfig.setKeyName(config.getKeyName());
-				newConfig.setSecurityGroup(config.getSecurityGroups().getMembers());
-				newConfig.setUserData(config.getUserData().getBytes());
-				newConfig.setInstanceType(InstanceType.getTypeFromString(config.getInstanceType()));
-				newConfig.setKernelId(config.getKernelId());
-				newConfig.setRamdiskId(config.getRamdiskId());
-				List<BlockDeviceMapping> mappings = new ArrayList<BlockDeviceMapping>();
-				for (com.xerox.amazonws.typica.autoscale.jaxb.BlockDeviceMapping mapping : config.getBlockDeviceMappings().getMembers()) {
-					mappings.add(new BlockDeviceMapping(mapping.getVirtualName(), mapping.getDeviceName()));
-				}
-				newConfig.setBlockDevicemappings(mappings);
-				ret.add(newConfig);
+		HttpGet method = new HttpGet();
+		DescribeLaunchConfigurationsResponse response =
+				makeRequestInt(method, "DescribeLaunchConfigurations", params, DescribeLaunchConfigurationsResponse.class);
+		List<com.xerox.amazonws.typica.autoscale.jaxb.LaunchConfiguration> result =
+					response.getDescribeLaunchConfigurationsResult().getLaunchConfigurations().getMembers();
+		List<LaunchConfiguration> ret = new ArrayList<LaunchConfiguration>();
+		for (com.xerox.amazonws.typica.autoscale.jaxb.LaunchConfiguration config : result) {
+			LaunchConfiguration newConfig = new LaunchConfiguration(config.getLaunchConfigurationName(),
+											config.getImageId(), 1, 1);
+			newConfig.setKeyName(config.getKeyName());
+			newConfig.setSecurityGroup(config.getSecurityGroups().getMembers());
+			newConfig.setUserData(config.getUserData().getBytes());
+			newConfig.setInstanceType(InstanceType.getTypeFromString(config.getInstanceType()));
+			newConfig.setKernelId(config.getKernelId());
+			newConfig.setRamdiskId(config.getRamdiskId());
+			List<BlockDeviceMapping> mappings = new ArrayList<BlockDeviceMapping>();
+			for (com.xerox.amazonws.typica.autoscale.jaxb.BlockDeviceMapping mapping : config.getBlockDeviceMappings().getMembers()) {
+				mappings.add(new BlockDeviceMapping(mapping.getVirtualName(), mapping.getDeviceName()));
 			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+			newConfig.setBlockDevicemappings(mappings);
+			ret.add(newConfig);
 		}
+		return ret;
 	}
 
 	/**
@@ -262,21 +238,17 @@ public class AutoScaling extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("InstanceId", instanceId);
 		params.put("ShouldDecrementDesiredCapacity", shouldDecrement?"true":"false");
-		GetMethod method = new GetMethod();
-		try {
-			TerminateInstanceInAutoScalingGroupResponse response =
-					makeRequestInt(method, "TerminateInstanceInAutoScalingGroup", params, TerminateInstanceInAutoScalingGroupResponse.class);
-			TerminateInstanceInAutoScalingGroupResult result = response.getTerminateInstanceInAutoScalingGroupResult();
-			com.xerox.amazonws.typica.autoscale.jaxb.Activity activity = result.getActivity();
-			Activity ret = new Activity(activity.getActivityId(), activity.getDescription(),
-							activity.getCause(), activity.getStartTime().toString(),
-							activity.getEndTime().toString(), activity.getStatusCode(),
-							activity.getStatusMessage(),
-							activity.getProgress().intValue());
-			return ret;
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+		TerminateInstanceInAutoScalingGroupResponse response =
+				makeRequestInt(method, "TerminateInstanceInAutoScalingGroup", params, TerminateInstanceInAutoScalingGroupResponse.class);
+		TerminateInstanceInAutoScalingGroupResult result = response.getTerminateInstanceInAutoScalingGroupResult();
+		com.xerox.amazonws.typica.autoscale.jaxb.Activity activity = result.getActivity();
+		Activity ret = new Activity(activity.getActivityId(), activity.getDescription(),
+						activity.getCause(), activity.getStartTime().toString(),
+						activity.getEndTime().toString(), activity.getStatusCode(),
+						activity.getStatusMessage(),
+						activity.getProgress().intValue());
+		return ret;
 	}
 
 	/**
@@ -297,34 +269,30 @@ public class AutoScaling extends AWSQueryConnection {
 			}
 		}
 		params.put("AutoScalingGroupName", autoScalingGroupName);
-		GetMethod method = new GetMethod();
-		try {
-			List<Activity> ret = new ArrayList<Activity>();
-			String nextToken = null;
-			do {
-				if (nextToken != null) {
-					params.put("NextToken", nextToken);
-				}
-				DescribeScalingActivitiesResponse response =
-						makeRequestInt(method, "DescribeScalingActivities", params, DescribeScalingActivitiesResponse.class);
+		HttpGet method = new HttpGet();
+		List<Activity> ret = new ArrayList<Activity>();
+		String nextToken = null;
+		do {
+			if (nextToken != null) {
+				params.put("NextToken", nextToken);
+			}
+			DescribeScalingActivitiesResponse response =
+					makeRequestInt(method, "DescribeScalingActivities", params, DescribeScalingActivitiesResponse.class);
 
-				DescribeScalingActivitiesResult result = response.getDescribeScalingActivitiesResult();
-				List<com.xerox.amazonws.typica.autoscale.jaxb.Activity> activities =
-														result.getActivities().getMembers();
-				for (com.xerox.amazonws.typica.autoscale.jaxb.Activity activity : activities) {
-					Activity newActivity = new Activity(activity.getActivityId(), activity.getDescription(),
-									activity.getCause(), activity.getStartTime().toString(),
-									activity.getEndTime().toString(), activity.getStatusCode(),
-									activity.getStatusMessage(),
-									activity.getProgress().intValue());
-					ret.add(newActivity);
-				}
-				nextToken = result.getNextToken();
-			} while (nextToken != null);
-			return ret;
-		} finally {
-			method.releaseConnection();
-		}
+			DescribeScalingActivitiesResult result = response.getDescribeScalingActivitiesResult();
+			List<com.xerox.amazonws.typica.autoscale.jaxb.Activity> activities =
+													result.getActivities().getMembers();
+			for (com.xerox.amazonws.typica.autoscale.jaxb.Activity activity : activities) {
+				Activity newActivity = new Activity(activity.getActivityId(), activity.getDescription(),
+								activity.getCause(), activity.getStartTime().toString(),
+								activity.getEndTime().toString(), activity.getStatusCode(),
+								activity.getStatusMessage(),
+								activity.getProgress().intValue());
+				ret.add(newActivity);
+			}
+			nextToken = result.getNextToken();
+		} while (nextToken != null);
+		return ret;
 	}
 
 	/**
@@ -362,13 +330,9 @@ public class AutoScaling extends AWSQueryConnection {
 		params.put("UpperThreshold", ""+trigger.getUpperThreshold());
 		params.put("UpperBreachScaleIncrement", trigger.getUpperBreachScaleIncrement());
 		params.put("BreachDuration", ""+trigger.getBreachDuration());
-		GetMethod method = new GetMethod();
-		try {
-		//	CreateOrUpdateScalingTriggerReponse response =
-					makeRequestInt(method, "CreateOrUpdateScalingTrigger", params, CreateOrUpdateScalingTriggerResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+	//	CreateOrUpdateScalingTriggerReponse response =
+			makeRequestInt(method, "CreateOrUpdateScalingTrigger", params, CreateOrUpdateScalingTriggerResponse.class);
 	}
 
 	/**
@@ -382,13 +346,9 @@ public class AutoScaling extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("TriggerName", triggerName);
 		params.put("AutoScalingGroupName", autoScalingGroupName);
-		GetMethod method = new GetMethod();
-		try {
-			//  DeleteTriggerResponse response =
-					makeRequestInt(method, "DeleteTrigger", params, DeleteTriggerResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+	//  DeleteTriggerResponse response =
+			makeRequestInt(method, "DeleteTrigger", params, DeleteTriggerResponse.class);
 	}
 
 	/**
@@ -401,36 +361,32 @@ public class AutoScaling extends AWSQueryConnection {
 	public List<ScalingTrigger> describeTriggers(String autoScalingGroupName) throws AutoScalingException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("AutoScalingGroupName", autoScalingGroupName);
-		GetMethod method = new GetMethod();
-		try {
-			DescribeTriggersResponse response =
-					makeRequestInt(method, "DescribeTriggers", params, DescribeTriggersResponse.class);
+		HttpGet method = new HttpGet();
+		DescribeTriggersResponse response =
+				makeRequestInt(method, "DescribeTriggers", params, DescribeTriggersResponse.class);
 
-			List<com.xerox.amazonws.typica.autoscale.jaxb.Trigger> result =
-						response.getDescribeTriggersResult().getTriggers().getMembers();
-			List<ScalingTrigger> ret = new ArrayList<ScalingTrigger>();
-			for (com.xerox.amazonws.typica.autoscale.jaxb.Trigger trigger : result) {
-				Map<String, String> dimensions = new HashMap<String, String>();
-				List<com.xerox.amazonws.typica.autoscale.jaxb.Dimension> dims = trigger.getDimensions().getMembers();
-				for (com.xerox.amazonws.typica.autoscale.jaxb.Dimension dim : dims) {
-					dimensions.put(dim.getName(), dim.getValue());
-				}
-				ScalingTrigger newTrigger = new ScalingTrigger(trigger.getTriggerName(), trigger.getAutoScalingGroupName(),
-								trigger.getMeasureName(), Statistics.getTypeFromString(trigger.getStatistic()),
-								dimensions, trigger.getPeriod().intValue(),
-								StandardUnit.getTypeFromString(trigger.getUnit()), trigger.getCustomUnit(),
-								trigger.getLowerThreshold(),
-								trigger.getLowerBreachScaleIncrement(),
-								trigger.getUpperThreshold(),
-								trigger.getUpperBreachScaleIncrement(),
-								trigger.getBreachDuration().intValue(),
-								trigger.getStatus(), trigger.getCreatedTime().toGregorianCalendar());
-				ret.add(newTrigger);
+		List<com.xerox.amazonws.typica.autoscale.jaxb.Trigger> result =
+					response.getDescribeTriggersResult().getTriggers().getMembers();
+		List<ScalingTrigger> ret = new ArrayList<ScalingTrigger>();
+		for (com.xerox.amazonws.typica.autoscale.jaxb.Trigger trigger : result) {
+			Map<String, String> dimensions = new HashMap<String, String>();
+			List<com.xerox.amazonws.typica.autoscale.jaxb.Dimension> dims = trigger.getDimensions().getMembers();
+			for (com.xerox.amazonws.typica.autoscale.jaxb.Dimension dim : dims) {
+				dimensions.put(dim.getName(), dim.getValue());
 			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+			ScalingTrigger newTrigger = new ScalingTrigger(trigger.getTriggerName(), trigger.getAutoScalingGroupName(),
+							trigger.getMeasureName(), Statistics.getTypeFromString(trigger.getStatistic()),
+							dimensions, trigger.getPeriod().intValue(),
+							StandardUnit.getTypeFromString(trigger.getUnit()), trigger.getCustomUnit(),
+							trigger.getLowerThreshold(),
+							trigger.getLowerBreachScaleIncrement(),
+							trigger.getUpperThreshold(),
+							trigger.getUpperBreachScaleIncrement(),
+							trigger.getBreachDuration().intValue(),
+							trigger.getStatus(), trigger.getCreatedTime().toGregorianCalendar());
+			ret.add(newTrigger);
 		}
+		return ret;
 	}
 
 	/**
@@ -457,13 +413,9 @@ public class AutoScaling extends AWSQueryConnection {
 			params.put("AvailabilityZones.member."+(i+1), zone);
 			i++;
 		}
-		GetMethod method = new GetMethod();
-		try {
-			//  CreateAutoScalingGroupResponse response =
-					makeRequestInt(method, "CreateAutoScalingGroup", params, CreateAutoScalingGroupResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+	//  CreateAutoScalingGroupResponse response =
+			makeRequestInt(method, "CreateAutoScalingGroup", params, CreateAutoScalingGroupResponse.class);
 	}
 
 	/**
@@ -475,13 +427,9 @@ public class AutoScaling extends AWSQueryConnection {
 	public void deleteAutoScalingGroup(String autoScalingGroupName) throws AutoScalingException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("AutoScalingGroupName", autoScalingGroupName);
-		GetMethod method = new GetMethod();
-		try {
-			//  DeleteAutoScalingGroupResponse response =
-					makeRequestInt(method, "DeleteAutoScalingGroup", params, DeleteAutoScalingGroupResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+	//  DeleteAutoScalingGroupResponse response =
+			makeRequestInt(method, "DeleteAutoScalingGroup", params, DeleteAutoScalingGroupResponse.class);
 	}
 
 	/**
@@ -500,35 +448,31 @@ public class AutoScaling extends AWSQueryConnection {
 				i++;
 			}
 		}
-		GetMethod method = new GetMethod();
-		try {
-			DescribeAutoScalingGroupsResponse response =
-					makeRequestInt(method, "DescribeAutoScalingGroups", params, DescribeAutoScalingGroupsResponse.class);
+		HttpGet method = new HttpGet();
+		DescribeAutoScalingGroupsResponse response =
+				makeRequestInt(method, "DescribeAutoScalingGroups", params, DescribeAutoScalingGroupsResponse.class);
 
-			List<com.xerox.amazonws.typica.autoscale.jaxb.AutoScalingGroup> result =
-						response.getDescribeAutoScalingGroupsResult().getAutoScalingGroups().getMembers();
-			List<AutoScalingGroup> ret = new ArrayList<AutoScalingGroup>();
-			for (com.xerox.amazonws.typica.autoscale.jaxb.AutoScalingGroup group : result) {
-				List<String> zones = new ArrayList<String>();
-				for (String zone : group.getAvailabilityZones().getMembers()) {
-					zones.add(zone);
-				}
-				AutoScalingGroup newGroup = new AutoScalingGroup(group.getAutoScalingGroupName(),
-								group.getLaunchConfigurationName(), group.getMinSize().intValue(),
-								group.getMaxSize().intValue(),
-								group.getDesiredCapacity().intValue(),
-								group.getCooldown().intValue(),
-								zones, group.getCreatedTime().toGregorianCalendar());
-				List<com.xerox.amazonws.typica.autoscale.jaxb.Instance> instList = group.getInstances().getMembers();
-				for (com.xerox.amazonws.typica.autoscale.jaxb.Instance inst : instList) {
-					newGroup.addInstance(inst.getInstanceId(), inst.getLifecycleState());
-				}
-				ret.add(newGroup);
+		List<com.xerox.amazonws.typica.autoscale.jaxb.AutoScalingGroup> result =
+					response.getDescribeAutoScalingGroupsResult().getAutoScalingGroups().getMembers();
+		List<AutoScalingGroup> ret = new ArrayList<AutoScalingGroup>();
+		for (com.xerox.amazonws.typica.autoscale.jaxb.AutoScalingGroup group : result) {
+			List<String> zones = new ArrayList<String>();
+			for (String zone : group.getAvailabilityZones().getMembers()) {
+				zones.add(zone);
 			}
-			return ret;
-		} finally {
-			method.releaseConnection();
+			AutoScalingGroup newGroup = new AutoScalingGroup(group.getAutoScalingGroupName(),
+							group.getLaunchConfigurationName(), group.getMinSize().intValue(),
+							group.getMaxSize().intValue(),
+							group.getDesiredCapacity().intValue(),
+							group.getCooldown().intValue(),
+							zones, group.getCreatedTime().toGregorianCalendar());
+			List<com.xerox.amazonws.typica.autoscale.jaxb.Instance> instList = group.getInstances().getMembers();
+			for (com.xerox.amazonws.typica.autoscale.jaxb.Instance inst : instList) {
+				newGroup.addInstance(inst.getInstanceId(), inst.getLifecycleState());
+			}
+			ret.add(newGroup);
 		}
+		return ret;
 	}
 
 	/**
@@ -542,13 +486,9 @@ public class AutoScaling extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("AutoScalingGroupName", autoScalingGroupName);
 		params.put("DesiredCapacity", ""+desiredCapacity);
-		GetMethod method = new GetMethod();
-		try {
-			//  SetDesiredCapacityResponse response =
-					makeRequestInt(method, "SetDesiredCapacity", params, SetDesiredCapacityResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+	//  SetDesiredCapacityResponse response =
+			makeRequestInt(method, "SetDesiredCapacity", params, SetDesiredCapacityResponse.class);
 	}
 
 	/**
@@ -569,16 +509,12 @@ public class AutoScaling extends AWSQueryConnection {
 		params.put("MinSize", ""+minSize);
 		params.put("MaxSize", ""+maxSize);
 		params.put("DefaultCooldown", ""+defaultCooldown);
-		GetMethod method = new GetMethod();
-		try {
-			//  UpdateAutoScalingGroupResponse response =
-					makeRequestInt(method, "UpdateAutoScalingGroup", params, UpdateAutoScalingGroupResponse.class);
-		} finally {
-			method.releaseConnection();
-		}
+		HttpGet method = new HttpGet();
+	//  UpdateAutoScalingGroupResponse response =
+			makeRequestInt(method, "UpdateAutoScalingGroup", params, UpdateAutoScalingGroupResponse.class);
 	}
 
-	protected <T> T makeRequestInt(HttpMethodBase method, String action, Map<String, String> params, Class<T> respType)
+	protected <T> T makeRequestInt(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
 		throws AutoScalingException {
 		try {
 			return makeRequest(method, action, params, respType);
@@ -589,6 +525,8 @@ public class AutoScaling extends AWSQueryConnection {
 		} catch (MalformedURLException ex) {
 			throw new AutoScalingException(ex.getMessage(), ex);
 		} catch (IOException ex) {
+			throw new AutoScalingException(ex.getMessage(), ex);
+		} catch (HttpException ex) {
 			throw new AutoScalingException(ex.getMessage(), ex);
 		}
 	}
