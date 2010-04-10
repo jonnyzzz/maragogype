@@ -60,7 +60,7 @@ public abstract class AWSConnection {
      * @param awsAccessId The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
      * @param isSecure True if the data should be encrypted on the wire on the way to or from SQS.
-     * @param server Which host to connect to.  Usually, this will be s3.amazonaws.com
+     * @param server Which host to connect to.
      * @param port Which port to use.
      */
     public AWSConnection(String awsAccessId, String awsSecretKey, boolean isSecure,

@@ -63,6 +63,7 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.auth.Credentials;
@@ -108,7 +109,7 @@ public class AWSQueryConnection extends AWSConnection {
      * @param awsAccessId The your user key into AWS
      * @param awsSecretKey The secret string used to generate signatures for authentication.
      * @param isSecure True if the data should be encrypted on the wire on the way to or from SQS.
-     * @param server Which host to connect to.  Usually, this will be s3.amazonaws.com
+     * @param server Which host to connect to.
      * @param port Which port to use.
      */
     public AWSQueryConnection(String awsAccessId, String awsSecretKey, boolean isSecure,
@@ -414,11 +415,12 @@ public class AWSQueryConnection extends AWSConnection {
 				resource.append(qParams.get(key));
 			}
 		}
-		System.err.println("String to sign :"+resource.toString());
+		//System.err.println("String to sign :"+resource.toString());
 
 		// calculate signature
        	String unencoded = encode(getSecretAccessKey(), resource.toString(), false);
        	String encoded = urlencode(unencoded);
+		//System.err.println("sig = "+encoded);
 		
 
 		// build param string, encoding values and adding request signature
@@ -515,6 +517,7 @@ public class AWSQueryConnection extends AWSConnection {
 		HttpConnectionParams.setSoTimeout(params, soTimeout);
 
 		params.setParameter(AllClientPNames.MAX_TOTAL_CONNECTIONS, new Integer(maxConnections));
+		params.setParameter(AllClientPNames.VIRTUAL_HOST, getServer());
 //		params.setParameter(AllClientPNames.MAX_CONNECTIONS_PER_ROUTE, new ConnPerRouteBean(maxConnections));
 
 		SchemeRegistry registry = new SchemeRegistry();
@@ -522,8 +525,10 @@ public class AWSQueryConnection extends AWSConnection {
 		registry.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
 
 		ThreadSafeClientConnManager connMgr = new ThreadSafeClientConnManager(params, registry);
+		//SingleClientConnManager connMgr = new SingleClientConnManager(params, registry);
 
-		hc = new DefaultHttpClient(connMgr, params);
+		hc = new TypicaHttpClient(connMgr, params);
+		//hc = new DefaultHttpClient(connMgr, params);
 		
 		if (proxyHost != null) {
 			DefaultHttpClient defaultHC = (DefaultHttpClient) hc;
@@ -644,16 +649,37 @@ public class AWSQueryConnection extends AWSConnection {
 														e.getCode(), e.getMessage()));
 							}
 						} catch (UnmarshalException ex4) {
-							// this comes from the scaling schema, duplicated because of the different namespace
-							bais = new ByteArrayInputStream(errorResponse.getBytes());
-							com.xerox.amazonws.typica.autoscale.jaxb.ErrorResponse resp = JAXBuddy.deserializeXMLStream(com.xerox.amazonws.typica.autoscale.jaxb.ErrorResponse.class, bais);
-							List<com.xerox.amazonws.typica.autoscale.jaxb.Error> errs = resp.getErrors();
-							errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
-							requestId = resp.getRequestId();
-							errors = new ArrayList<AWSError>();
-							for (com.xerox.amazonws.typica.autoscale.jaxb.Error e : errs) {
-								errors.add(new AWSError(AWSError.ErrorType.getTypeFromString(e.getType()),
-														e.getCode(), e.getMessage()));
+							try {
+								// this comes from the scaling schema, duplicated because of the different namespace
+								bais = new ByteArrayInputStream(errorResponse.getBytes());
+								com.xerox.amazonws.typica.autoscale.jaxb.ErrorResponse resp = JAXBuddy.deserializeXMLStream(com.xerox.amazonws.typica.autoscale.jaxb.ErrorResponse.class, bais);
+								List<com.xerox.amazonws.typica.autoscale.jaxb.Error> errs = resp.getErrors();
+								errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
+								requestId = resp.getRequestId();
+								errors = new ArrayList<AWSError>();
+								for (com.xerox.amazonws.typica.autoscale.jaxb.Error e : errs) {
+									errors.add(new AWSError(AWSError.ErrorType.getTypeFromString(e.getType()),
+															e.getCode(), e.getMessage()));
+								}
+							} catch (UnmarshalException ex5) {
+								try {
+									// this comes from the notification schema, duplicated because of the different namespace
+									bais = new ByteArrayInputStream(errorResponse.getBytes());
+									com.xerox.amazonws.typica.sns.jaxb.ErrorResponse resp = JAXBuddy.deserializeXMLStream(com.xerox.amazonws.typica.sns.jaxb.ErrorResponse.class, bais);
+									List<com.xerox.amazonws.typica.sns.jaxb.Error> errs = resp.getErrors();
+									errorMsg = "("+errs.get(0).getCode()+") "+errs.get(0).getMessage();
+									requestId = resp.getRequestId();
+									errors = new ArrayList<AWSError>();
+									for (com.xerox.amazonws.typica.sns.jaxb.Error e : errs) {
+										errors.add(new AWSError(AWSError.ErrorType.getTypeFromString(e.getType()),
+																e.getCode(), e.getMessage()));
+									}
+								} catch (UnmarshalException ex6) {
+									errorMsg = "Couldn't parse error response!";
+									requestId = "???";
+									log.error(errorMsg, ex6);
+									log.info("response = "+errorResponse);
+								}
 							}
 						}
 					}
@@ -689,7 +715,8 @@ public class AWSQueryConnection extends AWSConnection {
      * Generate an rfc822 date for use in the Date HTTP header.
      */
     private static String httpDate(TimeZone serverTimeZone) {
-        final String DateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+        //final String DateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+        final String DateFormat = "yyyy-MM-dd'T'HH:mm:00'Z'";
         SimpleDateFormat format = new SimpleDateFormat( DateFormat, Locale.US );
         format.setTimeZone(serverTimeZone);
         return format.format( new Date() );
