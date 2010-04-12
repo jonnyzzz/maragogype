@@ -369,6 +369,7 @@ public class NotificationService {
 	 * Subscribe this account to a topic
 	 *
 	 * @param topicArn the ARN for the topic
+	 * @return subscription ARN
 	 * @throws SNSException wraps checked exceptions
 	 */
 	public Result<String> subscribe(String topicArn, String protocol, String endpoint) throws SNSException {
