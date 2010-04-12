@@ -341,7 +341,7 @@ public class AWSQueryConnection extends AWSConnection {
      * @param params map of request params
      * @param respType the class that represents the desired/expected return type
      */
-	protected <T> T makeRequest(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
+	public <T> T makeRequest(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
 		throws HttpException, IOException, JAXBException, AWSException {
 
 		// add auth params, and protocol specific headers

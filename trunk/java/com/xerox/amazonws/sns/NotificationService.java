@@ -64,9 +64,11 @@ import com.xerox.amazonws.typica.sns.jaxb.UnsubscribeResponse;
  * @author D. Kavanagh
  * @author developer@dotech.com
  */
-public class NotificationService extends AWSQueryConnection {
+public class NotificationService {
 
     private static Log logger = LogFactory.getLog(NotificationService.class);
+
+	private AWSQueryConnection connection;	// connection delegate
 
 	/**
 	 * Initializes the Simple Notification service with your AWS login information.
@@ -100,8 +102,7 @@ public class NotificationService extends AWSQueryConnection {
     public NotificationService(String awsAccessId, String awsSecretKey, boolean isSecure,
                              String server)
     {
-        this(awsAccessId, awsSecretKey, isSecure, server,
-             isSecure ? 443 : 80);
+        this(awsAccessId, awsSecretKey, isSecure, server, isSecure ? 443 : 80);
     }
 
     /**
@@ -116,16 +117,24 @@ public class NotificationService extends AWSQueryConnection {
     public NotificationService(String awsAccessId, String awsSecretKey, boolean isSecure,
                              String server, int port)
     {
-		super(awsAccessId, awsSecretKey, isSecure, server, port);
-		setVersionHeader(this);
+		connection = new AWSQueryConnection(awsAccessId, awsSecretKey, isSecure, server, port);
+		setVersionHeader(connection);
     }
 
 	/**
-	 * Activates a desktop product.
+	 * Returns connection object, so connection params can be tweaked
+	 */
+	public AWSQueryConnection getConnectionDelegate() {
+		return connection;
+	}
+
+	/**
+	 * Adds to the topic's access control policy.
 	 *
-	 * @param activationKey key obtained from the customer
-	 * @param productToken token for your product
-	 * @return the product info
+	 * @param topicArn the ARN for the topic
+	 * @param label the unique identifier for the new policy statement
+	 * @param accountIds users being given access
+	 * @param actionNames actions you are allowing
 	 * @throws SNSException wraps checked exceptions
 	 */
 	public void addPermission(String topicArn, String label, List<String> accountIds, List<String> actionNames) throws SNSException {
@@ -144,11 +153,12 @@ public class NotificationService extends AWSQueryConnection {
 	}
 
 	/**
-	 * Activates a hosted product.
+	 * Verifies an endpoint intends to receive messages
 	 *
-	 * @param activationKey key obtained from the customer
-	 * @param productToken token for your product
-	 * @return the product info
+	 * @param topicArn the ARN for the topic
+	 * @param token subscription token
+	 * @param authenticateOnUnsubscribe requires authenticated unsubscribe from the topic
+	 * @return the subscription ARN
 	 * @throws SNSException wraps checked exceptions
 	 */
 	public Result<String> confirmSubscription(String topicArn, String token, boolean authenticateOnUnsubscribe) throws SNSException {
@@ -166,10 +176,10 @@ public class NotificationService extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets list of active subscriptions by persistent identifier
+	 * Creates a topic
 	 *
-	 * @param persistentIdentifier customers's PID
-	 * @return true if product is subscribed
+	 * @param name name of the new topic
+	 * @return the topic ARN
 	 * @throws SNSException wraps checked exceptions
 	 */
 	public Result<String> createTopic(String name) throws SNSException {
@@ -184,10 +194,9 @@ public class NotificationService extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets list of active subscriptions by persistent identifier
+	 * Deletes a topic
 	 *
-	 * @param persistentIdentifier customers's PID
-	 * @return true if product is subscribed
+	 * @param topicArn the ARN for the topic
 	 * @throws SNSException wraps checked exceptions
 	 */
 	public void deleteTopic(String topicArn) throws SNSException {
@@ -198,11 +207,10 @@ public class NotificationService extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets the most up-to-date version of the user token.
+	 * Gets attributes for the topic
 	 *
-	 * @param userToken the user token
-	 * @param additionalTokens optional token (see dev guide), null if not used
-	 * @return the list of product codes 
+	 * @param topicArn the ARN for the topic
+	 * @return a map of attributes
 	 * @throws SNSException wraps checked exceptions
 	 */
 	public Map<String, String> getTopicAttributes(String topicArn) throws SNSException {
@@ -221,11 +229,10 @@ public class NotificationService extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets the most up-to-date version of the user token.
+	 * Lists the subscriptions
 	 *
-	 * @param userToken the user token
-	 * @param additionalTokens optional token (see dev guide), null if not used
-	 * @return the list of product codes 
+	 * @param nextToken the user token
+	 * @return the list of subscriptions 
 	 * @throws SNSException wraps checked exceptions
 	 */
 	public ListResult<SubscriptionInfo> listSubscriptions(String nextToken) throws SNSException {
@@ -249,11 +256,10 @@ public class NotificationService extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets the most up-to-date version of the user token.
+	 * Lists subscriptions for a topic
 	 *
-	 * @param userToken the user token
-	 * @param additionalTokens optional token (see dev guide), null if not used
-	 * @return the list of product codes 
+	 * @param nextToken the user token
+	 * @return the list of subscriptions 
 	 * @throws SNSException wraps checked exceptions
 	 */
 	public ListResult<SubscriptionInfo> listSubscriptionsByTopic(String topicArn, String nextToken) throws SNSException {
@@ -278,11 +284,10 @@ public class NotificationService extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets the most up-to-date version of the user token.
+	 * Lists topics for this account
 	 *
-	 * @param userToken the user token
-	 * @param additionalTokens optional token (see dev guide), null if not used
-	 * @return the list of product codes 
+	 * @param nextToken the user token
+	 * @return the list of topics
 	 * @throws SNSException wraps checked exceptions
 	 */
 	public ListResult<String> listTopics(String nextToken) throws SNSException {
@@ -305,9 +310,11 @@ public class NotificationService extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets list of active subscriptions by persistent identifier
+	 * Publishes a message to a topic's subscribed endpoints
 	 *
-	 * @param persistentIdentifier customers's PID
+	 * @param topicArn the ARN for the topic
+	 * @param message the message to be sent
+	 * @param subject the optional subject for the message
 	 * @return true if product is subscribed
 	 * @throws SNSException wraps checked exceptions
 	 */
@@ -327,10 +334,10 @@ public class NotificationService extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets list of active subscriptions by persistent identifier
+	 * Removes permissions from a topic
 	 *
-	 * @param persistentIdentifier customers's PID
-	 * @return true if product is subscribed
+	 * @param topicArn the ARN for the topic
+	 * @param label the label for the permission statement
 	 * @throws SNSException wraps checked exceptions
 	 */
 	public void removePermission(String topicArn, String label) throws SNSException {
@@ -342,10 +349,11 @@ public class NotificationService extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets list of active subscriptions by persistent identifier
+	 * Set a topic attribute.
 	 *
-	 * @param persistentIdentifier customers's PID
-	 * @return true if product is subscribed
+	 * @param topicArn the ARN for the topic
+	 * @param name name of the attribute
+	 * @param value value of the attribute
 	 * @throws SNSException wraps checked exceptions
 	 */
 	public void setTopicAttributes(String topicArn, String name, String value) throws SNSException {
@@ -358,10 +366,9 @@ public class NotificationService extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets list of active subscriptions by persistent identifier
+	 * Subscribe this account to a topic
 	 *
-	 * @param persistentIdentifier customers's PID
-	 * @return true if product is subscribed
+	 * @param topicArn the ARN for the topic
 	 * @throws SNSException wraps checked exceptions
 	 */
 	public Result<String> subscribe(String topicArn, String protocol, String endpoint) throws SNSException {
@@ -378,10 +385,9 @@ public class NotificationService extends AWSQueryConnection {
 	}
 
 	/**
-	 * Gets list of active subscriptions by persistent identifier
+	 * Unsubscribe this account from a topic
 	 *
-	 * @param persistentIdentifier customers's PID
-	 * @return true if product is subscribed
+	 * @param topicArn the ARN for the topic
 	 * @throws SNSException wraps checked exceptions
 	 */
 	public void unsubscribe(String subscriptionArn) throws SNSException {
@@ -394,7 +400,7 @@ public class NotificationService extends AWSQueryConnection {
 	protected <T> T makeRequestInt(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
 		throws SNSException {
 		try {
-			return makeRequest(method, action, params, respType);
+			return connection.makeRequest(method, action, params, respType);
 		} catch (AWSException ex) {
 			throw new SNSException(ex);
 		} catch (JAXBException ex) {
