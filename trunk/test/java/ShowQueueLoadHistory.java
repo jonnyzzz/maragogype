@@ -2,9 +2,9 @@
 import java.util.ArrayList;
 import java.util.Properties;
 
-import com.xerox.amazonws.sqs.MessageQueue;
-import com.xerox.amazonws.sqs.QueueService;
-import com.xerox.amazonws.sqs.SQSException;
+import com.xerox.amazonws.sqs2.MessageQueue;
+import com.xerox.amazonws.sqs2.QueueService;
+import com.xerox.amazonws.sqs2.SQSException;
 
 // measures load average on queues at 1, 5 and 15 minutes
 public class ShowQueueLoadHistory {

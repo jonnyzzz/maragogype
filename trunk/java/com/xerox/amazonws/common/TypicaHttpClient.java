@@ -84,7 +84,6 @@ public class TypicaHttpClient extends DefaultHttpClient {
 						}
 					}
 				}
-				System.err.println("target host = "+targethost.getHostName());
 				request.addHeader(HTTP.TARGET_HOST, targethost.getHostName());
 			}
 		}

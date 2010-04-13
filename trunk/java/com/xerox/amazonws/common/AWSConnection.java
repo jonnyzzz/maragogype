@@ -87,27 +87,27 @@ public abstract class AWSConnection {
 		}
 	}
 
-	protected String getAwsAccessKeyId() {
+	public String getAwsAccessKeyId() {
 		return this.awsAccessId;
 	}
 
-	protected String getSecretAccessKey() {
+	public String getSecretAccessKey() {
 		return this.awsSecretKey;
 	}
 
-	protected boolean isSecure() {
+	public boolean isSecure() {
 		return this.isSecure;
 	}
 
-	protected String getServer() {
+	public String getServer() {
 		return this.server;
 	}
 
-	protected void setServer(String server) {
+	public void setServer(String server) {
 		this.server = server;
 	}
 
-	protected int getPort() {
+	public int getPort() {
 		return this.port;
 	}
 
