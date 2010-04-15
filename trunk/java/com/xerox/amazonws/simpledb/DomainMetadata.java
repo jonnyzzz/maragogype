@@ -69,4 +69,13 @@ public class DomainMetadata {
 		return timestamp;
 	}
 
+	public String toString() {
+		return "DomainMetadata[itemCount:"+itemCount+
+				",attrNameCount:"+attributeNameCount+
+				",attrValueCount:"+attributeValueCount+
+				",itemNameSize:"+itemNamesSizeBytes+
+				",attrNameSize:"+attributeNamesSizeBytes+
+				",attrValueSize:"+attributeValuesSizeBytes+
+				",timestamp:"+timestamp.toString()+"]";
+	}
 }

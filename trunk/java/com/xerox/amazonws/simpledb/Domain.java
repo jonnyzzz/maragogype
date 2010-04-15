@@ -356,6 +356,18 @@ public class Domain {
 	}
 
 	/**
+	 * This method returns an item object, which exists locally only.
+	 * It must be persisted with addItem, batchPutAttributes or replaceAttributes
+	 *
+	 * @param identifier the name of the item to be deleted
+	 * @return item object
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public Item createItem(String identifier) {
+		return new ItemVO(identifier);
+	}
+
+	/**
 	 * Returns an named item.
 	 *
 	 * @param identifier the name of the item to be deleted
