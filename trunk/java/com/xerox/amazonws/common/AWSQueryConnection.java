@@ -87,10 +87,10 @@ import com.xerox.amazonws.typica.sqs2.jaxb.ErrorResponse;
  */
 public class AWSQueryConnection extends AWSConnection {
 	private static final Log log = LogFactory.getLog(AWSQueryConnection.class);
+	private static String userAgent = "typica/";
 
 	// this is the number of automatic retries
 	private int maxRetries = 5;
-	private String userAgent = "typica/";
 	private HttpClient hc = null;
 	private int maxConnections = 100;
 	private String proxyHost = null;
@@ -102,6 +102,22 @@ public class AWSQueryConnection extends AWSConnection {
 	private int soTimeout = 0;
 	private int connectionTimeout = 0;
 	private TimeZone serverTimeZone = TimeZone.getTimeZone("GMT");
+
+	static {
+		String version = "?";
+		try {
+			Properties props = new Properties();
+			InputStream verStream = ClassLoader.getSystemResourceAsStream("version.properties");
+			try {
+				props.load(verStream);
+			} finally {
+				verStream.close();
+
+			}
+			version = props.getProperty("version");
+		} catch (Exception ex) { }
+		userAgent = userAgent + version + " ("+ System.getProperty("os.arch") + "; " + System.getProperty("os.name") + ")";
+	}
 
     /**
 	 * Initializes the queue service with your AWS login information.
@@ -115,19 +131,6 @@ public class AWSQueryConnection extends AWSConnection {
     public AWSQueryConnection(String awsAccessId, String awsSecretKey, boolean isSecure,
                              String server, int port) {
 		super(awsAccessId, awsSecretKey, isSecure, server, port);
-		String version = "?";
-		try {
-			Properties props = new Properties();
-			InputStream verStream = this.getClass().getClassLoader().getResourceAsStream("version.properties");
-			try {
-				props.load(verStream);
-			} finally {
-				close(verStream);
-
-			}
-			version = props.getProperty("version");
-		} catch (Exception ex) { }
-		userAgent = userAgent + version + " ("+ System.getProperty("os.arch") + "; " + System.getProperty("os.name") + ")";
     }
 
 	/**
@@ -504,7 +507,9 @@ public class AWSQueryConnection extends AWSConnection {
 					throw new HttpException("Number of retries exceeded : "+action, error);
 				}
 				doRetry = false;
-				try { Thread.sleep((int)Math.pow(2.0, retries)*1000); } catch (InterruptedException ex) {}
+				try {
+					Thread.sleep((long)(Math.random() * (Math.pow(4, (retries-1))*100L)));
+				} catch (InterruptedException ex) {}
 			}
 		} while (!done);
 		return (T)response;

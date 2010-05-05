@@ -27,6 +27,12 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 /**
  * This class implements some helpful methods to marshal and unmarshal xml.
@@ -36,6 +42,35 @@ import javax.xml.bind.Unmarshaller;
  */
 public class JAXBuddy {
 	public final static Hashtable<String, JAXBContext> contextCache = new Hashtable<String, JAXBContext>();
+
+	private static final DocumentBuilderFactory domFactory =
+	    DocumentBuilderFactory.newInstance();
+	
+	private static ThreadLocal<DocumentBuilder> builder = null;
+	
+	public static DocumentBuilder createDocumentBuilder() throws Exception
+	{
+		return domFactory.newDocumentBuilder() ;
+	}
+	
+	/** Initialize DocumentBuilder **/
+	static {
+		builder = new ThreadLocal<DocumentBuilder>() {
+			@Override
+			protected synchronized DocumentBuilder initialValue() {
+				DocumentBuilder b = null;
+				try {
+					domFactory.setNamespaceAware(true);
+					b= createDocumentBuilder();
+				} catch(JAXBException e) {
+					throw new ExceptionInInitializerError(e);
+				} catch (Exception e) {						
+					e.printStackTrace();
+				}
+				return b;
+			}
+		};
+	}
 
 	/**
 	 * A convenience method to turn an object into a stream of XML.
@@ -75,9 +110,16 @@ public class JAXBuddy {
 	 * @param is the stream to read the XMl from 
 	 * @return an object representing the data from the stream
 	 */
-    public static <T> T deserializeXMLStream(Class<T> c, InputStream is) throws JAXBException {
+    public static <T> T deserializeXMLStream(Class<T> c, InputStream is)
+			throws JAXBException, IOException, SAXException {
         Unmarshaller u = getUnmarshaller(c);
-        T result = c.cast(u.unmarshal(is));
+        //T result = c.cast(u.unmarshal(is));
+		Document doc = builder.get().parse(is);
+		if (doc == null) {
+			throw new IOException("XML parser returned no document");
+		}
+		Node root = doc.getDocumentElement();
+		T result = c.cast(u.unmarshal(doc));         
         return result;
     }
 
