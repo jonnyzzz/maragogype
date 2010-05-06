@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import javax.xml.bind.JAXBException;
+import org.xml.sax.SAXException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -202,6 +203,8 @@ public class QueueService extends AWSQueryConnection {
 		} catch (AWSException ex) {
 			throw new SQSException(ex);
 		} catch (JAXBException ex) {
+			throw new SQSException("Problem parsing returned message.", ex);
+		} catch (SAXException ex) {
 			throw new SQSException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
 			throw new SQSException(ex.getMessage(), ex);

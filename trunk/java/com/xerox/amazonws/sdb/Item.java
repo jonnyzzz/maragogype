@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBException;
+import org.xml.sax.SAXException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
@@ -317,6 +318,8 @@ public class Item extends AWSQueryConnection {
 		} catch (AWSException ex) {
 			throw new SDBException(ex);
 		} catch (JAXBException ex) {
+			throw new SDBException("Problem parsing returned message.", ex);
+		} catch (SAXException ex) {
 			throw new SDBException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
 			throw new SDBException(ex.getMessage(), ex);

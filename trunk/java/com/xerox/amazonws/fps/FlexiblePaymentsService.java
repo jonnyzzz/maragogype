@@ -13,6 +13,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.JAXBException;
+import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
@@ -2291,6 +2292,8 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
 		} catch (AWSException ex) {
 			throw new FPSException(ex);
 		} catch (JAXBException ex) {
+			throw new FPSException("Problem parsing returned message.", ex);
+		} catch (SAXException ex) {
 			throw new FPSException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
 			throw new FPSException(ex.getMessage(), ex);

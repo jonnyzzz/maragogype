@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBException;
+import org.xml.sax.SAXException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -405,6 +406,8 @@ public class NotificationService {
 		} catch (AWSException ex) {
 			throw new SNSException(ex);
 		} catch (JAXBException ex) {
+			throw new SNSException("Problem parsing returned message.", ex);
+		} catch (SAXException ex) {
 			throw new SNSException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
 			throw new SNSException(ex.getMessage(), ex);

@@ -41,6 +41,7 @@ import java.util.TimeZone;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
+import org.xml.sax.SAXException;
 
 import org.apache.http.message.BasicHeader;
 import org.apache.http.params.BasicHttpParams;
@@ -345,7 +346,7 @@ public class AWSQueryConnection extends AWSConnection {
      * @param respType the class that represents the desired/expected return type
      */
 	public <T> T makeRequest(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
-		throws HttpException, IOException, JAXBException, AWSException {
+		throws HttpException, IOException, JAXBException, AWSException, SAXException {
 
 		// add auth params, and protocol specific headers
         Map<String, String> qParams;
@@ -597,7 +598,7 @@ public class AWSQueryConnection extends AWSConnection {
 	/**
 	 * This method creates a detail packed exception to pass up
 	 */
-	private AWSException createException(String errorResponse, String msgPrefix) throws JAXBException {
+	private AWSException createException(String errorResponse, String msgPrefix) throws IOException, JAXBException, SAXException {
 		String errorMsg;
 		String requestId;
 		List<AWSError> errors = null;

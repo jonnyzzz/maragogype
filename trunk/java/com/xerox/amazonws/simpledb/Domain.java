@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.xml.bind.JAXBException;
+import org.xml.sax.SAXException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
@@ -497,6 +498,8 @@ public class Domain {
 		} catch (AWSException ex) {
 			throw new SDBException(ex);
 		} catch (JAXBException ex) {
+			throw new SDBException("Problem parsing returned message.", ex);
+		} catch (SAXException ex) {
 			throw new SDBException("Problem parsing returned message.", ex);
 		} catch (HttpException ex) {
 			throw new SDBException(ex.getMessage(), ex);

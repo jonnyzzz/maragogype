@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBException;
+import org.xml.sax.SAXException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpException;
@@ -521,6 +522,8 @@ public class AutoScaling extends AWSQueryConnection {
 		} catch (AWSException ex) {
 			throw new AutoScalingException(ex);
 		} catch (JAXBException ex) {
+			throw new AutoScalingException("Problem parsing returned message.", ex);
+		} catch (SAXException ex) {
 			throw new AutoScalingException("Problem parsing returned message.", ex);
 		} catch (MalformedURLException ex) {
 			throw new AutoScalingException(ex.getMessage(), ex);
