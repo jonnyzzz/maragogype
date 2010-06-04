@@ -328,7 +328,7 @@ public class LaunchConfiguration {
 
         byte[] userData = getUserData();
         if (userData != null && userData.length > 0) {
-            params.put(prefix + "LaunchSpecification.UserData", new String(Base64.encodeBase64(userData)));
+            params.put(prefix + "UserData", new String(Base64.encodeBase64(userData)));
         }
         params.put(prefix + "AddressingType", isPublicAddressing()?"public":"private");
         String keyName = getKeyName();
@@ -338,7 +338,7 @@ public class LaunchConfiguration {
 
         if (getSecurityGroup() != null) {
             for(int i = 0; i < getSecurityGroup().size(); i++) {
-                params.put(prefix + "LaunchSpecification.SecurityGroup." + (i + 1), getSecurityGroup().get(i));
+                params.put(prefix + "SecurityGroup." + (i + 1), getSecurityGroup().get(i));
             }
         }
         if (getAdditionalInfo() != null && !getAdditionalInfo().trim().equals("")) {
