@@ -36,7 +36,6 @@ public class SpotPriceHistoryItem implements Comparable<SpotPriceHistoryItem> {
 		return productDescription;
 	}
 
-	@Override
 	public int compareTo(SpotPriceHistoryItem o) {
 		return timestamp.compareTo(o.timestamp);
 	}
