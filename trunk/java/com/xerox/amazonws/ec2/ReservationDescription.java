@@ -230,7 +230,7 @@ public class ReservationDescription {
 			this.kernelId = rsp_item.getKernelId();
 			this.ramdiskId = rsp_item.getRamdiskId();
 			this.platform = rsp_item.getPlatform();
-			this.monitoring = rsp_item.getMonitoring().getState().equals("enabled");
+			this.monitoring = rsp_item.getMonitoring().getState().contains("enabled");
 			this.subnetId = rsp_item.getSubnetId();
 			this.privateIpAddress = rsp_item.getPrivateIpAddress();
 			this.ipAddress = rsp_item.getIpAddress();
