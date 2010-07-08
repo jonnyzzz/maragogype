@@ -109,7 +109,7 @@ public class Domain extends AWSQueryConnection {
 	 */
 	public Item getItem(String identifier) throws SDBException {
 		Item ret = new Item(identifier, domainName, getAwsAccessKeyId(), getSecretAccessKey(),
-										isSecure(), getServer());
+										isSecure(), getPort(), getServer());
 		ret.setSignatureVersion(getSignatureVersion());
 		ret.setHttpClient(getHttpClient());
 		return ret;

@@ -57,9 +57,9 @@ public class Item extends AWSQueryConnection {
 	private String identifier;
 
     protected Item(String identifier, String domainName, String awsAccessId,
-							String awsSecretKey, boolean isSecure,
+							String awsSecretKey, boolean isSecure, int port,
 							String server) throws SDBException {
-        super(awsAccessId, awsSecretKey, isSecure, server, isSecure ? 443 : 80);
+        super(awsAccessId, awsSecretKey, isSecure, server, port);
 		this.domainName = domainName;
 		this.identifier = identifier;
 		SimpleDB.setVersionHeader(this);

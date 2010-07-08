@@ -71,9 +71,9 @@ public class MessageQueue extends AWSQueryConnection {
 	private boolean enableEncoding = true;
 
     protected MessageQueue(String queueUrl, String awsAccessId,
-							String awsSecretKey, boolean isSecure,
+							String awsSecretKey, boolean isSecure, int port,
 							String server) throws SQSException {
-        super(awsAccessId, awsSecretKey, isSecure, server, isSecure ? 443 : 80);
+        super(awsAccessId, awsSecretKey, isSecure, server, port);
 		if (queueUrl.startsWith("http")) {
 			queueId = queueUrl.substring(queueUrl.indexOf("//")+2);
 		}
@@ -460,11 +460,11 @@ public class MessageQueue extends AWSQueryConnection {
 	}
 
 	public static List<MessageQueue> createList(String [] queueUrls, String awsAccessId,
-								String awsSecretKey, boolean isSecure, String server, HttpClient hc)
+								String awsSecretKey, boolean isSecure, int port, String server, HttpClient hc)
 			throws SQSException {
 		ArrayList<MessageQueue> ret = new ArrayList<MessageQueue>();
 		for (int i=0; i<queueUrls.length; i++) {
-			MessageQueue mq = new MessageQueue(queueUrls[i], awsAccessId, awsSecretKey, isSecure, server);
+			MessageQueue mq = new MessageQueue(queueUrls[i], awsAccessId, awsSecretKey, isSecure, port, server);
 			mq.setHttpClient(hc);
 			ret.add(mq);
 		}

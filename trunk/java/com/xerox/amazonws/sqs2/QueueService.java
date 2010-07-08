@@ -143,7 +143,7 @@ public class QueueService extends AWSQueryConnection {
 					makeRequestInt(method, "CreateQueue", params, CreateQueueResponse.class);
 			MessageQueue ret = new MessageQueue(response.getCreateQueueResult().getQueueUrl(),
 								getAwsAccessKeyId(), getSecretAccessKey(),
-								isSecure(), getServer());
+								isSecure(), getPort(), getServer());
 			ret.setHttpClient(getHttpClient());
 			return ret;
 		}
@@ -163,7 +163,7 @@ public class QueueService extends AWSQueryConnection {
 			throw new IllegalArgumentException("Queue name must be more fully specified or use getOrCreateMessageQueue().");
 		}
 		MessageQueue ret = new MessageQueue(queueName, getAwsAccessKeyId(), getSecretAccessKey(),
-									isSecure(), getServer());
+									isSecure(), getPort(), getServer());
 		ret.setHttpClient(getHttpClient());
 		return ret;
     }
@@ -192,7 +192,7 @@ public class QueueService extends AWSQueryConnection {
 		else {
 			return MessageQueue.createList(urls.toArray(new String[urls.size()]),
 							getAwsAccessKeyId(), getSecretAccessKey(),
-							isSecure(), getServer(), getHttpClient());
+							isSecure(), getPort(), getServer(), getHttpClient());
 		}
     }
 
