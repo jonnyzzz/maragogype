@@ -1540,7 +1540,9 @@ public class Jec2 extends AWSQueryConnection {
 		if (size != null && !size.equals("")) {
 			params.put("Size", size);
 		}
-		params.put("SnapshotId", (snapshotId==null)?"":snapshotId);
+		if (snapshotId != null && !snapshotId.equals("")) {
+			params.put("SnapshotId", snapshotId);
+		}
 		params.put("AvailabilityZone", zoneName);
 		HttpGet method = new HttpGet();
 		CreateVolumeResponse response =
