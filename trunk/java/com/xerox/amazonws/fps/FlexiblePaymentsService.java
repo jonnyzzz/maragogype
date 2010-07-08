@@ -143,16 +143,6 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         this.descriptorPolicy = descriptorPolicy;
         this.tempDeclinePolicy = tempDeclinePolicy;
         setVersionHeader(this);
-        setSignatureVersion(1);
-    }
-
-    /**
-     * This method returns the signature version
-     *
-     * @return the version
-     */
-    public int getSignatureVersion() {
-        return 1;
     }
 
     /**
