@@ -26,6 +26,7 @@ import com.xerox.amazonws.typica.jaxb.EbsInstanceBlockDeviceMappingResponseType;
 import com.xerox.amazonws.typica.jaxb.GroupItemType;
 import com.xerox.amazonws.typica.jaxb.GroupSetType;
 import com.xerox.amazonws.typica.jaxb.InstanceBlockDeviceMappingItemType;
+import com.xerox.amazonws.typica.jaxb.InstanceBlockDeviceMappingResponseType;
 import com.xerox.amazonws.typica.jaxb.InstanceBlockDeviceMappingResponseItemType;
 import com.xerox.amazonws.typica.jaxb.InstanceStateType;
 import com.xerox.amazonws.typica.jaxb.ProductCodesSetItemType;
@@ -237,13 +238,16 @@ public class ReservationDescription {
 			this.rootDeviceType = rsp_item.getRootDeviceType();
 			this.rootDeviceName = rsp_item.getRootDeviceName();
 			this.blockDeviceMapping = new ArrayList<InstanceBlockDeviceMapping>();
-			List<InstanceBlockDeviceMappingResponseItemType> bdmSet = rsp_item.getBlockDeviceMapping().getItems();
-			if (bdmSet != null) {
-				for (InstanceBlockDeviceMappingResponseItemType mapping : bdmSet) {
-					EbsInstanceBlockDeviceMappingResponseType ebs = mapping.getEbs();
-					this.blockDeviceMapping.add(new InstanceBlockDeviceMapping(mapping.getDeviceName(), ebs.getVolumeId(),
-									ebs.getStatus(), ebs.getAttachTime().toGregorianCalendar(),
-									ebs.isDeleteOnTermination()));
+			InstanceBlockDeviceMappingResponseType bdmType = rsp_item.getBlockDeviceMapping();
+			if (bdmType != null) {
+				List<InstanceBlockDeviceMappingResponseItemType> bdmSet = bdmType.getItems();
+				if (bdmSet != null) {
+					for (InstanceBlockDeviceMappingResponseItemType mapping : bdmSet) {
+						EbsInstanceBlockDeviceMappingResponseType ebs = mapping.getEbs();
+						this.blockDeviceMapping.add(new InstanceBlockDeviceMapping(mapping.getDeviceName(), ebs.getVolumeId(),
+										ebs.getStatus(), ebs.getAttachTime().toGregorianCalendar(),
+										ebs.isDeleteOnTermination()));
+					}
 				}
 			}
 			this.instanceLifecycle = rsp_item.getInstanceLifecycle();
