@@ -96,7 +96,7 @@ public class ReservationDescription {
 			boolean monitoring, String subnetId, String privateIpAddress, String ipAddress,
 			String architecture, String rootDeviceType, String rootDeviceName,
 			List<InstanceBlockDeviceMapping> blockDeviceMapping, String instanceLifecycle,
-			String spotInstanceRequestId) {
+			String spotInstanceRequestId, String vpcId) {
 		Instance instance = new Instance(imageId, instanceId, privateDnsName,
 				dnsName, state.getName(), ""+state.getCode(), reason, 
 				keyName, launchIndex, productCodes,
@@ -104,7 +104,7 @@ public class ReservationDescription {
 				availabilityZone, kernelId, ramdiskId, platform,
 				monitoring, subnetId, privateIpAddress, ipAddress,
 				architecture, rootDeviceType, rootDeviceName,
-				blockDeviceMapping, instanceLifecycle, spotInstanceRequestId);
+				blockDeviceMapping, instanceLifecycle, spotInstanceRequestId, vpcId);
 		instances.add(instance);
 		return instance;
 	}
@@ -158,6 +158,7 @@ public class ReservationDescription {
 		private String stateCode;
 		private boolean monitoring;
 		private String subnetId;
+		private String vpcId;
 		private String privateIpAddress;
 		private String ipAddress;
 		private String architecture;
@@ -175,7 +176,7 @@ public class ReservationDescription {
 				boolean monitoring, String subnetId, String privateIpAddress, String ipAddress,
 				String architecture, String rootDeviceType, String rootDeviceName,
 				List<InstanceBlockDeviceMapping> blockDeviceMapping, String instanceLifecycle,
-				String spotInstanceRequestId) {
+				String spotInstanceRequestId, String vpcId) {
 			this.imageId = imageId;
 			this.instanceId = instanceId;
 			this.privateDnsName = privateDnsName;
@@ -194,6 +195,7 @@ public class ReservationDescription {
 			this.platform = platform;
 			this.monitoring = monitoring;
 			this.subnetId = subnetId;
+			this.vpcId = vpcId;
 			this.privateIpAddress = privateIpAddress;
 			this.ipAddress = ipAddress;
 			this.architecture = architecture;
@@ -232,6 +234,7 @@ public class ReservationDescription {
 			this.platform = rsp_item.getPlatform();
 			this.monitoring = rsp_item.getMonitoring().getState().contains("enabled");
 			this.subnetId = rsp_item.getSubnetId();
+			this.vpcId = rsp_item.getVpcId();
 			this.privateIpAddress = rsp_item.getPrivateIpAddress();
 			this.ipAddress = rsp_item.getIpAddress();
 			this.architecture = rsp_item.getArchitecture();
@@ -340,6 +343,10 @@ public class ReservationDescription {
 
 		public String getSubnetId() {
 			return subnetId;
+		}
+
+		public String getVpcId() {
+			return vpcId;
 		}
 
 		public String getPrivateIpAddress() {

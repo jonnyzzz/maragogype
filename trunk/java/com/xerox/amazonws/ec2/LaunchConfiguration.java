@@ -70,6 +70,9 @@ public class LaunchConfiguration {
 
 	private String additionalInfo;
 
+	/** The subnet to be used with Amazon VPC */
+	private String subnetId;
+
 	/**
 	 * Launches the given AMI one time. The min and max values are '1'.
 	 *
@@ -311,6 +314,20 @@ public class LaunchConfiguration {
 	}
 
 	/**
+	 * @return the subnetId
+	 */
+	public String getSubnetId() {
+		return this.subnetId;
+	}
+
+	/**
+	 * @param subnetId the subnetId to set
+	 */
+	public void setSubnetId(String subnetId) {
+		this.subnetId = subnetId;
+	}
+
+	/**
 	 * For some eucaluptus clusters, need to set this false (=private)
 	 *
 	 * @param sets the public addressing mode (true by default)
@@ -379,6 +396,10 @@ public class LaunchConfiguration {
 		}
         if (isMonitoring()) {
             params.put(prefix + "Monitoring.Enabled", "true");
+        }
+        String subnetId = getSubnetId();
+        if (subnetId != null && !subnetId.trim().equals("")) {
+            params.put(prefix + "SubnetId", subnetId);
         }
     }
 }
