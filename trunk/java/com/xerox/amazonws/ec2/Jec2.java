@@ -1663,7 +1663,9 @@ public class Jec2 extends AWSQueryConnection {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("VolumeId", volumeId);
 		params.put("InstanceId", (instanceId==null)?"":instanceId);
-		params.put("Device", (device==null)?"":device);
+		if (device != null && !device.equals("")) {
+			params.put("Device", device);
+		}
 		params.put("Force", force?"true":"false");
 		HttpGet method = new HttpGet();
 		DetachVolumeResponse response =
