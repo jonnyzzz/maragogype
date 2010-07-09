@@ -65,7 +65,6 @@ import com.xerox.amazonws.typica.sqs2.jaxb.SetQueueAttributesResponse;
  */
 public class MessageQueue extends AWSQueryConnection {
     public static final int MAX_MESSAGES = 600;
-    public static final int MAX_MESSAGE_BODY_SIZE = 8192;
 
 	protected String queueId;
 	private boolean enableEncoding = true;
@@ -127,9 +126,6 @@ public class MessageQueue extends AWSQueryConnection {
     public String sendMessage(String msg) throws SQSException {
 		Map<String, String> params = new HashMap<String, String>();
 		String encodedMsg = enableEncoding?new String(Base64.encodeBase64(msg.getBytes())):msg;
-		if (encodedMsg.length() > MAX_MESSAGE_BODY_SIZE) {
-			throw new SQSException("Message is to large (encoding:"+enableEncoding+")");
-		}
 		params.put("MessageBody", encodedMsg);
 		HttpPost method = new HttpPost();
 		SendMessageResponse response =

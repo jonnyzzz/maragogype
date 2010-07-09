@@ -25,6 +25,8 @@ public enum QueueAttribute {
 	LAST_MODIFIED_TIMESTAMP ("LastModifiedTimestamp"),
 	VISIBILITY_TIMEOUT ("VisibilityTimeout"),
 	REQUEST_PAYER ("RequestPayer"),
+	MAXIUMUM_MESSAGE_SIZE ("MaximumMessageSize"),
+	MESSAGE_RETENTION_PERIOD ("MessageRetentionPeriod"),
 	POLICY ("POLICY");
 
 	private final String queryAttribute;
