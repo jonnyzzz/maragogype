@@ -704,13 +704,25 @@ public class AWSQueryConnection extends AWSConnection {
 				errors.add(new AWSError(AWSError.ErrorType.SENDER, "unknown", errorMsg));
 			}
 			else {
-				Response resp = JAXBuddy.deserializeXMLStream(Response.class, bais);
-				String errorCode = resp.getErrors().getError().getCode();
-				errorMsg = resp.getErrors().getError().getMessage();
-				requestId = resp.getRequestID();
-				if (errorCode != null && !errorCode.trim().equals("")) {
-					errors = new ArrayList<AWSError>();
-					errors.add(new AWSError(AWSError.ErrorType.SENDER, errorCode, errorMsg));
+				try {
+					Response resp = JAXBuddy.deserializeXMLStream(Response.class, bais);
+					String errorCode = resp.getErrors().getError().getCode();
+					errorMsg = resp.getErrors().getError().getMessage();
+					requestId = resp.getRequestID();
+					if (errorCode != null && !errorCode.trim().equals("")) {
+						errors = new ArrayList<AWSError>();
+						errors.add(new AWSError(AWSError.ErrorType.SENDER, errorCode, errorMsg));
+					}
+				} catch (SAXException ex) {
+					errorMsg = "Couldn't parse error response!";
+					requestId = "???";
+					log.error(errorMsg, ex);
+					log.info("response = "+errorResponse);
+				} catch (UnmarshalException ex2) {
+					errorMsg = "Couldn't parse error response!";
+					requestId = "???";
+					log.error(errorMsg, ex2);
+					log.info("response = "+errorResponse);
 				}
 			}
 		}
