@@ -1,5 +1,5 @@
-ypica 1.7
-07-May-2010
+ypica 1.7.1
+12-July-2010
 
 http://code.google.com/p/typica
 
@@ -17,6 +17,54 @@ In subversion, the test directory contains some java test files. Sample code is 
 ant test.main -Dclass=TestQueueService -Dargs=testQueue
 
 Change history for this release;
+------------------------------------------------------------------------
+r340 | dkavanagh | 2010-07-09 16:10:55 -0400 (Fri, 09 Jul 2010) | 2 lines
+
+better debug exception trapping for bad server responses
+------------------------------------------------------------------------
+r339 | dkavanagh | 2010-07-09 16:02:40 -0400 (Fri, 09 Jul 2010) | 2 lines
+
+support for new SQS attrs, and larger message size
+------------------------------------------------------------------------
+r338 | dkavanagh | 2010-07-09 15:55:34 -0400 (Fri, 09 Jul 2010) | 2 lines
+
+changes to support VPC
+------------------------------------------------------------------------
+r337 | dkavanagh | 2010-07-09 15:55:14 -0400 (Fri, 09 Jul 2010) | 2 lines
+
+allow device to be empty string on detachVolume call
+------------------------------------------------------------------------
+r336 | dkavanagh | 2010-07-08 18:44:11 -0400 (Thu, 08 Jul 2010) | 3 lines
+
+fixed volume create without snapshot id issue. Allows empty string as well as null now for snapid. fixes issue #92
+------------------------------------------------------------------------
+r335 | dkavanagh | 2010-07-08 17:02:57 -0400 (Thu, 08 Jul 2010) | 3 lines
+
+allow port num to be preserved in created objects. fixes issue #43
+------------------------------------------------------------------------
+r334 | dkavanagh | 2010-07-08 16:52:03 -0400 (Thu, 08 Jul 2010) | 4 lines
+
+no longer force signature version 1, defaults to version 2
+fixes issue #86
+------------------------------------------------------------------------
+r333 | dkavanagh | 2010-07-08 16:33:26 -0400 (Thu, 08 Jul 2010) | 2 lines
+
+properly parse enabled state for monitoring
+------------------------------------------------------------------------
+r332 | dkavanagh | 2010-07-08 11:45:37 -0400 (Thu, 08 Jul 2010) | 2 lines
+
+fixed describe instance for eucaluptys. XML returned doesn't strictly follow EC2s responses. fixes issue #95
+------------------------------------------------------------------------
+r331 | dkavanagh | 2010-06-04 10:36:52 -0400 (Fri, 04 Jun 2010) | 2 lines
+
+fix for issue #94 and #90
+------------------------------------------------------------------------
+r330 | dkavanagh | 2010-06-03 20:30:11 -0400 (Thu, 03 Jun 2010) | 2 lines
+
+removed @Override on method that breaks in Java 5
+------------------------------------------------------------------------
+
+Change history for the 1.7 release;
 ------------------------------------------------------------------------
 r327 | dkavanagh | 2010-05-06 07:36:48 -0400 (Thu, 06 May 2010) | 2 lines
 
