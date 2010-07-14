@@ -73,6 +73,12 @@ public class LaunchConfiguration {
 	/** The subnet to be used with Amazon VPC */
 	private String subnetId;
 
+	/** The private IP to be used with Amazon VPC */
+	private String privateIpAddress;
+
+	/** placement group for cluster compute instances */
+	private String groupName;
+
 	/**
 	 * Launches the given AMI one time. The min and max values are '1'.
 	 *
@@ -328,6 +334,34 @@ public class LaunchConfiguration {
 	}
 
 	/**
+	 * @return the privateIpAddress
+	 */
+	public String getPrivateIpAddress() {
+		return this.privateIpAddress;
+	}
+
+	/**
+	 * @param privateIpAddress the privateIpAddress to set
+	 */
+	public void setPrivateIpAddress(String privateIpAddress) {
+		this.privateIpAddress = privateIpAddress;
+	}
+
+	/**
+	 * @return the groupName used with cluster compute instances
+	 */
+	public String getGroupName() {
+		return this.groupName;
+	}
+
+	/**
+	 * @param groupName the groupName to set
+	 */
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
+	}
+
+	/**
 	 * For some eucaluptus clusters, need to set this false (=private)
 	 *
 	 * @param sets the public addressing mode (true by default)
@@ -400,6 +434,14 @@ public class LaunchConfiguration {
         String subnetId = getSubnetId();
         if (subnetId != null && !subnetId.trim().equals("")) {
             params.put(prefix + "SubnetId", subnetId);
+        }
+        String privateIpAddress = getPrivateIpAddress();
+        if (privateIpAddress != null && !privateIpAddress.trim().equals("")) {
+            params.put(prefix + "PrivateIpAddress", privateIpAddress);
+        }
+        String groupName = getGroupName();
+        if (groupName != null && !groupName.trim().equals("")) {
+            params.put(prefix + "GroupName", groupName);
         }
     }
 }

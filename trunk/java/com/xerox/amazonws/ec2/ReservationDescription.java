@@ -96,7 +96,7 @@ public class ReservationDescription {
 			boolean monitoring, String subnetId, String privateIpAddress, String ipAddress,
 			String architecture, String rootDeviceType, String rootDeviceName,
 			List<InstanceBlockDeviceMapping> blockDeviceMapping, String instanceLifecycle,
-			String spotInstanceRequestId, String vpcId) {
+			String spotInstanceRequestId, String vpcId, String virtualizationType) {
 		Instance instance = new Instance(imageId, instanceId, privateDnsName,
 				dnsName, state.getName(), ""+state.getCode(), reason, 
 				keyName, launchIndex, productCodes,
@@ -104,7 +104,7 @@ public class ReservationDescription {
 				availabilityZone, kernelId, ramdiskId, platform,
 				monitoring, subnetId, privateIpAddress, ipAddress,
 				architecture, rootDeviceType, rootDeviceName,
-				blockDeviceMapping, instanceLifecycle, spotInstanceRequestId, vpcId);
+				blockDeviceMapping, instanceLifecycle, spotInstanceRequestId, vpcId, virtualizationType);
 		instances.add(instance);
 		return instance;
 	}
@@ -167,6 +167,7 @@ public class ReservationDescription {
 		private List<InstanceBlockDeviceMapping> blockDeviceMapping;
 		private String instanceLifecycle;
 		private String spotInstanceRequestId;
+		private String virtualizationType;
 
 		public Instance(String imageId, String instanceId, String privateDnsName,
 				String dnsName, String stateName, String stateCode, String reason,
@@ -176,7 +177,7 @@ public class ReservationDescription {
 				boolean monitoring, String subnetId, String privateIpAddress, String ipAddress,
 				String architecture, String rootDeviceType, String rootDeviceName,
 				List<InstanceBlockDeviceMapping> blockDeviceMapping, String instanceLifecycle,
-				String spotInstanceRequestId, String vpcId) {
+				String spotInstanceRequestId, String vpcId, String virtualizationType) {
 			this.imageId = imageId;
 			this.instanceId = instanceId;
 			this.privateDnsName = privateDnsName;
@@ -204,6 +205,7 @@ public class ReservationDescription {
 			this.blockDeviceMapping = blockDeviceMapping;
 			this.instanceLifecycle = instanceLifecycle;
 			this.spotInstanceRequestId = spotInstanceRequestId;
+			this.virtualizationType = virtualizationType;
 		}
 
 		Instance(RunningInstancesItemType rsp_item) {
@@ -255,6 +257,7 @@ public class ReservationDescription {
 			}
 			this.instanceLifecycle = rsp_item.getInstanceLifecycle();
 			this.spotInstanceRequestId = rsp_item.getSpotInstanceRequestId();
+			this.virtualizationType = rsp_item.getVirtualizationType();
 		}
 
 		public String getImageId() {
@@ -379,6 +382,10 @@ public class ReservationDescription {
 
 		public String getSpotInstanceRequestId() {
 			return spotInstanceRequestId;
+		}
+
+		public String getVirtualizationType() {
+			return virtualizationType;
 		}
 
 		public String toString() {

@@ -45,13 +45,14 @@ public class ImageDescription {
 	private String rootDeviceType;
 	private String rootDeviceName;
 	private List<BlockDeviceMapping> blockDeviceMapping;
+	private String virtualizationType;
 
 	public ImageDescription(String id, String loc, String owner,
 			String state, Boolean isPublic, List<String> productCodes,
 			String architecture, String imageType, String kernelId, String ramdiskId,
 			String platform, String reason, String imageOwnerAlias, String name,
 			String description, String rootDeviceType, String rootDeviceName,
-			List<BlockDeviceMapping> blockDeviceMapping) {
+			List<BlockDeviceMapping> blockDeviceMapping, String virtualizationType) {
 		this.imageId = id;
 		this.imageLocation = loc;
 		this.imageOwnerId = owner;
@@ -70,6 +71,7 @@ public class ImageDescription {
 		this.rootDeviceType = rootDeviceType;
 		this.rootDeviceName = rootDeviceName;
 		this.blockDeviceMapping = blockDeviceMapping;
+		this.virtualizationType = virtualizationType;
 	}
 
 	public String getImageId() {
@@ -142,6 +144,10 @@ public class ImageDescription {
 
 	public List<BlockDeviceMapping> getBlockDeviceMapping() {
 		return blockDeviceMapping;
+	}
+
+	public String getVirtualizationType() {
+		return virtualizationType;
 	}
 
 	public String toString() {

@@ -28,7 +28,8 @@ public enum InstanceType {
 	XLARGE_HCPU ("c1.xlarge"),
 	XLARGE_HMEM ("m2.xlarge"),
 	XLARGE_DOUBLE_HMEM ("m2.2xlarge"),
-	XLARGE_QUAD_HMEM ("m2.4xlarge");
+	XLARGE_QUAD_HMEM ("m2.4xlarge"),
+	XLARGE_CLUSTER_COMPUTE ("cc1.4xlarge");
 
 	private final String typeId;
 

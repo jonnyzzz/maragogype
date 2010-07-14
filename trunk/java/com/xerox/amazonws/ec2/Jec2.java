@@ -56,6 +56,7 @@ import com.xerox.amazonws.typica.jaxb.BundleInstanceTaskType;
 import com.xerox.amazonws.typica.jaxb.CancelBundleTaskResponse;
 import com.xerox.amazonws.typica.jaxb.CancelSpotInstanceRequestsResponse;
 import com.xerox.amazonws.typica.jaxb.CancelSpotInstanceRequestsResponseSetItemType;
+import com.xerox.amazonws.typica.jaxb.CreatePlacementGroupResponse;
 import com.xerox.amazonws.typica.jaxb.CreateImageResponse;
 import com.xerox.amazonws.typica.jaxb.CreateKeyPairResponse;
 import com.xerox.amazonws.typica.jaxb.CreateSnapshotResponse;
@@ -64,6 +65,7 @@ import com.xerox.amazonws.typica.jaxb.CreateVolumeResponse;
 import com.xerox.amazonws.typica.jaxb.CreateVolumePermissionItemType;
 import com.xerox.amazonws.typica.jaxb.ConfirmProductInstanceResponse;
 import com.xerox.amazonws.typica.jaxb.CreateSecurityGroupResponse;
+import com.xerox.amazonws.typica.jaxb.DeletePlacementGroupResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteKeyPairResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteSecurityGroupResponse;
 import com.xerox.amazonws.typica.jaxb.DeleteSnapshotResponse;
@@ -81,6 +83,7 @@ import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseInfoType;
 import com.xerox.amazonws.typica.jaxb.DescribeImagesResponseItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeInstanceAttributeResponse;
+import com.xerox.amazonws.typica.jaxb.DescribePlacementGroupsResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesResponseSetItemType;
 import com.xerox.amazonws.typica.jaxb.DescribeReservedInstancesOfferingsResponse;
@@ -118,10 +121,11 @@ import com.xerox.amazonws.typica.jaxb.LaunchPermissionListType;
 import com.xerox.amazonws.typica.jaxb.ModifyImageAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.ModifyInstanceAttributeResponse;
 import com.xerox.amazonws.typica.jaxb.ModifySnapshotAttributeResponse;
-import com.xerox.amazonws.typica.jaxb.MonitorInstancesResponse;
+import com.xerox.amazonws.typica.jaxb.MonitorInstancesResponseType;
 import com.xerox.amazonws.typica.jaxb.MonitorInstancesResponseSetItemType;
 import com.xerox.amazonws.typica.jaxb.NullableAttributeValueType;
 import com.xerox.amazonws.typica.jaxb.ObjectFactory;
+import com.xerox.amazonws.typica.jaxb.PlacementGroupInfoType;
 import com.xerox.amazonws.typica.jaxb.ProductCodeListType;
 import com.xerox.amazonws.typica.jaxb.ProductCodeItemType;
 import com.xerox.amazonws.typica.jaxb.ProductCodesSetType;
@@ -149,7 +153,6 @@ import com.xerox.amazonws.typica.jaxb.SpotInstanceRequestSetItemType;
 import com.xerox.amazonws.typica.jaxb.StartInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.StopInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.TerminateInstancesResponse;
-import com.xerox.amazonws.typica.jaxb.UnmonitorInstancesResponse;
 import com.xerox.amazonws.typica.jaxb.UserIdGroupPairType;
 import com.xerox.amazonws.typica.jaxb.UserIdGroupPairSetType;
 
@@ -210,7 +213,7 @@ public class Jec2 extends AWSQueryConnection {
     {
 		super(awsAccessId, awsSecretKey, isSecure, server, port);
 		ArrayList<String> vals = new ArrayList<String>();
-		vals.add("2009-11-30");
+		vals.add("2010-06-15");
 		super.headers.put("Version", vals);
     }
 
@@ -469,7 +472,7 @@ public class Jec2 extends AWSQueryConnection {
 					item.getKernelId(), item.getRamdiskId(), item.getPlatform(),
 					reason, item.getImageOwnerAlias(),
 					item.getName(), item.getDescription(), item.getRootDeviceType(),
-					item.getRootDeviceName(), bdm));
+					item.getRootDeviceName(), bdm, item.getVirtualizationType()));
 		}
 		return result;
 	}
@@ -2109,8 +2112,8 @@ public class Jec2 extends AWSQueryConnection {
 			params.put("InstanceId."+(i+1), instanceIds.get(i));
 		}
 		HttpGet method = new HttpGet();
-		MonitorInstancesResponse response =
-				makeRequestInt(method, "MonitorInstances", params, MonitorInstancesResponse.class);
+		MonitorInstancesResponseType response =
+				makeRequestInt(method, "MonitorInstances", params, MonitorInstancesResponseType.class);
 		List<MonitoredInstanceInfo> ret = new ArrayList<MonitoredInstanceInfo>();
 		for (MonitorInstancesResponseSetItemType item : response.getInstancesSet().getItems()) {
 			ret.add(new MonitoredInstanceInfo(item.getInstanceId(),
@@ -2132,8 +2135,8 @@ public class Jec2 extends AWSQueryConnection {
 			params.put("InstanceId."+(i+1), instanceIds.get(i));
 		}
 		HttpGet method = new HttpGet();
-		UnmonitorInstancesResponse response =
-				makeRequestInt(method, "UnmonitorInstances", params, UnmonitorInstancesResponse.class);
+		MonitorInstancesResponseType response =
+				makeRequestInt(method, "UnmonitorInstances", params, MonitorInstancesResponseType.class);
 		List<MonitoredInstanceInfo> ret = new ArrayList<MonitoredInstanceInfo>();
 		for (MonitorInstancesResponseSetItemType item : response.getInstancesSet().getItems()) {
 			ret.add(new MonitoredInstanceInfo(item.getInstanceId(),
@@ -2283,6 +2286,69 @@ public class Jec2 extends AWSQueryConnection {
 		if (!response.isReturn()) {
 			throw new EC2Exception("Could not delete subscription. No reason given.");
 		}
+	}
+
+	/**
+	 * Creates a placement group to launch cluster compute instances into.
+	 *
+	 * @param groupName the name of the group you're creating
+	 * @param strategy placement strategy ("cluster")
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public void createPlacementGroup(String groupName, String strategy) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("GropuName", groupName);
+		params.put("Stategy", strategy);
+		HttpGet method = new HttpGet();
+		CreatePlacementGroupResponse response =
+				makeRequestInt(method, "CreatePlacementGroup", params, CreatePlacementGroupResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not create placement group. No reason given.");
+		}
+	}
+
+	/**
+	 * Deletes a placement group.
+	 *
+	 * @param groupName the name of the group you're creating
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public void deletePlacementGroup(String groupName) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("GropuName", groupName);
+		HttpGet method = new HttpGet();
+		DeletePlacementGroupResponse response =
+				makeRequestInt(method, "DeletePlacementGroup", params, DeletePlacementGroupResponse.class);
+		if (!response.isReturn()) {
+			throw new EC2Exception("Could not delete placement group. No reason given.");
+		}
+	}
+
+	/**
+	 * This method describes the placement groups.
+	 *
+	 * @param groupNames names of 1 or more groups to get information about, null for all groups
+	 * @return information about the groups
+	 * @throws EC2Exception wraps checked exceptions
+	 */
+	public List<PlacementGroupInfo> describePlacementGroups(List<String> groupNames) throws EC2Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		for (int i=0 ; i<groupNames.size(); i++) {
+			params.put("GroupName."+(i+1), groupNames.get(i));
+		}
+		HttpGet method = new HttpGet();
+        DescribePlacementGroupsResponse response =
+				makeRequestInt(method, "DescribePlacementGroups", params, DescribePlacementGroupsResponse.class);
+
+		List<PlacementGroupInfo> ret = new ArrayList<PlacementGroupInfo>();
+		List<PlacementGroupInfoType> items = response.getPlacementGroupSet().getItems();
+		if (items != null) {
+			for (PlacementGroupInfoType item : items) {
+				ret.add(new PlacementGroupInfo(response.getRequestId(), item.getGroupName(),
+									item.getStrategy(), item.getState()));
+			}
+		}
+		return ret;
 	}
 
 	protected <T> T makeRequestInt(HttpRequestBase method, String action, Map<String, String> params, Class<T> respType)
