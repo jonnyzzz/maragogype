@@ -18,6 +18,13 @@ ant test.main -Dclass=TestQueueService -Dargs=testQueue
 
 Change history for this release;
 ------------------------------------------------------------------------
+r343 | dkavanagh | 2010-07-14 13:15:41 -0400 (Wed, 14 Jul 2010) | 2 lines
+
+changes for latest EC2 API including cluster compute support
+------------------------------------------------------------------------
+
+Change history for the 1.7.1 release;
+------------------------------------------------------------------------
 r340 | dkavanagh | 2010-07-09 16:10:55 -0400 (Fri, 09 Jul 2010) | 2 lines
 
 better debug exception trapping for bad server responses
