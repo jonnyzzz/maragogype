@@ -82,11 +82,22 @@ public class TestSimpleDB {
 
 		dom.batchPutAttributes(items);
 
+		logger.info("items after batch put");
 		qr = dom.selectItems("select * from "+args[0], null);
 		iList = qr.getItems();
 		for (String id : iList.keySet()) {
 			logger.info("item : "+id);
 		}
+
+		dom.batchDeleteAttributes(items);
+
+		logger.info("items after batch delete");
+		qr = dom.selectItems("select * from "+args[0], null);
+		iList = qr.getItems();
+		for (String id : iList.keySet()) {
+			logger.info("item : "+id);
+		}
+
 
 /*		List<ItemAttribute> attrs = i.getAttributes();
 		logger.info("all");

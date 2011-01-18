@@ -15,6 +15,8 @@
     <property name="typica.generated" value="${typica.build}/generated" />
     <property name="typica.javadoc" value="${typica.build}/apidocs" />
     <property name="typica.dist" value="${typica}/dist" />
+    <property name="typica.bundle.symbolic" value="com.xerox.amazonws.typica"/>
+	<property name="typica.bundle.file" value="${typica.jar}/${typica.bundle.symbolic}-${rel.version}.0.jar" />
 
 	<path id="typica.compile.classpath">
           <fileset dir="${typica.lib}">
@@ -27,6 +29,10 @@
 			<fileset dir="${typica.lib}" includes="**/jaxb-*.jar"/>
 		</classpath>
 	</taskdef>
+
+	<taskdef name="bundle" 
+	    classname="net.luminis.build.plugin.bnd.BuildTask"
+	    classpath="${typica.lib}/net.luminis.build.plugin-0.2.0.jar" />	
 	
 	<target name="init">
 		<tstamp />
@@ -87,14 +93,14 @@
 		<copy toDir="${typica.classes}">
 			<fileset dir="xsd" includes="**/*"/>
 		</copy>
-		<javac srcdir="${typica.generated}" includes="**/*.java" destdir="${typica.classes}" debug="on" target="1.5">
+		<javac srcdir="${typica.generated}" includes="**/*.java" destdir="${typica.classes}" debug="on" target="1.5" includeantruntime="true">
 			<classpath refid="typica.compile.classpath" />
 		</javac>
 		<copy todir="${typica.classes}">
 			<fileset dir="${typica.generated}" includes="**/*.ser"/>
 			<fileset dir="${typica.generated}" includes="**/*.properties"/>
 		</copy>
-		<javac destdir="${typica.classes}" debug="on" target="1.5">
+		<javac destdir="${typica.classes}" debug="on" target="1.5" includeantruntime="true">
 			<src path="${typica.src}" />
 			<classpath refid="typica.compile.classpath" />
 			<!--
@@ -120,6 +126,21 @@
         <jar destfile="${typica.jar.file}" basedir="${typica.classes}" excludes="**/*.xml"/>
 	</target>
 
+	<target name="bundle" depends="jar">
+		<bundle 
+			classpath="${typica.jar.file}" 
+			target="${typica.bundle.file}"
+			includeResource="@${typica.jar.file}"
+			includeIncludeResourceHeader="no"
+			bundleSymbolicName="${typica.bundle.symbolic}"
+			bundleVersion="${rel.version}.0"
+			bundleVendor="Typica project (http://code.google.com/p/typica/)"
+		    bundleDocUrl="http://typica.s3.amazonaws.com/index.html"
+		    bundleLicense="http://www.apache.org/licenses/LICENSE-2.0"
+			importPackage="javax.servlet.*;resolution:=optional,sun.*;resolution:=optional,*"
+			exportPackage="com.xerox.amazonws.*;-noimport:=true;version=${rel.version}.0"/>
+	</target>
+	
 	<target name="javadoc" depends="schema">
 		<javadoc packagenames="com.xerox.*"
 				defaultexcludes="yes"
@@ -140,12 +161,13 @@
 
 	<target name="dist" depends="clean, javadoc">
 		<input message="Enter the version # : " addproperty="rel.version"/>
-		<antcall target="jar">
+		<antcall target="bundle">
 			<param name="rel.version" value="${rel.version}"/>
 		</antcall>
 		<mkdir dir="${typica.dist}"/>
 		<zip destfile="${typica.dist}/typica-${rel.version}.zip">
 			<fileset file="${typica.jar.file}"/>
+			<fileset file="${typica.bundle.file}"/>
 			<fileset file="README"/>
 			<fileset file="LICENSE.txt"/>
             <fileset dir="${typica.conf}" includes="**/*"/>
@@ -242,6 +264,10 @@
 			</classpath>
 			<arg line="${args}"/>
 			<jvmarg value="-Djava.util.logging.config.file=conf/logging.properties"/>
+			<!--
+			<jvmarg value="-Djavax.net.ssl.trustStore=./jssecacerts"/>
+			<jvmarg value="-Djavax.net.debug=all"/>
+			-->
 		</java>
 	</target>
 </project>

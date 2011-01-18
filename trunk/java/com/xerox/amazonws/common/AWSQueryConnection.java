@@ -59,6 +59,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.AllClientPNames;
 import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -524,11 +525,12 @@ public class AWSQueryConnection extends AWSConnection {
 
 		params.setParameter(AllClientPNames.MAX_TOTAL_CONNECTIONS, new Integer(maxConnections));
 		params.setParameter(AllClientPNames.VIRTUAL_HOST, getServer());
-//		params.setParameter(AllClientPNames.MAX_CONNECTIONS_PER_ROUTE, new ConnPerRouteBean(maxConnections));
+		params.setParameter(AllClientPNames.MAX_CONNECTIONS_PER_ROUTE, new ConnPerRouteBean(maxConnections));
 
 		SchemeRegistry registry = new SchemeRegistry();
 		registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
 		registry.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
+		registry.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 8773));
 
 		ThreadSafeClientConnManager connMgr = new ThreadSafeClientConnManager(params, registry);
 		//SingleClientConnManager connMgr = new SingleClientConnManager(params, registry);

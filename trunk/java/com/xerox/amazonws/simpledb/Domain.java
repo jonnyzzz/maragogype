@@ -46,6 +46,7 @@ import com.xerox.amazonws.common.AWSQueryConnection;
 import com.xerox.amazonws.common.ListResult;
 import com.xerox.amazonws.common.Result;
 import com.xerox.amazonws.typica.sdb.jaxb.Attribute;
+import com.xerox.amazonws.typica.sdb.jaxb.BatchDeleteAttributesResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.BatchPutAttributesResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.DeleteAttributesResponse;
 import com.xerox.amazonws.typica.sdb.jaxb.DomainMetadataResponse;
@@ -332,6 +333,41 @@ public class Domain {
 		if (cache != null) {
 		//	cache.removeItem(identifier);
 		}
+		return new SDBResult(response.getResponseMetadata().getRequestId(),
+					response.getResponseMetadata().getBoxUsage());
+	}
+
+	/**
+	 * Batch deletes multiple items w/ attributes
+	 *
+	 * @param attributes list of attributes to delete
+	 * @throws SDBException wraps checked exceptions
+	 */
+	public SDBResult batchDeleteAttributes(List<Item> items) throws SDBException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("DomainName", domainName);
+		int k=1;
+		for (Item item : items) {
+			params.put("Item."+k+".ItemName", item.getIdentifier());
+			int i=1;
+			for (String attr : item.getAttributes().keySet()) {
+				Set<String> vals = item.getAttributeValues(attr);
+				if (vals != null && vals.size() > 0) {
+					for (String val : vals) {
+						params.put("Item."+k+".Attribute."+i+".Name", attr);
+						params.put("Item."+k+".Attribute."+i+".Value", val);
+						i++;
+//						if (attr.isReplace()) {
+//							params.put("Item."+k+".Attribute."+i+".Replace", "true");
+//						}
+					}
+				}
+			}
+			k++;
+		}
+		HttpGet method = new HttpGet();
+		BatchDeleteAttributesResponse response =
+			makeRequestInt(method, "BatchDeleteAttributes", params, BatchDeleteAttributesResponse.class);
 		return new SDBResult(response.getResponseMetadata().getRequestId(),
 					response.getResponseMetadata().getBoxUsage());
 	}
