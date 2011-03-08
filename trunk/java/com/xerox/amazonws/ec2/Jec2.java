@@ -1906,7 +1906,7 @@ public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Sets the region Url to use.
 	 *
-	 * @param region the region Url to use from RegionInfo.getUrl()
+	 * @param regionUrl the region Url to use from RegionInfo.getUrl()
 	 */
 	public void setRegionUrl(String regionUrl) {
 		setServer(regionUrl);
