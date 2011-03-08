@@ -213,7 +213,7 @@ public class Jec2 extends AWSQueryConnection {
     {
 		super(awsAccessId, awsSecretKey, isSecure, server, port);
 		ArrayList<String> vals = new ArrayList<String>();
-		vals.add("2010-06-15");
+		vals.add("2010-11-15");
 		super.headers.put("Version", vals);
     }
 
