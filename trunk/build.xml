@@ -1,13 +1,18 @@
 <?xml version="1.0" standalone="yes"?>
 
 <project name="typica" basedir="." default="compile">
+
+    <condition property="rel.version" value="0.0.0">
+        <not><isset property="rel.version"/></not>
+    </condition>
+
     <property name="typica" value="${basedir}"/>
     <property name="typica.build" value="${typica}/build" />
     <property name="typica.conf" value="${typica}/conf" />
     <property name="typica.lib" value="lib" />
     <property name="typica.src" value="${typica}/java" />
 	<property name="typica.jar" value="${typica.build}/jar" />
-	<property name="typica.jar.file" value="${typica.jar}/typica.jar" />
+	<property name="typica.jar.file" value="${typica.jar}/maragogype.jar" />
 	<property name="typica.sdbshell.jar.file" value="${typica.jar}/sdbShell" />
 	<property name="typica.querytool.jar.file" value="${typica.jar}/QueryTool" />
     <property name="typica.classes" value="${typica.build}/classes" />
@@ -134,7 +139,7 @@
 			includeIncludeResourceHeader="no"
 			bundleSymbolicName="${typica.bundle.symbolic}"
 			bundleVersion="${rel.version}.0"
-			bundleVendor="Typica project (http://code.google.com/p/typica/)"
+			bundleVendor="Maragogype project (https://github.com/jonnyzzz/maragogype/)"
 		    bundleDocUrl="http://typica.s3.amazonaws.com/index.html"
 		    bundleLicense="http://www.apache.org/licenses/LICENSE-2.0"
 			importPackage="javax.servlet.*;resolution:=optional,sun.*;resolution:=optional,*"
@@ -149,7 +154,7 @@
 				author="true"
 				version="true"
 				use="true"
-				windowtitle="Typica - Amazon EC2/SQS/SimpleDB Client">
+				windowtitle="Maragogype - Amazon EC2/SQS/SimpleDB Client">
 			<classpath refid="typica.compile.classpath"/>
 			<link href="http://java.sun.com/j2se/1.5.0/docs/api"/>
 		</javadoc>
@@ -159,22 +164,17 @@
 		<delete dir="${typica.build}" />
 	</target>
 
-	<target name="dist" depends="clean, javadoc">
-		<input message="Enter the version # : " addproperty="rel.version"/>
-		<antcall target="bundle">
-			<param name="rel.version" value="${rel.version}"/>
-		</antcall>
-		<mkdir dir="${typica.dist}"/>
-		<zip destfile="${typica.dist}/typica-${rel.version}.zip">
-			<fileset file="${typica.jar.file}"/>
-			<fileset file="${typica.bundle.file}"/>
-			<fileset file="README"/>
-			<fileset file="LICENSE.txt"/>
-            <fileset dir="${typica.conf}" includes="**/*"/>
-			<fileset dir="${typica.build}">
-				<include name="apidocs/**/*"/>
-			</fileset>
-		</zip>
+	<target name="dist" depends="clean, compile, jar, javadoc">
+        <delete dir="${typica.dist}" quiet="true"/>
+        <mkdir dir="${typica.dist}"/>
+
+        <copy file="${typica.jar.file}" tofile="${typica.dist}/maragogype-${rel.version}.jar"/>
+
+        <zip destfile="${typica.dist}/maragogype-${rel.version}-javadoc.zip">
+            <fileset dir="${typica.javadoc}" includes="**/*"/>
+        </zip>
+
+        <copy file="${basedir}/LICENSE.txt" todir="${typica.dist}"/>
 	</target>
 
 	<target name="source-jar" depends="compile">
@@ -182,21 +182,6 @@
 			<fileset dir="${typica.src}" />
 			<fileset dir="${typica.generated}" />
 		</zip>
-	</target>
-
-	<target name="upload">
-		<taskdef name="S3Upload" classname="dak.ant.taskdefs.S3Upload">
-			<classpath refid="typica.compile.classpath" />
-		</taskdef>
-
-		<property file="${basedir}/aws.properties"/>
-		<S3Upload verbose="true"
-				accessId="${aws.accessId}"
-				secretKey="${aws.secretKey}"
-				bucket="typica"
-				publicRead="true">
-			<fileset dir="build/apidocs/" includes="**/*"/>
-		</S3Upload>
 	</target>
 
 	<target name="sdbshell" depends="compile, test.compile">
@@ -230,7 +215,6 @@
 	</target>
 
 	<target name="querytool" depends="compile, test.compile">
-		<input message="Enter the version # : " addproperty="rel.version"/>
 		<antcall target="test.compile">
 			<param name="test.src.path" value="test/java/sdbShell.java"/>
 		</antcall>
