@@ -164,7 +164,7 @@
 		<delete dir="${typica.build}" />
 	</target>
 
-	<target name="dist" depends="clean, compile, jar, javadoc">
+	<target name="dist" depends="clean, source-jar, compile, jar, javadoc">
         <delete dir="${typica.dist}" quiet="true"/>
         <mkdir dir="${typica.dist}"/>
 
@@ -175,10 +175,13 @@
         </zip>
 
         <copy file="${basedir}/LICENSE.txt" todir="${typica.dist}"/>
+
+        <copy file="${typica.jar}/typica-sources.zip" tofile="${typica.dist}/maragogype-${rel.version}-src.zip" />
+
 	</target>
 
-	<target name="source-jar" depends="compile">
-		<zip destfile="${typica.jar}/typica-sources.jar">
+	<target name="source-jar" depends="compile, schema">
+		<zip destfile="${typica.jar}/typica-sources.zip">
 			<fileset dir="${typica.src}" />
 			<fileset dir="${typica.generated}" />
 		</zip>
