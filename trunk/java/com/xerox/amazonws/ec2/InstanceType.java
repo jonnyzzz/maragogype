@@ -21,27 +21,37 @@ package com.xerox.amazonws.ec2;
  * This enumeration represents different instance types that can be launched.
  */
 public enum InstanceType {
-	DEFAULT ("m1.small"),
-	LARGE ("m1.large"),
-	XLARGE ("m1.xlarge"),
-	MEDIUM_HCPU ("c1.medium"),
-	XLARGE_HCPU ("c1.xlarge"),
-	XLARGE_HMEM ("m2.xlarge"),
-	XLARGE_DOUBLE_HMEM ("m2.2xlarge"),
-	XLARGE_QUAD_HMEM ("m2.4xlarge"),
-	XLARGE_CLUSTER_COMPUTE ("cc1.4xlarge");
+	SMALL ("m1.small", InstancePlatform.X86),
+	LARGE ("m1.large", InstancePlatform.X64),
+	XLARGE ("m1.xlarge", InstancePlatform.X64),
+  MICRO("t1.micro", InstancePlatform.ANY),
+	MEDIUM_HCPU ("c1.medium", InstancePlatform.X86),
+	XLARGE_HCPU ("c1.xlarge", InstancePlatform.X64),
+	XLARGE_HMEM ("m2.xlarge", InstancePlatform.X64),
+	XLARGE_DOUBLE_HMEM ("m2.2xlarge", InstancePlatform.X64),
+	XLARGE_QUAD_HMEM ("m2.4xlarge", InstancePlatform.X64),
+	XLARGE_CLUSTER_COMPUTE ("cc1.4xlarge", InstancePlatform.X64),
+  XLARGE_CLUSTER_GPU_COMPUTE("cg1.4xlarge", InstancePlatform.X64)
+  ;
 
-	private final String typeId;
+  public static final InstanceType DEFAULT = SMALL;
+  private final String typeId;
+  private final InstancePlatform instancePlatform;
 
-	InstanceType(String typeId) {
+	InstanceType(String typeId, InstancePlatform instancePlatform) {
 		this.typeId = typeId;
-	}
+    this.instancePlatform = instancePlatform;
+  }
 
 	public String getTypeId() {
 		return typeId;
 	}
 
-	public static InstanceType getTypeFromString(String val) {
+  public InstancePlatform getInstancePlatform() {
+    return instancePlatform;
+  }
+
+  public static InstanceType getTypeFromString(String val) {
 		for (InstanceType t : InstanceType.values()) {
 			if (t.getTypeId().equals(val)) {
 				return t;
