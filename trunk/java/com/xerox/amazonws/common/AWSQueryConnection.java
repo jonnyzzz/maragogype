@@ -89,7 +89,7 @@ import com.xerox.amazonws.typica.sqs2.jaxb.ErrorResponse;
  */
 public class AWSQueryConnection extends AWSConnection {
 	private static final Log log = LogFactory.getLog(AWSQueryConnection.class);
-	private static String userAgent = "typica/";
+	private static String userAgent = "maragogype/";
 
 	// this is the number of automatic retries
 	private int maxRetries = 5;
