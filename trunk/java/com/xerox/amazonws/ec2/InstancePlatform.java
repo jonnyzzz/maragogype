@@ -25,5 +25,14 @@ public enum InstancePlatform {
   X86,
   X64,
 
-  ANY
+  ANY,
+  ;
+
+  public boolean supportX86() {
+    return this == ANY || this == X86;
+  }
+
+  public boolean supportX64() {
+    return this == ANY || this == X64;
+  }
 }
