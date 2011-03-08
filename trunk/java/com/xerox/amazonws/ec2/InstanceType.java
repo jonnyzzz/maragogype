@@ -21,17 +21,17 @@ package com.xerox.amazonws.ec2;
  * This enumeration represents different instance types that can be launched.
  */
 public enum InstanceType {
-	SMALL ("m1.small", InstancePlatform.X86),
-	LARGE ("m1.large", InstancePlatform.X64),
-	XLARGE ("m1.xlarge", InstancePlatform.X64),
+	SMALL ("m1.small", InstancePlatform.i386),
+	LARGE ("m1.large", InstancePlatform.x86_64),
+	XLARGE ("m1.xlarge", InstancePlatform.x86_64),
   MICRO("t1.micro", InstancePlatform.ANY),
-	MEDIUM_HCPU ("c1.medium", InstancePlatform.X86),
-	XLARGE_HCPU ("c1.xlarge", InstancePlatform.X64),
-	XLARGE_HMEM ("m2.xlarge", InstancePlatform.X64),
-	XLARGE_DOUBLE_HMEM ("m2.2xlarge", InstancePlatform.X64),
-	XLARGE_QUAD_HMEM ("m2.4xlarge", InstancePlatform.X64),
-	XLARGE_CLUSTER_COMPUTE ("cc1.4xlarge", InstancePlatform.X64),
-  XLARGE_CLUSTER_GPU_COMPUTE("cg1.4xlarge", InstancePlatform.X64)
+	MEDIUM_HCPU ("c1.medium", InstancePlatform.i386),
+	XLARGE_HCPU ("c1.xlarge", InstancePlatform.x86_64),
+	XLARGE_HMEM ("m2.xlarge", InstancePlatform.x86_64),
+	XLARGE_DOUBLE_HMEM ("m2.2xlarge", InstancePlatform.x86_64),
+	XLARGE_QUAD_HMEM ("m2.4xlarge", InstancePlatform.x86_64),
+	XLARGE_CLUSTER_COMPUTE ("cc1.4xlarge", InstancePlatform.x86_64),
+  XLARGE_CLUSTER_GPU_COMPUTE("cg1.4xlarge", InstancePlatform.x86_64)
   ;
 
   public static final InstanceType DEFAULT = SMALL;

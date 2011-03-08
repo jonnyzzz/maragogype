@@ -17,28 +17,24 @@
 
 package com.xerox.amazonws.ec2;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-
 /**
  * @author Eugene Petrenko (eugene.petrenko@gmail.com)
  *         Date: 08.03.11 18:22
  */
-public enum InstancePlatform {
-  i386(Collections.singleton(Platform.i386)),
-  x86_64(Collections.singleton(Platform.x86_64)),
-
-  ANY(Arrays.asList(Platform.i386, Platform.x86_64))
+public enum Platform {
+  i386,
+  x86_64,
   ;
 
-  private final Collection<Platform> supportedPlatforms;
-
-  InstancePlatform(Collection<Platform> supportedPlatforms) {
-    this.supportedPlatforms = supportedPlatforms;
-  }
-
-  public boolean supportPlatform(Platform pf) {
-    return supportedPlatforms.contains(pf);
+  /**
+   * @param platform ec2 api returned platform
+   * @return platform or null
+   */
+  public static Platform fromEc2(String platform) {
+    if (platform == null) return null;
+    platform = platform.trim();
+    if (platform.equals("i386")) return i386;
+    if (platform.equals("x86_64")) return x86_64;
+    return null;
   }
 }

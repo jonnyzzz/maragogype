@@ -102,6 +102,10 @@ public class ImageDescription {
 		return architecture;
 	}
 
+  public Platform getArchitecturePlatform() {
+    return Platform.fromEc2(getArchitecture());
+  }
+
 	public String getImageType() {
 		return imageType;
 	}
