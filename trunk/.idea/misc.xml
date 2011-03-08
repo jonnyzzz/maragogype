@@ -4,6 +4,7 @@
     <option name="BUILD_JARS_ON_MAKE" value="false" />
   </component>
   <component name="DependencyValidationManager">
+    <scope name="copyright" pattern="file[typica]:java/*||file[typica]:test/java/*" />
     <option name="SKIP_IMPORT_STATEMENTS" value="false" />
   </component>
   <component name="EntryPointsManager">
