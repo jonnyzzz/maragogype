@@ -160,9 +160,6 @@ import com.xerox.amazonws.typica.jaxb.UserIdGroupPairSetType;
  * A Java wrapper for the EC2 web services API
  */
 public class Jec2 extends AWSQueryConnection {
-
-    private static Log logger = LogFactory.getLog(Jec2.class);
-
 	/**
 	 * Initializes the ec2 service with your AWS login information.
 	 *
