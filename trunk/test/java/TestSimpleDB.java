@@ -1,21 +1,9 @@
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
+import com.xerox.amazonws.sdb.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.xerox.amazonws.sdb.Domain;
-import com.xerox.amazonws.sdb.Item;
-import com.xerox.amazonws.sdb.ItemAttribute;
-import com.xerox.amazonws.sdb.ListDomainsResult;
-import com.xerox.amazonws.sdb.QueryWithAttributesResult;
-import com.xerox.amazonws.sdb.SimpleDB;
-import com.xerox.amazonws.sdb.SDBException;
+import java.util.*;
 
 public class TestSimpleDB {
     private static Log logger = LogFactory.getLog(TestSimpleDB.class);
@@ -47,7 +35,7 @@ public class TestSimpleDB {
 		List<ItemAttribute> list = new ArrayList<ItemAttribute>();
 		list.add(new ItemAttribute("test1", "value1", false));
 		list.add(new ItemAttribute("t\0u000dst1", "value2", false));
-		list.add(new ItemAttribute("test1", "Jérôme", false));
+		list.add(new ItemAttribute("test1", "J\ufffdr\ufffdme", false));
 		list.add(new ItemAttribute("test1", "\0u000dvalue4&gt;", false));
 		list.add(new ItemAttribute("test1", "value5", false));
 		list.add(new ItemAttribute("test1", "value6", false));
@@ -56,7 +44,7 @@ public class TestSimpleDB {
 		list = new ArrayList<ItemAttribute>();
 		list.add(new ItemAttribute("test1", "value1", false));
 		list.add(new ItemAttribute("t\0u000dst1", "value2", false));
-		list.add(new ItemAttribute("test1", "Jérôme", false));
+		list.add(new ItemAttribute("test1", "J\ufffdr\ufffdme", false));
 		list.add(new ItemAttribute("test1", "\0u000dvalue4&gt;", false));
 		list.add(new ItemAttribute("test1", "value5", false));
 		list.add(new ItemAttribute("test1", "value6", false));
@@ -65,7 +53,7 @@ public class TestSimpleDB {
 		list = new ArrayList<ItemAttribute>();
 		list.add(new ItemAttribute("test1", "value1", false));
 		list.add(new ItemAttribute("t\0u000dst1", "value2", false));
-		list.add(new ItemAttribute("test1", "Jérôme", false));
+		list.add(new ItemAttribute("test1", "J\ufffdr\ufffdme", false));
 		list.add(new ItemAttribute("test1", "\0u000dvalue4&gt;", false));
 		list.add(new ItemAttribute("test1", "value5", false));
 		list.add(new ItemAttribute("test1", "value6", false));
@@ -74,7 +62,7 @@ public class TestSimpleDB {
 		list = new ArrayList<ItemAttribute>();
 		list.add(new ItemAttribute("test1", "value1", false));
 		list.add(new ItemAttribute("t\0u000dst1", "value2", false));
-		list.add(new ItemAttribute("test1", "Jérôme", false));
+		list.add(new ItemAttribute("test1", "J\ufffdr\ufffdme", false));
 		list.add(new ItemAttribute("test1", "\0u000dvalue4&gt;", false));
 		list.add(new ItemAttribute("test1", "value5", false));
 		list.add(new ItemAttribute("test1", "value6", false));
