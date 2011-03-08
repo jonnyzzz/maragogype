@@ -1,0 +1,7 @@
+This is a cloned version of Typica library (http://code.google.com/p/typica)
+
+As you may know 
+Maragogype - This coffee varietal is a mutation of Typica coffee and was discovered in Brazil.  The Maragogype coffee plant is large and is taller than either Bourbon or Typica.
+
+This fork was done to speedup updates of Typica library to support Amazon EC2 API updates faster. 
+
