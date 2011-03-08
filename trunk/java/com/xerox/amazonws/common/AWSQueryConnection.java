@@ -109,7 +109,7 @@ public class AWSQueryConnection extends AWSConnection {
 		String version = "?";
 		try {
 			Properties props = new Properties();
-			InputStream verStream = ClassLoader.getSystemResourceAsStream("version.properties");
+			InputStream verStream = AWSQueryConnection.class.getResourceAsStream("/version.properties");
 			try {
 				props.load(verStream);
 			} finally {
