@@ -3,17 +3,13 @@ package com.xerox.amazonws.common;
 
 import java.io.CharArrayWriter;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.util.BitSet;
-import java.security.AccessController;
-import sun.security.action.GetPropertyAction;
 
 /**
  * This encoder is to be used instead of the URLEncoder when encoding params for version 2 signing
  */
 public class SignerEncoder {
 	private static BitSet dontEncode;
-	private static String defaultEncoding;
 
 	static {
 		// encode everything except what is included in the bitset
@@ -31,8 +27,6 @@ public class SignerEncoder {
 		dontEncode.set('_');
 		dontEncode.set('.');
 		dontEncode.set('~');
-
-		defaultEncoding = (String)AccessController.doPrivileged(new GetPropertyAction("file.encoding"));
 	}
 
 	public static String encode(String str) throws UnsupportedEncodingException {
