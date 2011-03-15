@@ -37,6 +37,7 @@ import java.util.*;
 /**
  * A Java wrapper for the EC2 web services API
  */
+@SuppressWarnings({"UnusedDeclaration"})
 public class Jec2 extends AWSQueryConnection {
 	/**
 	 * Initializes the ec2 service with your AWS login information.
@@ -2022,7 +2023,12 @@ public class Jec2 extends AWSQueryConnection {
   /**
    * Fetches desctiion of Amazon VPC Subnets as described
    * http://docs.amazonwebservices.com/AmazonVPC/2010-11-15/APIReference/
+   *
+   * This method may not be supported on all Amazon EC2 regisons. It will throw exception with
+   * 'UnsupportedOperation' error.
+   *
    * @throws EC2Exception on error
+   * @return collection of all available subnets for current region.
    */
   @NotNull
   public Collection<SubnetInfo> describeSubnets() throws EC2Exception {
