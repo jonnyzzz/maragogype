@@ -45,4 +45,16 @@ public class SubnetInfo {
   public String getAvailabilityZone() {
     return availabilityZone;
   }
+
+  @Override
+  public String toString() {
+    return "SubnetInfo{" +
+            "subnetId='" + subnetId + '\'' +
+            ", state='" + state + '\'' +
+            ", vpcId='" + vpcId + '\'' +
+            ", cidrBlock='" + cidrBlock + '\'' +
+            ", availableIpAddressCount=" + availableIpAddressCount +
+            ", availabilityZone='" + availabilityZone + '\'' +
+            '}';
+  }
 }
