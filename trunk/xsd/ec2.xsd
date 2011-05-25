@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema 
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-           xmlns:tns="http://ec2.amazonaws.com/doc/2010-11-15/" 
-           targetNamespace="http://ec2.amazonaws.com/doc/2010-11-15/" 
-           elementFormDefault="qualified"
+    <xs:schema
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:tns="http://ec2.amazonaws.com/doc/2011-02-28/"
+        targetNamespace="http://ec2.amazonaws.com/doc/2011-02-28/"
+        elementFormDefault="qualified"
 
 
            xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -13,7 +13,7 @@
            jaxb:version="2.0"
 >
 
-  
+
   <xs:annotation>
 	<xs:documentation xml:lang="en">
 	</xs:documentation>
@@ -40,16 +40,6 @@
         <xs:sequence>
           <xs:element name="requestId" type="xs:string"/>
           <xs:element name="imageId" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="ProductCodeType">
-        <xs:sequence>
-          <xs:element name="productCode" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="ProductCodeSetType">
-        <xs:sequence>
-          <xs:element name="item" type="tns:ProductCodeType" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
       </xs:complexType>
       <xs:element name="RegisterImage" type="tns:RegisterImageType"/>
@@ -195,7 +185,8 @@
       </xs:complexType>
       <xs:complexType name="GroupItemType">
         <xs:sequence>
-          <xs:element name="groupId" type="xs:string"/>
+          <xs:element name="groupId" type="xs:string" minOccurs="0"/>
+          <xs:element name="groupName" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="UserDataType" mixed="true">
@@ -231,12 +222,19 @@
         <xs:sequence>
           <xs:element name="availabilityZone" type="xs:string" minOccurs="0"/>
           <xs:element name="groupName" type="xs:string" minOccurs="0"/>
+          <xs:element name="tenancy" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SpotPlacementRequestType">
+        <xs:sequence>
+          <xs:element name="availabilityZone" type="xs:string" minOccurs="0"/>
+          <xs:element name="groupName" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="InstancePlacementType">
         <xs:sequence>
-          <xs:element name="availabilityZone" type="xs:string" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="groupName" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="availabilityZone" type="xs:string" minOccurs="0"/>
+          <xs:element name="groupName" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="MonitoringInstanceType">
@@ -296,6 +294,8 @@
           <xs:element name="vpcId" type="xs:string" minOccurs="0"/>
           <xs:element name="privateIpAddress" type="xs:string" minOccurs="0"/>
           <xs:element name="ipAddress" type="xs:string" minOccurs="0"/>
+          <xs:element name="sourceDestCheck" type="xs:boolean" minOccurs="0"/>
+          <xs:element name="groupSet" type="tns:GroupSetType"/>
           <xs:element name="stateReason" type="tns:StateReasonType" minOccurs="0"/>
           <xs:element name="architecture" type="xs:string" minOccurs="0"/>
           <xs:element name="rootDeviceType" type="xs:string" minOccurs="0"/>
@@ -314,6 +314,7 @@
         <xs:sequence>
           <xs:element name="availabilityZone" type="xs:string"/>
           <xs:element name="groupName" type="xs:string" minOccurs="0"/>
+          <xs:element name="tenancy" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="StateReasonType">
@@ -594,6 +595,7 @@
         <xs:sequence>
           <xs:element name="groupName" type="xs:string"/>
           <xs:element name="groupDescription" type="xs:string"/>
+          <xs:element name="vpcId" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:element name="CreateSecurityGroupResponse" type="tns:CreateSecurityGroupResponseType"/>
@@ -601,13 +603,15 @@
         <xs:sequence>
           <xs:element name="requestId" type="xs:string"/>
           <xs:element name="return" type="xs:boolean"/>
+          <xs:element name="groupId" type="xs:string"/>
         </xs:sequence>
       </xs:complexType>
       <xs:element name="DeleteSecurityGroup" type="tns:DeleteSecurityGroupType"/>
       <xs:complexType name="DeleteSecurityGroupType">
-        <xs:sequence>
+        <xs:choice>
+          <xs:element name="groupId" type="xs:string"/>
           <xs:element name="groupName" type="xs:string"/>
-        </xs:sequence>
+        </xs:choice>
       </xs:complexType>
       <xs:element name="DeleteSecurityGroupResponse" type="tns:DeleteSecurityGroupResponseType"/>
       <xs:complexType name="DeleteSecurityGroupResponseType">
@@ -620,6 +624,7 @@
       <xs:complexType name="DescribeSecurityGroupsType">
         <xs:sequence>
           <xs:element name="securityGroupSet" type="tns:DescribeSecurityGroupsSetType"/>
+          <xs:element name="securityGroupIdSet" type="tns:DescribeSecurityGroupsIdSetType" minOccurs="0"/>
           <xs:element name="filterSet" type="tns:FilterSetType" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
@@ -631,6 +636,16 @@
       <xs:complexType name="DescribeSecurityGroupsSetItemType">
         <xs:sequence>
           <xs:element name="groupName" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="DescribeSecurityGroupsIdSetType">
+        <xs:sequence>
+          <xs:element name="item" type="tns:DescribeSecurityGroupsIdSetItemType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="DescribeSecurityGroupsIdSetItemType">
+        <xs:sequence>
+          <xs:element name="groupId" type="xs:string"/>
         </xs:sequence>
       </xs:complexType>
       <xs:element name="DescribeSecurityGroupsResponse" type="tns:DescribeSecurityGroupsResponseType"/>
@@ -648,8 +663,8 @@
       <xs:complexType name="IpPermissionType">
         <xs:sequence>
           <xs:element name="ipProtocol" type="xs:string"/>
-          <xs:element name="fromPort" type="xs:int"/>
-          <xs:element name="toPort" type="xs:int"/>
+          <xs:element name="fromPort" type="xs:int" minOccurs="0"/>
+          <xs:element name="toPort" type="xs:int" minOccurs="0"/>
           <xs:element name="groups" type="tns:UserIdGroupPairSetType"/>
           <xs:element name="ipRanges" type="tns:IpRangeSetType"/>
         </xs:sequence>
@@ -671,8 +686,9 @@
       </xs:complexType>
       <xs:complexType name="UserIdGroupPairType">
         <xs:sequence>
-          <xs:element name="userId" type="xs:string"/>
-          <xs:element name="groupName" type="xs:string"/>
+          <xs:element name="userId" type="xs:string" minOccurs="0"/>
+          <xs:element name="groupId" type="xs:string" minOccurs="0"/>
+          <xs:element name="groupName" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="SecurityGroupSetType">
@@ -683,16 +699,23 @@
       <xs:complexType name="SecurityGroupItemType">
         <xs:sequence>
           <xs:element name="ownerId" type="xs:string"/>
+          <xs:element name="groupId" type="xs:string"/>
           <xs:element name="groupName" type="xs:string"/>
           <xs:element name="groupDescription" type="xs:string"/>
+          <xs:element name="vpcId" type="xs:string" minOccurs="0"/>
           <xs:element name="ipPermissions" type="tns:IpPermissionSetType"/>
+          <xs:element name="ipPermissionsEgress" type="tns:IpPermissionSetType" minOccurs="0"/>
+          <xs:element name="tagSet" type="tns:ResourceTagSetType" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:element name="AuthorizeSecurityGroupIngress" type="tns:AuthorizeSecurityGroupIngressType"/>
       <xs:complexType name="AuthorizeSecurityGroupIngressType">
         <xs:sequence>
-          <xs:element name="userId" type="xs:string"/>
-          <xs:element name="groupName" type="xs:string"/>
+          <xs:element name="userId" type="xs:string" minOccurs="0"/>
+          <xs:choice>
+            <xs:element name="groupId" type="xs:string"/>
+            <xs:element name="groupName" type="xs:string"/>
+          </xs:choice>
           <xs:element name="ipPermissions" type="tns:IpPermissionSetType"/>
         </xs:sequence>
       </xs:complexType>
@@ -706,13 +729,44 @@
       <xs:element name="RevokeSecurityGroupIngress" type="tns:RevokeSecurityGroupIngressType"/>
       <xs:complexType name="RevokeSecurityGroupIngressType">
         <xs:sequence>
-          <xs:element name="userId" type="xs:string"/>
-          <xs:element name="groupName" type="xs:string"/>
+          <xs:element name="userId" type="xs:string" minOccurs="0"/>
+          <xs:choice>
+            <xs:element name="groupId" type="xs:string"/>
+            <xs:element name="groupName" type="xs:string"/>
+          </xs:choice>
           <xs:element name="ipPermissions" type="tns:IpPermissionSetType"/>
         </xs:sequence>
       </xs:complexType>
       <xs:element name="RevokeSecurityGroupIngressResponse" type="tns:RevokeSecurityGroupIngressResponseType"/>
       <xs:complexType name="RevokeSecurityGroupIngressResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="return" type="xs:boolean"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="AuthorizeSecurityGroupEgress" type="tns:AuthorizeSecurityGroupEgressType"/>
+      <xs:complexType name="AuthorizeSecurityGroupEgressType">
+        <xs:sequence>
+          <xs:element name="groupId" type="xs:string"/>
+          <xs:element name="ipPermissions" type="tns:IpPermissionSetType"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="AuthorizeSecurityGroupEgressResponse" type="tns:AuthorizeSecurityGroupEgressResponseType"/>
+      <xs:complexType name="AuthorizeSecurityGroupEgressResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="return" type="xs:boolean"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="RevokeSecurityGroupEgress" type="tns:RevokeSecurityGroupEgressType"/>
+      <xs:complexType name="RevokeSecurityGroupEgressType">
+        <xs:sequence>
+          <xs:element name="groupId" type="xs:string"/>
+          <xs:element name="ipPermissions" type="tns:IpPermissionSetType"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="RevokeSecurityGroupEgressResponse" type="tns:RevokeSecurityGroupEgressResponseType"/>
+      <xs:complexType name="RevokeSecurityGroupEgressResponseType">
         <xs:sequence>
           <xs:element name="requestId" type="xs:string"/>
           <xs:element name="return" type="xs:boolean"/>
@@ -736,7 +790,19 @@
             <xs:element name="disableApiTermination" type="tns:AttributeBooleanValueType"/>
             <xs:element name="instanceInitiatedShutdownBehavior" type="tns:AttributeValueType"/>
             <xs:element name="blockDeviceMapping" type="tns:InstanceBlockDeviceMappingType"/>
+            <xs:element name="sourceDestCheck" type="tns:AttributeBooleanValueType"/>
+            <xs:element name="groupSet" type="tns:SecurityGroupIdSetType"/>
           </xs:choice>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SecurityGroupIdSetType">
+        <xs:sequence>
+          <xs:element name="item" type="tns:SecurityGroupIdSetItemType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SecurityGroupIdSetItemType">
+        <xs:sequence>
+          <xs:element name="groupId" type="xs:string"/>
         </xs:sequence>
       </xs:complexType>
       <xs:element name="ModifyInstanceAttributeResponse" type="tns:ModifyInstanceAttributeResponseType"/>
@@ -757,6 +823,7 @@
         <xs:choice>
           <xs:element name="kernel" type="tns:EmptyElementType"/>
           <xs:element name="ramdisk" type="tns:EmptyElementType"/>
+          <xs:element name="sourceDestCheck" type="tns:EmptyElementType"/>
         </xs:choice>
       </xs:group>
       <xs:element name="ResetInstanceAttributeResponse" type="tns:ResetInstanceAttributeResponseType"/>
@@ -783,6 +850,8 @@
           <xs:element name="instanceInitiatedShutdownBehavior" type="tns:EmptyElementType"/>
           <xs:element name="rootDeviceName" type="tns:EmptyElementType"/>
           <xs:element name="blockDeviceMapping" type="tns:EmptyElementType"/>
+          <xs:element name="sourceDestCheck" type="tns:EmptyElementType"/>
+          <xs:element name="groupSet" type="tns:EmptyElementType"/>
         </xs:choice>
       </xs:group>
       <xs:element name="DescribeInstanceAttributeResponse" type="tns:DescribeInstanceAttributeResponseType"/>
@@ -799,6 +868,8 @@
             <xs:element name="instanceInitiatedShutdownBehavior" type="tns:NullableAttributeValueType"/>
             <xs:element name="rootDeviceName" type="tns:NullableAttributeValueType"/>
             <xs:element name="blockDeviceMapping" type="tns:InstanceBlockDeviceMappingResponseType"/>
+            <xs:element name="sourceDestCheck" type="tns:NullableAttributeBooleanValueType"/>
+            <xs:element name="groupSet" type="tns:GroupSetType"/>
           </xs:choice>
         </xs:sequence>
       </xs:complexType>
@@ -992,18 +1063,27 @@
         </xs:sequence>
       </xs:complexType>
       <xs:element name="AllocateAddress" type="tns:AllocateAddressType"/>
-      <xs:complexType name="AllocateAddressType"/>
+      <xs:complexType name="AllocateAddressType">
+        <xs:sequence>
+          <xs:element name="domain" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+      </xs:complexType>
       <xs:element name="AllocateAddressResponse" type="tns:AllocateAddressResponseType"/>
       <xs:complexType name="AllocateAddressResponseType">
         <xs:sequence>
           <xs:element name="requestId" type="xs:string"/>
           <xs:element name="publicIp" type="xs:string"/>
+          <xs:element name="domain" type="xs:string"/>
+          <xs:element name="allocationId" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:element name="ReleaseAddress" type="tns:ReleaseAddressType"/>
       <xs:complexType name="ReleaseAddressType">
         <xs:sequence>
-          <xs:element name="publicIp" type="xs:string"/>
+          <xs:choice>
+            <xs:element name="publicIp" type="xs:string"/>
+            <xs:element name="allocationId" type="xs:string"/>
+          </xs:choice>
         </xs:sequence>
       </xs:complexType>
       <xs:element name="ReleaseAddressResponse" type="tns:ReleaseAddressResponseType"/>
@@ -1017,12 +1097,23 @@
       <xs:complexType name="DescribeAddressesType">
         <xs:sequence>
           <xs:element name="publicIpsSet" type="tns:DescribeAddressesInfoType"/>
+          <xs:element name="allocationIdsSet" type="tns:AllocationIdSetType"/>
           <xs:element name="filterSet" type="tns:FilterSetType" minOccurs="0"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="AllocationIdSetType">
+        <xs:sequence>
+          <xs:element name="item" type="tns:AllocationIdSetItemType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="AllocationIdSetItemType">
+        <xs:sequence>
+          <xs:element name="allocationId" type="xs:string"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="DescribeAddressesInfoType">
         <xs:sequence>
-          <xs:element name="item" maxOccurs="unbounded" minOccurs="0" type="tns:DescribeAddressesItemType"/>
+          <xs:element name="item" type="tns:DescribeAddressesItemType" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="DescribeAddressesItemType">
@@ -1039,19 +1130,25 @@
       </xs:complexType>
       <xs:complexType name="DescribeAddressesResponseInfoType">
         <xs:sequence>
-          <xs:element name="item" maxOccurs="unbounded" minOccurs="0" type="tns:DescribeAddressesResponseItemType"/>
+          <xs:element name="item" type="tns:DescribeAddressesResponseItemType" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="DescribeAddressesResponseItemType">
         <xs:sequence>
           <xs:element name="publicIp" type="xs:string"/>
-          <xs:element name="instanceId" minOccurs="0" type="xs:string"/>
+          <xs:element name="allocationId" type="xs:string" minOccurs="0"/>
+          <xs:element name="domain" type="xs:string"/>
+          <xs:element name="instanceId" type="xs:string" minOccurs="0"/>
+          <xs:element name="associationId" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:element name="AssociateAddress" type="tns:AssociateAddressType"/>
       <xs:complexType name="AssociateAddressType">
         <xs:sequence>
-          <xs:element name="publicIp" type="xs:string"/>
+          <xs:choice>
+            <xs:element name="publicIp" type="xs:string"/>
+            <xs:element name="allocationId" type="xs:string"/>
+          </xs:choice>
           <xs:element name="instanceId" type="xs:string"/>
         </xs:sequence>
       </xs:complexType>
@@ -1060,13 +1157,15 @@
         <xs:sequence>
           <xs:element name="requestId" type="xs:string"/>
           <xs:element name="return" type="xs:boolean"/>
+          <xs:element name="associationId" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:element name="DisassociateAddress" type="tns:DisassociateAddressType"/>
       <xs:complexType name="DisassociateAddressType">
-        <xs:sequence>
+        <xs:choice>
           <xs:element name="publicIp" type="xs:string"/>
-        </xs:sequence>
+          <xs:element name="associationId" type="xs:string"/>
+        </xs:choice>
       </xs:complexType>
       <xs:element name="DisassociateAddressResponse" type="tns:DisassociateAddressResponseType"/>
       <xs:complexType name="DisassociateAddressResponseType">
@@ -1503,6 +1602,7 @@
           <xs:element name="availabilityZone" type="xs:string" minOccurs="0"/>
           <xs:element name="productDescription" type="xs:string" minOccurs="0"/>
           <xs:element name="filterSet" type="tns:FilterSetType" minOccurs="0"/>
+          <xs:element name="instanceTenancy" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="DescribeReservedInstancesOfferingsSetType">
@@ -1536,6 +1636,8 @@
           <xs:element name="fixedPrice" type="xs:double"/>
           <xs:element name="usagePrice" type="xs:double"/>
           <xs:element name="productDescription" type="xs:string"/>
+          <xs:element name="instanceTenancy" type="xs:string"/>
+          <xs:element name="currencyCode" type="xs:string"/>
         </xs:sequence>
       </xs:complexType>
       <xs:element name="PurchaseReservedInstancesOffering" type="tns:PurchaseReservedInstancesOfferingType"/>
@@ -1594,6 +1696,8 @@
           <xs:element name="productDescription" type="xs:string"/>
           <xs:element name="state" type="xs:string"/>
           <xs:element name="tagSet" type="tns:ResourceTagSetType" minOccurs="0"/>
+          <xs:element name="instanceTenancy" type="xs:string"/>
+          <xs:element name="currencyCode" type="xs:string"/>
         </xs:sequence>
       </xs:complexType>
       <xs:element name="MonitorInstances" type="tns:MonitorInstancesType"/>
@@ -1653,7 +1757,7 @@
           <xs:element name="vpnGatewayId" type="xs:string"/>
           <xs:element name="state" type="xs:string"/>
           <xs:element name="type" type="xs:string"/>
-          <xs:element name="availabilityZone" type="xs:string"/>
+          <xs:element name="availabilityZone" type="xs:string" minOccurs="0"/>
           <xs:element name="attachments" type="tns:AttachmentSetType"/>
           <xs:element name="tagSet" type="tns:ResourceTagSetType" minOccurs="0"/>
         </xs:sequence>
@@ -1686,6 +1790,7 @@
           <xs:element name="cidrBlock" type="xs:string" minOccurs="0"/>
           <xs:element name="dhcpOptionsId" type="xs:string" minOccurs="0"/>
           <xs:element name="tagSet" type="tns:ResourceTagSetType" minOccurs="0"/>
+          <xs:element name="instanceTenancy" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="SubnetType">
@@ -2014,6 +2119,7 @@
       <xs:complexType name="CreateVpcType">
         <xs:sequence>
           <xs:element name="cidrBlock" type="xs:string"/>
+          <xs:element name="instanceTenancy" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="CreateVpcResponseType">
@@ -2161,7 +2267,7 @@
           <xs:element name="userData" type="tns:UserDataType" minOccurs="0"/>
           <xs:element name="addressingType" type="xs:string" minOccurs="0"/>
           <xs:element name="instanceType" type="xs:string"/>
-          <xs:element name="placement" type="tns:PlacementRequestType" minOccurs="0"/>
+          <xs:element name="placement" type="tns:SpotPlacementRequestType" minOccurs="0"/>
           <xs:element name="kernelId" type="xs:string" minOccurs="0"/>
           <xs:element name="ramdiskId" type="xs:string" minOccurs="0"/>
           <xs:element name="blockDeviceMapping" type="tns:BlockDeviceMappingType" minOccurs="0"/>
@@ -2176,7 +2282,7 @@
           <xs:element name="groupSet" type="tns:GroupSetType"/>
           <xs:element name="addressingType" type="xs:string" minOccurs="0"/>
           <xs:element name="instanceType" type="xs:string"/>
-          <xs:element name="placement" type="tns:PlacementRequestType" minOccurs="0"/>
+          <xs:element name="placement" type="tns:SpotPlacementRequestType" minOccurs="0"/>
           <xs:element name="kernelId" type="xs:string" minOccurs="0"/>
           <xs:element name="ramdiskId" type="xs:string" minOccurs="0"/>
           <xs:element name="blockDeviceMapping" type="tns:BlockDeviceMappingType" minOccurs="0"/>
@@ -2578,28 +2684,29 @@
       <xs:element name="ImportInstanceResponse" type="tns:ImportInstanceResponseType"/>
       <xs:complexType name="ImportInstanceType">
         <xs:sequence>
-          <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="launchSpecification" type="tns:ImportInstanceLaunchSpecificationType" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="diskImageSet" type="tns:DiskImageSetType" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="platform" type="xs:string" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="description" type="xs:string" minOccurs="0"/>
+          <xs:element name="launchSpecification" type="tns:ImportInstanceLaunchSpecificationType"/>
+          <xs:element name="diskImageSet" type="tns:DiskImageSetType"/>
+          <xs:element name="keepPartialImports" type="xs:boolean" minOccurs="0"/>
+          <xs:element name="platform" type="xs:string"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="ImportInstanceResponseType">
         <xs:sequence>
-          <xs:element name="conversionTask" type="tns:ConversionTaskType" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="conversionTask" type="tns:ConversionTaskType"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="ImportInstanceLaunchSpecificationType">
         <xs:sequence>
-          <xs:element name="architecture" type="xs:string" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="groupSet" type="tns:GroupSetType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="userData" type="tns:UserDataType" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="architecture" type="xs:string"/>
+          <xs:element name="groupSet" type="tns:GroupSetType" minOccurs="0"/>
+          <xs:element name="userData" type="tns:UserDataType" minOccurs="0"/>
           <xs:element name="instanceType" type="xs:string"/>
-          <xs:element name="placement" type="tns:InstancePlacementType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="monitoring" type="tns:MonitoringInstanceType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="subnetId" type="xs:string" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="instanceInitiatedShutdownBehavior" type="xs:string" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="privateIpAddress" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="placement" type="tns:InstancePlacementType" minOccurs="0"/>
+          <xs:element name="monitoring" type="tns:MonitoringInstanceType" minOccurs="0"/>
+          <xs:element name="subnetId" type="xs:string" minOccurs="0"/>
+          <xs:element name="instanceInitiatedShutdownBehavior" type="xs:string" minOccurs="0"/>
+          <xs:element name="privateIpAddress" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="DiskImageSetType">
@@ -2609,16 +2716,16 @@
       </xs:complexType>
       <xs:complexType name="DiskImageType">
         <xs:sequence>
-          <xs:element name="image" type="tns:DiskImageDetailType" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="volume" type="tns:DiskImageVolumeType" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="image" type="tns:DiskImageDetailType"/>
+          <xs:element name="description" type="xs:string" minOccurs="0"/>
+          <xs:element name="volume" type="tns:DiskImageVolumeType"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="DiskImageDetailType">
         <xs:sequence>
-          <xs:element name="format" type="xs:string" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="bytes" type="xs:long" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="importManifestUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="format" type="xs:string"/>
+          <xs:element name="bytes" type="xs:long"/>
+          <xs:element name="importManifestUrl" type="xs:string"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="DiskImageVolumeType">
@@ -2628,31 +2735,32 @@
       </xs:complexType>
       <xs:complexType name="ConversionTaskType">
         <xs:sequence>
-          <xs:element name="conversionTaskId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="expirationTime" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="conversionTaskId" type="xs:string"/>
+          <xs:element name="expirationTime" type="xs:string" minOccurs="0"/>
           <xs:choice>
-            <xs:element name="importVolume" type="tns:ImportVolumeTaskDetailsType" minOccurs="0" maxOccurs="1"/>
-            <xs:element name="importInstance" type="tns:ImportInstanceTaskDetailsType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="importVolume" type="tns:ImportVolumeTaskDetailsType" minOccurs="0"/>
+            <xs:element name="importInstance" type="tns:ImportInstanceTaskDetailsType" minOccurs="0"/>
           </xs:choice>
-          <xs:element name="state" type="xs:string" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="statusMessage" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="state" type="xs:string"/>
+          <xs:element name="statusMessage" type="xs:string" minOccurs="0"/>
+          <xs:element name="tagSet" type="tns:ResourceTagSetType" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="ImportInstanceTaskDetailsType">
         <xs:sequence>
-          <xs:element name="volumes" type="tns:ImportInstanceVolumeDetailSetType" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="instanceId" type="xs:string" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="platform" type="xs:string" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="volumes" type="tns:ImportInstanceVolumeDetailSetType"/>
+          <xs:element name="instanceId" type="xs:string" minOccurs="0"/>
+          <xs:element name="platform" type="xs:string" minOccurs="0"/>
+          <xs:element name="description" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="ImportVolumeTaskDetailsType">
         <xs:sequence>
-          <xs:element name="bytesConverted" type="xs:long" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="availabilityZone" type="xs:string" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="image" type="tns:DiskImageDescriptionType" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="volume" type="tns:DiskImageVolumeDescriptionType" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="bytesConverted" type="xs:long"/>
+          <xs:element name="availabilityZone" type="xs:string"/>
+          <xs:element name="description" type="xs:string" minOccurs="0"/>
+          <xs:element name="image" type="tns:DiskImageDescriptionType"/>
+          <xs:element name="volume" type="tns:DiskImageVolumeDescriptionType"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="ImportInstanceVolumeDetailSetType">
@@ -2662,27 +2770,27 @@
       </xs:complexType>
       <xs:complexType name="ImportInstanceVolumeDetailItemType">
         <xs:sequence>
-          <xs:element name="bytesConverted" type="xs:long" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="availabilityZone" type="xs:string" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="image" type="tns:DiskImageDescriptionType" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="volume" type="tns:DiskImageVolumeDescriptionType" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="status" type="xs:string" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="statusMessage" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="bytesConverted" type="xs:long"/>
+          <xs:element name="availabilityZone" type="xs:string"/>
+          <xs:element name="image" type="tns:DiskImageDescriptionType"/>
+          <xs:element name="description" type="xs:string" minOccurs="0"/>
+          <xs:element name="volume" type="tns:DiskImageVolumeDescriptionType"/>
+          <xs:element name="status" type="xs:string"/>
+          <xs:element name="statusMessage" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="DiskImageVolumeDescriptionType">
         <xs:sequence>
           <xs:element name="size" type="xs:integer"/>
-          <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="id" type="xs:string"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="DiskImageDescriptionType">
         <xs:sequence>
-          <xs:element name="format" type="xs:string" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="size" type="xs:long" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="importManifestUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="checksum" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="format" type="xs:string"/>
+          <xs:element name="size" type="xs:long"/>
+          <xs:element name="importManifestUrl" type="xs:string"/>
+          <xs:element name="checksum" type="xs:string" minOccurs="0"/>
         </xs:sequence>
       </xs:complexType>
       <xs:element name="ImportVolume" type="tns:ImportVolumeType"/>
@@ -2691,25 +2799,25 @@
         <xs:sequence>
           <xs:element name="availabilityZone" type="xs:string"/>
           <xs:element name="image" type="tns:DiskImageDetailType"/>
-          <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="volume" type="tns:DiskImageVolumeType" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="description" type="xs:string" minOccurs="0"/>
+          <xs:element name="volume" type="tns:DiskImageVolumeType"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="ImportVolumeResponseType">
         <xs:sequence>
-          <xs:element name="conversionTask" type="tns:ConversionTaskType" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="conversionTask" type="tns:ConversionTaskType"/>
         </xs:sequence>
       </xs:complexType>
       <xs:element name="DescribeConversionTasks" type="tns:DescribeConversionTasksType"/>
       <xs:element name="DescribeConversionTasksResponse" type="tns:DescribeConversionTasksResponseType"/>
       <xs:complexType name="DescribeConversionTasksType">
         <xs:sequence>
-          <xs:element name="conversionTaskIdSet" type="tns:ConversionTaskIdSetType" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="conversionTaskIdSet" type="tns:ConversionTaskIdSetType"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="DescribeConversionTasksResponseType">
         <xs:sequence>
-          <xs:element name="conversionTasks" type="tns:ConversionTaskSetType" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="conversionTasks" type="tns:ConversionTaskSetType"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="ConversionTaskIdSetType">
@@ -2719,7 +2827,7 @@
       </xs:complexType>
       <xs:complexType name="ConversionTaskIdItemType">
         <xs:sequence>
-          <xs:element name="conversionTaskId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="conversionTaskId" type="xs:string"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="ConversionTaskSetType">
@@ -2731,10 +2839,466 @@
       <xs:element name="CancelConversionTaskResponse" type="tns:CancelConversionTaskResponseType"/>
       <xs:complexType name="CancelConversionTaskType">
         <xs:sequence>
-          <xs:element name="conversionTaskId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="conversionTaskId" type="xs:string"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="CancelConversionTaskResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="return" type="xs:boolean"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="CreateInternetGateway" type="tns:CreateInternetGatewayType"/>
+      <xs:element name="CreateInternetGatewayResponse" type="tns:CreateInternetGatewayResponseType"/>
+      <xs:complexType name="CreateInternetGatewayType"/>
+      <xs:complexType name="InternetGatewayAttachmentSetType">
+        <xs:sequence>
+          <xs:element name="item" type="tns:InternetGatewayAttachmentType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="InternetGatewayAttachmentType">
+        <xs:sequence>
+          <xs:element name="vpcId" type="xs:string"/>
+          <xs:element name="state" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="InternetGatewayType">
+        <xs:sequence>
+          <xs:element name="internetGatewayId" type="xs:string"/>
+          <xs:element name="attachmentSet" type="tns:InternetGatewayAttachmentSetType"/>
+          <xs:element name="tagSet" type="tns:TagSetType" minOccurs="0"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="CreateInternetGatewayResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="internetGateway" type="tns:InternetGatewayType"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="DescribeInternetGateways" type="tns:DescribeInternetGatewaysType"/>
+      <xs:element name="DescribeInternetGatewaysResponse" type="tns:DescribeInternetGatewaysResponseType"/>
+      <xs:complexType name="InternetGatewayIdSetType">
+        <xs:sequence>
+          <xs:element name="item" type="tns:InternetGatewayIdSetItemType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="InternetGatewayIdSetItemType">
+        <xs:sequence>
+          <xs:element name="internetGatewayId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="DescribeInternetGatewaysType">
+        <xs:sequence>
+          <xs:element name="internetGatewayIdSet" type="tns:InternetGatewayIdSetType"/>
+          <xs:element name="filterSet" type="tns:FilterSetType" minOccurs="0"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="InternetGatewaySetType">
+        <xs:sequence>
+          <xs:element name="item" type="tns:InternetGatewayType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="DescribeInternetGatewaysResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="internetGatewaySet" type="tns:InternetGatewaySetType"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="DeleteInternetGateway" type="tns:DeleteInternetGatewayType"/>
+      <xs:element name="DeleteInternetGatewayResponse" type="tns:DeleteInternetGatewayResponseType"/>
+      <xs:complexType name="DeleteInternetGatewayType">
+        <xs:sequence>
+          <xs:element name="internetGatewayId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="DeleteInternetGatewayResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="return" type="xs:boolean"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="AttachInternetGateway" type="tns:AttachInternetGatewayType"/>
+      <xs:element name="AttachInternetGatewayResponse" type="tns:AttachInternetGatewayResponseType"/>
+      <xs:complexType name="AttachInternetGatewayType">
+        <xs:sequence>
+          <xs:element name="internetGatewayId" type="xs:string"/>
+          <xs:element name="vpcId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="AttachInternetGatewayResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="return" type="xs:boolean"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="DetachInternetGateway" type="tns:DetachInternetGatewayType"/>
+      <xs:element name="DetachInternetGatewayResponse" type="tns:DetachInternetGatewayResponseType"/>
+      <xs:complexType name="DetachInternetGatewayType">
+        <xs:sequence>
+          <xs:element name="internetGatewayId" type="xs:string"/>
+          <xs:element name="vpcId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="DetachInternetGatewayResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="return" type="xs:boolean"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="CreateRouteTable" type="tns:CreateRouteTableType"/>
+      <xs:element name="CreateRouteTableResponse" type="tns:CreateRouteTableResponseType"/>
+      <xs:complexType name="CreateRouteTableType">
+        <xs:sequence>
+          <xs:element name="vpcId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="RouteSetType">
+        <xs:sequence>
+          <xs:element name="item" type="tns:RouteType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="RouteType">
+        <xs:sequence>
+          <xs:element name="destinationCidrBlock" type="xs:string"/>
+          <xs:choice minOccurs="0">
+            <xs:element name="gatewayId" type="xs:string"/>
+            <xs:element name="instanceId" type="xs:string"/>
+          </xs:choice>
+          <xs:element name="state" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="RouteTableAssociationSetType">
+        <xs:sequence>
+          <xs:element name="item" type="tns:RouteTableAssociationType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="RouteTableAssociationType">
+        <xs:sequence>
+          <xs:element name="routeTableAssociationId" type="xs:string"/>
+          <xs:element name="routeTableId" type="xs:string"/>
+          <xs:choice>
+            <xs:element name="subnetId" type="xs:string"/>
+            <xs:element name="main" type="xs:boolean"/>
+          </xs:choice>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="RouteTableType">
+        <xs:sequence>
+          <xs:element name="routeTableId" type="xs:string"/>
+          <xs:element name="vpcId" type="xs:string"/>
+          <xs:element name="routeSet" type="tns:RouteSetType"/>
+          <xs:element name="associationSet" type="tns:RouteTableAssociationSetType"/>
+          <xs:element name="tagSet" type="tns:TagSetType" minOccurs="0"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="CreateRouteTableResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="routeTable" type="tns:RouteTableType"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="DescribeRouteTables" type="tns:DescribeRouteTablesType"/>
+      <xs:element name="DescribeRouteTablesResponse" type="tns:DescribeRouteTablesResponseType"/>
+      <xs:complexType name="RouteTableIdSetType">
+        <xs:sequence>
+          <xs:element name="item" type="tns:RouteTableIdSetItemType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="RouteTableIdSetItemType">
+        <xs:sequence>
+          <xs:element name="routeTableId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="DescribeRouteTablesType">
+        <xs:sequence>
+          <xs:element name="routeTableIdSet" type="tns:RouteTableIdSetType"/>
+          <xs:element name="filterSet" type="tns:FilterSetType" minOccurs="0"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="RouteTableSetType">
+        <xs:sequence>
+          <xs:element name="item" type="tns:RouteTableType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="DescribeRouteTablesResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="routeTableSet" type="tns:RouteTableSetType"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="DeleteRouteTable" type="tns:DeleteRouteTableType"/>
+      <xs:element name="DeleteRouteTableResponse" type="tns:DeleteRouteTableResponseType"/>
+      <xs:complexType name="DeleteRouteTableType">
+        <xs:sequence>
+          <xs:element name="routeTableId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="DeleteRouteTableResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="return" type="xs:boolean"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="AssociateRouteTable" type="tns:AssociateRouteTableType"/>
+      <xs:element name="AssociateRouteTableResponse" type="tns:AssociateRouteTableResponseType"/>
+      <xs:complexType name="AssociateRouteTableType">
+        <xs:sequence>
+          <xs:element name="routeTableId" type="xs:string"/>
+          <xs:element name="subnetId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="AssociateRouteTableResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="associationId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="ReplaceRouteTableAssociation" type="tns:ReplaceRouteTableAssociationType"/>
+      <xs:element name="ReplaceRouteTableAssociationResponse" type="tns:ReplaceRouteTableAssociationResponseType"/>
+      <xs:complexType name="ReplaceRouteTableAssociationType">
+        <xs:sequence>
+          <xs:element name="associationId" type="xs:string"/>
+          <xs:element name="routeTableId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ReplaceRouteTableAssociationResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="newAssociationId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="DisassociateRouteTable" type="tns:DisassociateRouteTableType"/>
+      <xs:element name="DisassociateRouteTableResponse" type="tns:DisassociateRouteTableResponseType"/>
+      <xs:complexType name="DisassociateRouteTableType">
+        <xs:sequence>
+          <xs:element name="associationId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="DisassociateRouteTableResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="return" type="xs:boolean"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="CreateRoute" type="tns:CreateRouteType"/>
+      <xs:element name="CreateRouteResponse" type="tns:CreateRouteResponseType"/>
+      <xs:complexType name="CreateRouteType">
+        <xs:sequence>
+          <xs:element name="routeTableId" type="xs:string"/>
+          <xs:element name="destinationCidrBlock" type="xs:string"/>
+          <xs:choice>
+            <xs:element name="gatewayId" type="xs:string"/>
+            <xs:element name="instanceId" type="xs:string"/>
+          </xs:choice>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="CreateRouteResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="return" type="xs:boolean"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="ReplaceRoute" type="tns:ReplaceRouteType"/>
+      <xs:element name="ReplaceRouteResponse" type="tns:ReplaceRouteResponseType"/>
+      <xs:complexType name="ReplaceRouteType">
+        <xs:sequence>
+          <xs:element name="routeTableId" type="xs:string"/>
+          <xs:element name="destinationCidrBlock" type="xs:string"/>
+          <xs:choice>
+            <xs:element name="gatewayId" type="xs:string"/>
+            <xs:element name="instanceId" type="xs:string"/>
+          </xs:choice>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ReplaceRouteResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="return" type="xs:boolean"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="DeleteRoute" type="tns:DeleteRouteType"/>
+      <xs:element name="DeleteRouteResponse" type="tns:DeleteRouteResponseType"/>
+      <xs:complexType name="DeleteRouteType">
+        <xs:sequence>
+          <xs:element name="routeTableId" type="xs:string"/>
+          <xs:element name="destinationCidrBlock" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="DeleteRouteResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="return" type="xs:boolean"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="CreateNetworkAcl" type="tns:CreateNetworkAclType"/>
+      <xs:element name="CreateNetworkAclResponse" type="tns:CreateNetworkAclResponseType"/>
+      <xs:complexType name="CreateNetworkAclType">
+        <xs:sequence>
+          <xs:element name="vpcId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="NetworkAclEntrySetType">
+        <xs:sequence>
+          <xs:element name="item" type="tns:NetworkAclEntryType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="IcmpTypeCodeType">
+        <xs:sequence>
+          <xs:element name="code" type="xs:int"/>
+          <xs:element name="type" type="xs:int"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="PortRangeType">
+        <xs:sequence>
+          <xs:element name="from" type="xs:int"/>
+          <xs:element name="to" type="xs:int"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="NetworkAclEntryType">
+        <xs:sequence>
+          <xs:element name="ruleNumber" type="xs:int"/>
+          <xs:element name="protocol" type="xs:string"/>
+          <xs:element name="ruleAction" type="xs:string"/>
+          <xs:element name="egress" type="xs:boolean"/>
+          <xs:element name="cidrBlock" type="xs:string"/>
+          <xs:element name="icmpTypeCode" type="tns:IcmpTypeCodeType" minOccurs="0"/>
+          <xs:element name="portRange" type="tns:PortRangeType" minOccurs="0"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="NetworkAclAssociationSetType">
+        <xs:sequence>
+          <xs:element name="item" type="tns:NetworkAclAssociationType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="NetworkAclAssociationType">
+        <xs:sequence>
+          <xs:element name="networkAclAssociationId" type="xs:string"/>
+          <xs:element name="networkAclId" type="xs:string"/>
+          <xs:element name="subnetId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="NetworkAclType">
+        <xs:sequence>
+          <xs:element name="networkAclId" type="xs:string"/>
+          <xs:element name="vpcId" type="xs:string"/>
+          <xs:element name="default" type="xs:boolean"/>
+          <xs:element name="entrySet" type="tns:NetworkAclEntrySetType"/>
+          <xs:element name="associationSet" type="tns:NetworkAclAssociationSetType"/>
+          <xs:element name="tagSet" type="tns:TagSetType" minOccurs="0"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="CreateNetworkAclResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="networkAcl" type="tns:NetworkAclType"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="DescribeNetworkAcls" type="tns:DescribeNetworkAclsType"/>
+      <xs:element name="DescribeNetworkAclsResponse" type="tns:DescribeNetworkAclsResponseType"/>
+      <xs:complexType name="NetworkAclIdSetType">
+        <xs:sequence>
+          <xs:element name="item" type="tns:NetworkAclIdSetItemType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="NetworkAclIdSetItemType">
+        <xs:sequence>
+          <xs:element name="networkAclId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="DescribeNetworkAclsType">
+        <xs:sequence>
+          <xs:element name="networkAclIdSet" type="tns:NetworkAclIdSetType"/>
+          <xs:element name="filterSet" type="tns:FilterSetType" minOccurs="0"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="NetworkAclSetType">
+        <xs:sequence>
+          <xs:element name="item" type="tns:NetworkAclType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="DescribeNetworkAclsResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="networkAclSet" type="tns:NetworkAclSetType"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="DeleteNetworkAcl" type="tns:DeleteNetworkAclType"/>
+      <xs:element name="DeleteNetworkAclResponse" type="tns:DeleteNetworkAclResponseType"/>
+      <xs:complexType name="DeleteNetworkAclType">
+        <xs:sequence>
+          <xs:element name="networkAclId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="DeleteNetworkAclResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="return" type="xs:boolean"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="ReplaceNetworkAclAssociation" type="tns:ReplaceNetworkAclAssociationType"/>
+      <xs:element name="ReplaceNetworkAclAssociationResponse" type="tns:ReplaceNetworkAclAssociationResponseType"/>
+      <xs:complexType name="ReplaceNetworkAclAssociationType">
+        <xs:sequence>
+          <xs:element name="associationId" type="xs:string"/>
+          <xs:element name="networkAclId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ReplaceNetworkAclAssociationResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="newAssociationId" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="CreateNetworkAclEntry" type="tns:CreateNetworkAclEntryType"/>
+      <xs:element name="CreateNetworkAclEntryResponse" type="tns:CreateNetworkAclEntryResponseType"/>
+      <xs:complexType name="CreateNetworkAclEntryType">
+        <xs:sequence>
+          <xs:element name="networkAclId" type="xs:string"/>
+          <xs:element name="ruleNumber" type="xs:int"/>
+          <xs:element name="protocol" type="xs:string"/>
+          <xs:element name="ruleAction" type="xs:string"/>
+          <xs:element name="egress" type="xs:boolean"/>
+          <xs:element name="cidrBlock" type="xs:string"/>
+          <xs:element name="icmpTypeCode" type="tns:IcmpTypeCodeType" minOccurs="0"/>
+          <xs:element name="portRange" type="tns:PortRangeType" minOccurs="0"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="CreateNetworkAclEntryResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="return" type="xs:boolean"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="ReplaceNetworkAclEntry" type="tns:ReplaceNetworkAclEntryType"/>
+      <xs:element name="ReplaceNetworkAclEntryResponse" type="tns:ReplaceNetworkAclEntryResponseType"/>
+      <xs:complexType name="ReplaceNetworkAclEntryType">
+        <xs:sequence>
+          <xs:element name="networkAclId" type="xs:string"/>
+          <xs:element name="ruleNumber" type="xs:int"/>
+          <xs:element name="protocol" type="xs:string"/>
+          <xs:element name="ruleAction" type="xs:string"/>
+          <xs:element name="egress" type="xs:boolean"/>
+          <xs:element name="cidrBlock" type="xs:string"/>
+          <xs:element name="icmpTypeCode" type="tns:IcmpTypeCodeType" minOccurs="0"/>
+          <xs:element name="portRange" type="tns:PortRangeType" minOccurs="0"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ReplaceNetworkAclEntryResponseType">
+        <xs:sequence>
+          <xs:element name="requestId" type="xs:string"/>
+          <xs:element name="return" type="xs:boolean"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="DeleteNetworkAclEntry" type="tns:DeleteNetworkAclEntryType"/>
+      <xs:element name="DeleteNetworkAclEntryResponse" type="tns:DeleteNetworkAclEntryResponseType"/>
+      <xs:complexType name="DeleteNetworkAclEntryType">
+        <xs:sequence>
+          <xs:element name="networkAclId" type="xs:string"/>
+          <xs:element name="ruleNumber" type="xs:int"/>
+          <xs:element name="egress" type="xs:boolean"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="DeleteNetworkAclEntryResponseType">
         <xs:sequence>
           <xs:element name="requestId" type="xs:string"/>
           <xs:element name="return" type="xs:boolean"/>
