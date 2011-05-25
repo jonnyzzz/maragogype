@@ -899,38 +899,26 @@ public class Jec2 extends AWSQueryConnection {
 			params.put("GroupName."+(i+1), groupNames.get(i));
 		}
 		HttpGet method = new HttpGet();
-		DescribeSecurityGroupsResponse response =
+		final DescribeSecurityGroupsResponse response =
 				makeRequestInt(method, "DescribeSecurityGroups", params, DescribeSecurityGroupsResponse.class);
-		List<GroupDescription> result = new ArrayList<GroupDescription>();
-		SecurityGroupSetType rsp_set = response.getSecurityGroupInfo();
-		Iterator set_iter = rsp_set.getItems().iterator();
-		while (set_iter.hasNext()) {
-			SecurityGroupItemType item = (SecurityGroupItemType) set_iter.next();
-			GroupDescription group = new GroupDescription(item.getGroupName(),
-					item.getGroupDescription(), item.getOwnerId());
-			IpPermissionSetType perms = item.getIpPermissions();
-			Iterator perm_iter = perms.getItems().iterator();
-			while (perm_iter.hasNext()) {
-				IpPermissionType perm = (IpPermissionType) perm_iter.next();
-				GroupDescription.IpPermission group_perms = group
-						.addPermission(perm.getIpProtocol(),
-								perm.getFromPort(), perm.getToPort());
 
-				Iterator group_iter = perm.getGroups().getItems().iterator();
-				while (group_iter.hasNext()) {
-					UserIdGroupPairType uid_group = (UserIdGroupPairType) group_iter.next();
-					group_perms.addUserGroupPair(uid_group.getUserId(),
-							uid_group.getGroupName());
-				}
-				Iterator iprange_iter = perm.getIpRanges().getItems().iterator();
-				while (iprange_iter.hasNext()) {
-					IpRangeItemType range = (IpRangeItemType) iprange_iter
-							.next();
-					group_perms.addIpRange(range.getCidrIp());
-				}
-			}
-			result.add(group);
-		}
+		final List<GroupDescription> result = new ArrayList<GroupDescription>();
+		final SecurityGroupSetType rsp_set = response.getSecurityGroupInfo();
+    for (SecurityGroupItemType item : rsp_set.getItems()) {
+      GroupDescription group = new GroupDescription(item.getGroupName(), item.getGroupDescription(), item.getOwnerId());
+      final IpPermissionSetType perms = item.getIpPermissions();
+      for (IpPermissionType perm : perms.getItems()) {
+        GroupDescription.IpPermission group_perms = group.addPermission(perm.getIpProtocol(), perm.getFromPort(), perm.getToPort());
+
+        for (UserIdGroupPairType uid_group : perm.getGroups().getItems()) {
+          group_perms.addUserGroupPair(uid_group.getUserId(), uid_group.getGroupName());
+        }
+        for (IpRangeItemType range : perm.getIpRanges().getItems()) {
+          group_perms.addIpRange(range.getCidrIp());
+        }
+      }
+      result.add(group);
+    }
 		return result;
 	}
 
