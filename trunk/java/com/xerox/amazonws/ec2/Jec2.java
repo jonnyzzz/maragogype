@@ -659,11 +659,25 @@ public class Jec2 extends AWSQueryConnection {
    * by the caller will be returned. Otherwise the list will contain
    * information for the requested instances only.
    *
+   * @return A list of {@link com.xerox.amazonws.ec2.ReservationDescription} instances.
+   * @throws EC2Exception wraps checked exceptions
+   */
+  public List<ReservationDescription> describeInstances() throws EC2Exception {
+    return this.describeInstances(Collections.<String>emptyList());
+  }
+
+  /**
+   * Gets a list of running instances.
+   * <p/>
+   * If the array of instance IDs is empty then a list of all instances owned
+   * by the caller will be returned. Otherwise the list will contain
+   * information for the requested instances only.
+   *
    * @param instanceIds An array of instances ({@link com.xerox.amazonws.ec2.ReservationDescription.Instance#instanceId}.
    * @return A list of {@link com.xerox.amazonws.ec2.ReservationDescription} instances.
    * @throws EC2Exception wraps checked exceptions
    */
-  public List<ReservationDescription> describeInstances(String[] instanceIds) throws EC2Exception {
+  public List<ReservationDescription> describeInstances(@NotNull String[] instanceIds) throws EC2Exception {
     return this.describeInstances(Arrays.asList(instanceIds));
   }
 
@@ -678,16 +692,14 @@ public class Jec2 extends AWSQueryConnection {
    * @return A list of {@link com.xerox.amazonws.ec2.ReservationDescription} instances.
    * @throws EC2Exception wraps checked exceptions
    */
-  public List<ReservationDescription> describeInstances(List<String> instanceIds) throws EC2Exception {
+  public List<ReservationDescription> describeInstances(@NotNull List<String> instanceIds) throws EC2Exception {
     Map<String, String> params = new HashMap<String, String>();
     for (int i = 0; i < instanceIds.size(); i++) {
       params.put("InstanceId." + (i + 1), instanceIds.get(i));
     }
-    DescribeInstancesResponse response =
-            makeRequestInt(new HttpGet(), "DescribeInstances", params, DescribeInstancesResponse.class);
+    DescribeInstancesResponse response = makeRequestInt(new HttpGet(), "DescribeInstances", params, DescribeInstancesResponse.class);
     List<ReservationDescription> result = new ArrayList<ReservationDescription>();
-    ReservationSetType res_set = response.getReservationSet();
-    for (ReservationInfoType item : res_set.getItems()) {
+    for (ReservationInfoType item : response.getReservationSet().getItems()) {
       ReservationDescription res = new ReservationDescription(response.getRequestId(),
               item.getOwnerId(), item.getReservationId(),
               item.getRequesterId(), item.getGroupSet(),

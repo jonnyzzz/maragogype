@@ -18,9 +18,9 @@
 package com.xerox.amazonws.ec2;
 
 import org.apache.commons.codec.binary.Base64;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A launch configuration encapsulates the parameters used for launching an AMI
@@ -28,420 +28,541 @@ import java.util.Map;
  * @author Moritz Post <mpost@innoopract.com>
  */
 public class LaunchConfiguration {
-	/** A name given to this launch config */
-	private String configName;
+  /**
+   * A name given to this launch config
+   */
+  private String configName;
 
-	/** The ID of the AMI to launch. */
-	private String imageId;
+  /**
+   * The ID of the AMI to launch.
+   */
+  private String imageId;
 
-	/** The minimum number of AMIs to launch. */
-	private int minCount;
+  /**
+   * The minimum number of AMIs to launch.
+   */
+  private int minCount;
 
-	/** The maximum (desired) number of AMIs to launch. */
-	private int maxCount;
+  /**
+   * The maximum (desired) number of AMIs to launch.
+   */
+  private int maxCount;
 
-	/** The name of the key file to access the AMI via ssh. */
-	private String keyName;
+  /**
+   * The name of the key file to access the AMI via ssh.
+   */
+  private String keyName;
 
-	/** The security group to launch the AMI in. */
-	private List<String> securityGroup;
+  /**
+   * The security group to launch the AMI in.
+   */
+  private List<String> securityGroup;
 
-	/** The availability AvailabilityZone to launch the AMI in. */
-	private String availabilityZone;
+  /**
+   * The security group ids to launch the AMI in.
+   */
+  private List<String> securityGroupIds;
 
-	/** Custom User Data to init the AMI with. */
-	private byte[] userData;
+  /**
+   * The availability AvailabilityZone to launch the AMI in.
+   */
+  private String availabilityZone;
 
-	/** The size of the hardware to launch the AMI in. */
-	private InstanceType instanceType = InstanceType.DEFAULT;
+  /**
+   * Custom User Data to init the AMI with.
+   */
+  private byte[] userData;
 
-	/** The id of the kernel to use. */
-	private String kernelId;
+  /**
+   * The size of the hardware to launch the AMI in.
+   */
+  private InstanceType instanceType = InstanceType.DEFAULT;
 
-	/** The ramdisk to use. */
-	private String ramdiskId;
+  /**
+   * The id of the kernel to use.
+   */
+  private String kernelId;
 
-	/** The block device mapping to use. */
-	private List<BlockDeviceMapping> blockDeviceMappings;
+  /**
+   * The ramdisk to use.
+   */
+  private String ramdiskId;
 
-	private boolean monitoring;
+  /**
+   * The block device mapping to use.
+   */
+  private List<BlockDeviceMapping> blockDeviceMappings;
 
-	private boolean addressingType = true;
+  private boolean monitoring;
 
-	private String additionalInfo;
+  private boolean addressingType = true;
 
-	/** The subnet to be used with Amazon VPC */
-	private String subnetId;
+  private String additionalInfo;
 
-	/** The private IP to be used with Amazon VPC */
-	private String privateIpAddress;
+  /**
+   * The subnet to be used with Amazon VPC
+   */
+  private String subnetId;
 
-	/** placement group for cluster compute instances */
-	private String groupName;
+  /**
+   * The private IP to be used with Amazon VPC
+   */
+  private String privateIpAddress;
 
-	/**
-	 * Launches the given AMI one time. The min and max values are '1'.
-	 *
-	 * @param imageId the AMI to launch
-	 */
-	public LaunchConfiguration(final String imageId) {
-		this(imageId, 1, 1);
-	}
+  /**
+   * placement group for cluster compute instances
+   */
+  private String groupName;
 
-	/**
-	 * The launch parameter with the minimum required number of parameter.
-	 *
-	 * @param imageId the id of the AMI to launch
-	 * @param minCount the minimum required number of instances
-	 * @param maxCount the maximum number of AMIs desired
-	 */
-	public LaunchConfiguration(final String imageId, final int minCount, final int maxCount) {
-		this.imageId = imageId;
-		this.minCount = minCount;
-		this.maxCount = maxCount;
-	}
+  private String clientToken;
 
-	/**
-	 * The launch parameter with the name being supplied.
-	 *
-	 * @param configName the name given to this launch config
-	 * @param imageId the id of the AMI to launch
-	 * @param minCount the minimum required number of instances
-	 * @param maxCount the maximum number of AMIs desired
-	 */
-	public LaunchConfiguration(final String configName, final String imageId, final int minCount, final int maxCount) {
-		this.configName = configName;
-		this.imageId = imageId;
-		this.minCount = minCount;
-		this.maxCount = maxCount;
-	}
+  /**
+   * Determines whether the instance stops or terminates on instance-initiated shutdown.*
+   */
+  private InstanceShutdownBehavior instanceShutdownBehaviour = null;
 
-	/**
-	 * @return the configName
-	 */
-	public String getConfigName() {
-		return this.configName;
-	}
+  /**
+   * Launches the given AMI one time. The min and max values are '1'.
+   *
+   * @param imageId the AMI to launch
+   */
+  public LaunchConfiguration(final String imageId) {
+    this(imageId, 1, 1);
+  }
 
-	/**
-	 * @param configName the configName to set
-	 */
-	public void setConfigName(final String configName) {
-		this.configName = configName;
-	}
+  /**
+   * The launch parameter with the minimum required number of parameter.
+   *
+   * @param imageId  the id of the AMI to launch
+   * @param minCount the minimum required number of instances
+   * @param maxCount the maximum number of AMIs desired
+   */
+  public LaunchConfiguration(final String imageId, final int minCount, final int maxCount) {
+    this.imageId = imageId;
+    this.minCount = minCount;
+    this.maxCount = maxCount;
+  }
 
-	/**
-	 * @return the imageId
-	 */
-	public String getImageId() {
-		return this.imageId;
-	}
+  /**
+   * The launch parameter with the name being supplied.
+   *
+   * @param configName the name given to this launch config
+   * @param imageId    the id of the AMI to launch
+   * @param minCount   the minimum required number of instances
+   * @param maxCount   the maximum number of AMIs desired
+   */
+  public LaunchConfiguration(final String configName, final String imageId, final int minCount, final int maxCount) {
+    this.configName = configName;
+    this.imageId = imageId;
+    this.minCount = minCount;
+    this.maxCount = maxCount;
+  }
 
-	/**
-	 * @param imageId the imageId to set
-	 */
-	public void setImageId(final String imageId) {
-		this.imageId = imageId;
-	}
+  /**
+   * @return the configName
+   */
+  public String getConfigName() {
+    return this.configName;
+  }
 
-	/**
-	 * @return the minCount
-	 */
-	public int getMinCount() {
-		return this.minCount;
-	}
+  /**
+   * @param configName the configName to set
+   */
+  public void setConfigName(final String configName) {
+    this.configName = configName;
+  }
 
-	/**
-	 * @param minCount the minCount to set
-	 */
-	public void setMinCount(final int minCount) {
-		this.minCount = minCount;
-	}
+  /**
+   * @return the imageId
+   */
+  public String getImageId() {
+    return this.imageId;
+  }
 
-	/**
-	 * @return the maxCount
-	 */
-	public int getMaxCount() {
-		return this.maxCount;
-	}
+  /**
+   * @param imageId the imageId to set
+   */
+  public void setImageId(final String imageId) {
+    this.imageId = imageId;
+  }
 
-	/**
-	 * @param maxCount the maxCount to set
-	 */
-	public void setMaxCount(final int maxCount) {
-		this.maxCount = maxCount;
-	}
+  /**
+   * @return the minCount
+   */
+  public int getMinCount() {
+    return this.minCount;
+  }
 
-	/**
-	 * @return the keyName
-	 */
-	public String getKeyName() {
-		return this.keyName;
-	}
+  /**
+   * @param minCount the minCount to set
+   */
+  public void setMinCount(final int minCount) {
+    this.minCount = minCount;
+  }
 
-	/**
-	 * @param keyName the keyName to set
-	 */
-	public void setKeyName(final String keyName) {
-		this.keyName = keyName;
-	}
+  /**
+   * @return the maxCount
+   */
+  public int getMaxCount() {
+    return this.maxCount;
+  }
 
-	/**
-	 * @return the securityGroup
-	 */
-	public List<String> getSecurityGroup() {
-		return this.securityGroup;
-	}
+  /**
+   * @param maxCount the maxCount to set
+   */
+  public void setMaxCount(final int maxCount) {
+    this.maxCount = maxCount;
+  }
 
-	/**
-	 * @param securityGroup the securityGroup to set
-	 */
-	public void setSecurityGroup(final List<String> securityGroup) {
-		this.securityGroup = securityGroup;
-	}
+  /**
+   * @return the keyName
+   */
+  public String getKeyName() {
+    return this.keyName;
+  }
 
-	/**
-	 * @return the AvailabilityZone
-	 */
-	public String getAvailabilityZone() {
-		return this.availabilityZone;
-	}
+  /**
+   * @param keyName the keyName to set
+   */
+  public void setKeyName(final String keyName) {
+    this.keyName = keyName;
+  }
 
-	/**
-	 * @param availabilityZone the AvailabilityZone to set
-	 */
-	public void setAvailabilityZone(final String availabilityZone) {
-		this.availabilityZone = availabilityZone;
-	}
+  /**
+   * @return the securityGroup
+   */
+  @Nullable
+  public List<String> getSecurityGroup() {
+    return this.securityGroup;
+  }
 
-	/**
-	 * @return the instanceType
-	 */
-	public InstanceType getInstanceType() {
-		return this.instanceType;
-	}
+  /**
+   * @return the securityGroupIds
+   */
+  @Nullable
+  public List<String> getSecurityGroupIds() {
+    return this.securityGroupIds;
+  }
 
-	/**
-	 * @param instanceType the instanceType to set
-	 */
-	public void setInstanceType(final InstanceType instanceType) {
-		this.instanceType = instanceType;
-	}
+  /**
+   * @param securityGroup the securityGroup to set
+   */
+  public void setSecurityGroup(final List<String> securityGroup) {
+    this.securityGroup = securityGroup;
+  }
 
-	/**
-	 * @return the userData
-	 */
-	public byte[] getUserData() {
-		return this.userData;
-	}
+  /**
+   * @param securityGroupIds the securityGroup to set
+   */
+  public void setSecurityGroupIds(final List<String> securityGroupIds) {
+    this.securityGroupIds = securityGroupIds;
+  }
 
-	/**
-	 * @param userData the userData to set
-	 */
-	public void setUserData(final byte[] userData) {
-		this.userData = userData;
-	}
+  /**
+   * @return the AvailabilityZone
+   */
+  public String getAvailabilityZone() {
+    return this.availabilityZone;
+  }
 
-	/**
-	 * @return the additionalInfo
-	 */
-	public String getAdditionalInfo() {
-		return this.additionalInfo;
-	}
+  /**
+   * @param availabilityZone the AvailabilityZone to set
+   */
+  public void setAvailabilityZone(final String availabilityZone) {
+    this.availabilityZone = availabilityZone;
+  }
 
-	/**
-	 * @param additionalInfo the additionalInfo to set
-	 */
-	public void setAdditionalInfo(String additionalInfo) {
-		this.additionalInfo = additionalInfo;
-	}
+  /**
+   * @return the instanceType
+   */
+  public InstanceType getInstanceType() {
+    return this.instanceType;
+  }
 
-	/**
-	 * @return the kernelId
-	 */
-	public String getKernelId() {
-		return this.kernelId;
-	}
+  /**
+   * @param instanceType the instanceType to set
+   */
+  public void setInstanceType(final InstanceType instanceType) {
+    this.instanceType = instanceType;
+  }
 
-	/**
-	 * @param kernelId the kernelId to set
-	 */
-	public void setKernelId(String kernelId) {
-		this.kernelId = kernelId;
-	}
+  /**
+   * @return the userData
+   */
+  public byte[] getUserData() {
+    return this.userData;
+  }
 
-	/**
-	 * @return the ramdiskId
-	 */
-	public String getRamdiskId() {
-		return this.ramdiskId;
-	}
+  /**
+   * @param userData the userData to set
+   */
+  public void setUserData(final byte[] userData) {
+    this.userData = userData;
+  }
 
-	/**
-	 * @param ramdiskId the ramdiskId to set
-	 */
-	public void setRamdiskId(String ramdiskId) {
-		this.ramdiskId = ramdiskId;
-	}
+  /**
+   * @return the additionalInfo
+   */
+  public String getAdditionalInfo() {
+    return this.additionalInfo;
+  }
 
-	/**
-	 * @return the blockDeviceMappings
-	 */
-	public List<BlockDeviceMapping> getBlockDevicemappings() {
-		return this.blockDeviceMappings;
-	}
+  /**
+   * @param additionalInfo the additionalInfo to set
+   */
+  public void setAdditionalInfo(String additionalInfo) {
+    this.additionalInfo = additionalInfo;
+  }
 
-	/**
-	 * @param blockDeviceMappings the blockDeviceMappings to set
-	 */
-	public void setBlockDevicemappings(List<BlockDeviceMapping> blockDeviceMappings) {
-		this.blockDeviceMappings = blockDeviceMappings;
-	}
+  /**
+   * @return the kernelId
+   */
+  public String getKernelId() {
+    return this.kernelId;
+  }
 
-	/**
-	 * @return state of instance monitoring
-	 */
-	public Boolean isMonitoring() {
-		return monitoring;
-	}
+  /**
+   * @param kernelId the kernelId to set
+   */
+  public void setKernelId(String kernelId) {
+    this.kernelId = kernelId;
+  }
 
-	/**
-	 * @param sets the state of instance monitoring
-	 */
-	public void setMonitoring(boolean set) {
-		monitoring = set;
-	}
+  /**
+   * @return the ramdiskId
+   */
+  public String getRamdiskId() {
+    return this.ramdiskId;
+  }
 
-	/**
-	 * @return if addressing is set to public
-	 */
-	public Boolean isPublicAddressing() {
-		return addressingType;
-	}
+  /**
+   * @param ramdiskId the ramdiskId to set
+   */
+  public void setRamdiskId(String ramdiskId) {
+    this.ramdiskId = ramdiskId;
+  }
 
-	/**
-	 * @return the subnetId
-	 */
-	public String getSubnetId() {
-		return this.subnetId;
-	}
+  /**
+   * @return the blockDeviceMappings
+   */
+  public List<BlockDeviceMapping> getBlockDevicemappings() {
+    return this.blockDeviceMappings;
+  }
 
-	/**
-	 * @param subnetId the subnetId to set
-	 */
-	public void setSubnetId(String subnetId) {
-		this.subnetId = subnetId;
-	}
+  /**
+   * @param blockDeviceMappings the blockDeviceMappings to set
+   */
+  public void setBlockDevicemappings(List<BlockDeviceMapping> blockDeviceMappings) {
+    this.blockDeviceMappings = blockDeviceMappings;
+  }
 
-	/**
-	 * @return the privateIpAddress
-	 */
-	public String getPrivateIpAddress() {
-		return this.privateIpAddress;
-	}
+  /**
+   * @return state of instance monitoring
+   */
+  public Boolean isMonitoring() {
+    return monitoring;
+  }
 
-	/**
-	 * @param privateIpAddress the privateIpAddress to set
-	 */
-	public void setPrivateIpAddress(String privateIpAddress) {
-		this.privateIpAddress = privateIpAddress;
-	}
+  /**
+   * @param set sets the state of instance monitoring
+   */
+  public void setMonitoring(boolean set) {
+    monitoring = set;
+  }
 
-	/**
-	 * @return the groupName used with cluster compute instances
-	 */
-	public String getGroupName() {
-		return this.groupName;
-	}
+  /**
+   * @return if addressing is set to public
+   */
+  public Boolean isPublicAddressing() {
+    return addressingType;
+  }
 
-	/**
-	 * @param groupName the groupName to set
-	 */
-	public void setGroupName(String groupName) {
-		this.groupName = groupName;
-	}
+  /**
+   * @return the subnetId
+   */
+  public String getSubnetId() {
+    return this.subnetId;
+  }
 
-	/**
-	 * For some eucaluptus clusters, need to set this false (=private)
-	 *
-	 * @param sets the public addressing mode (true by default)
-	 */
-	public void setPublicAddressing(boolean set) {
-		addressingType = set;
-	}
+  /**
+   * @param subnetId the subnetId to set
+   */
+  public void setSubnetId(String subnetId) {
+    this.subnetId = subnetId;
+  }
 
-    void prepareQueryParams(String prefix, boolean setMinAndMax, Map<String, String> params) {
-        params.put(prefix + "ImageId", getImageId());
-        if (setMinAndMax) {
-            params.put(prefix + "MinCount", "" + getMinCount());
-            params.put(prefix + "MaxCount", "" + getMaxCount());
-        }
+  /**
+   * @return the privateIpAddress
+   */
+  public String getPrivateIpAddress() {
+    return this.privateIpAddress;
+  }
 
-        byte[] userData = getUserData();
-        if (userData != null && userData.length > 0) {
-            params.put(prefix + "UserData", new String(Base64.encodeBase64(userData)));
-        }
-        params.put(prefix + "AddressingType", isPublicAddressing()?"public":"private");
-        String keyName = getKeyName();
-        if (keyName != null && !keyName.trim().equals("")) {
-            params.put(prefix + "KeyName", keyName);
-        }
+  /**
+   * @param privateIpAddress the privateIpAddress to set
+   */
+  public void setPrivateIpAddress(String privateIpAddress) {
+    this.privateIpAddress = privateIpAddress;
+  }
 
-        if (getSecurityGroup() != null) {
-            for(int i = 0; i < getSecurityGroup().size(); i++) {
-                params.put(prefix + "SecurityGroup." + (i + 1), getSecurityGroup().get(i));
-            }
-        }
-        if (getAdditionalInfo() != null && !getAdditionalInfo().trim().equals("")) {
-            params.put(prefix + "AdditionalInfo", getAdditionalInfo());
-        }
-        params.put(prefix + "InstanceType", getInstanceType().getTypeId());
-        if (getAvailabilityZone() != null && !getAvailabilityZone().trim().equals("")) {
-            params.put(prefix + "Placement.AvailabilityZone", getAvailabilityZone());
-        }
-        if (getKernelId() != null && !getKernelId().trim().equals("")) {
-            params.put(prefix + "KernelId", getKernelId());
-        }
-        if (getRamdiskId() != null && !getRamdiskId().trim().equals("")) {
-            params.put(prefix + "RamdiskId", getRamdiskId());
-        }
-		if (blockDeviceMappings != null) {
-			for(int i = 0; i < blockDeviceMappings.size(); i++) {
-				BlockDeviceMapping bdm = blockDeviceMappings.get(i);
-				params.put("BlockDeviceMapping." + (i + 1) + ".DeviceName",
-												bdm.getDeviceName());
-				if (bdm.getVirtualName() != null) {
-					params.put("BlockDeviceMapping." + (i + 1) + ".VirtualName",
-												bdm.getVirtualName());
-				}
-				else {
-					if (bdm.getSnapshotId() != null) {
-						params.put("BlockDeviceMapping." + (i + 1) + ".Ebs.SnapshotId",
-												bdm.getSnapshotId());
-					}
-					if (bdm.getVolumeSize() > 0) {
-						params.put("BlockDeviceMapping." + (i + 1) + ".Ebs.VolumeSize",
-												""+bdm.getVolumeSize());
-					}
-					params.put("BlockDeviceMapping." + (i + 1) + ".Ebs.DeleteOnTermination",
-										bdm.isDeleteOnTerminate()?"true":"false");
-				}
-			}
-		}
-        if (isMonitoring()) {
-            params.put(prefix + "Monitoring.Enabled", "true");
-        }
-        String subnetId = getSubnetId();
-        if (subnetId != null && !subnetId.trim().equals("")) {
-            params.put(prefix + "SubnetId", subnetId);
-        }
-        String privateIpAddress = getPrivateIpAddress();
-        if (privateIpAddress != null && !privateIpAddress.trim().equals("")) {
-            params.put(prefix + "PrivateIpAddress", privateIpAddress);
-        }
-        String groupName = getGroupName();
-        if (groupName != null && !groupName.trim().equals("")) {
-            params.put(prefix + "GroupName", groupName);
-        }
+  /**
+   * @return the groupName used with cluster compute instances
+   */
+  public String getGroupName() {
+    return this.groupName;
+  }
+
+  /**
+   * @param groupName the groupName to set
+   */
+  public void setGroupName(String groupName) {
+    this.groupName = groupName;
+  }
+
+
+  /**
+   * @return Idempotency token you provided when you launched the instance.
+   */
+  @Nullable
+  public String getClientToken() {
+    return clientToken;
+  }
+
+
+  /**
+   * Sets idempotency token you provided when you launched the instance.
+   */
+  public void setClientToken(@Nullable String clientToken) {
+    this.clientToken = clientToken;
+  }
+
+  /**
+   * Determines whether the instance stops or terminates on instance-initiated shutdown.
+   *
+   * @return behaviour
+   */
+  @Nullable
+  public InstanceShutdownBehavior getInstanceShutdownBehaviour() {
+    return instanceShutdownBehaviour;
+  }
+
+  /**
+   * Determines whether the instance stops or terminates on instance-initiated shutdown.
+   *
+   * @param instanceShutdownBehaviour behaviour
+   */
+  public void setInstanceShutdownBehaviour(@Nullable InstanceShutdownBehavior instanceShutdownBehaviour) {
+    this.instanceShutdownBehaviour = instanceShutdownBehaviour;
+  }
+
+  /**
+   * For some eucaluptus clusters, need to set this false (=private)
+   *
+   * @param set sets the public addressing mode (true by default)
+   */
+  public void setPublicAddressing(boolean set) {
+    addressingType = set;
+  }
+
+  void prepareQueryParams(String prefix, boolean setMinAndMax, Map<String, String> params) {
+    params.put(prefix + "ImageId", getImageId());
+    if (setMinAndMax) {
+      params.put(prefix + "MinCount", "" + getMinCount());
+      params.put(prefix + "MaxCount", "" + getMaxCount());
     }
+
+    byte[] userData = getUserData();
+    if (userData != null && userData.length > 0) {
+      params.put(prefix + "UserData", new String(Base64.encodeBase64(userData)));
+    }
+    params.put(prefix + "AddressingType", isPublicAddressing() ? "public" : "private");
+    String keyName = getKeyName();
+    if (isNotEmpty(keyName)) {
+      params.put(prefix + "KeyName", keyName);
+    }
+
+    final List<String> groups = getSecurityGroup();
+    if (groups != null) {
+      for (int i = 0; i < groups.size(); i++) {
+        params.put(prefix + "SecurityGroup." + (i + 1), groups.get(i));
+      }
+    }
+    final List<String> groupIds = getSecurityGroup();
+    if (groupIds != null) {
+      for (int i = 0; i < groupIds.size(); i++) {
+        params.put(prefix + "SecurityGroupId." + (i + 1), groupIds.get(i));
+      }
+    }
+    if (isNotEmpty(getAdditionalInfo())) {
+      params.put(prefix + "AdditionalInfo", getAdditionalInfo());
+    }
+    params.put(prefix + "InstanceType", getInstanceType().getTypeId());
+    if (isNotEmpty(getAvailabilityZone())) {
+      params.put(prefix + "Placement.AvailabilityZone", getAvailabilityZone());
+    }
+    if (isNotEmpty(getKernelId())) {
+      params.put(prefix + "KernelId", getKernelId());
+    }
+    if (isNotEmpty(getRamdiskId())) {
+      params.put(prefix + "RamdiskId", getRamdiskId());
+    }
+    if (blockDeviceMappings != null) {
+      for (int i = 0; i < blockDeviceMappings.size(); i++) {
+        BlockDeviceMapping bdm = blockDeviceMappings.get(i);
+        params.put("BlockDeviceMapping." + (i + 1) + ".DeviceName", bdm.getDeviceName());
+        if (bdm.getVirtualName() != null) {
+          params.put("BlockDeviceMapping." + (i + 1) + ".VirtualName", bdm.getVirtualName());
+        } else {
+          if (bdm.getSnapshotId() != null) {
+            params.put("BlockDeviceMapping." + (i + 1) + ".Ebs.SnapshotId", bdm.getSnapshotId());
+          }
+          if (bdm.getVolumeSize() > 0) {
+            params.put("BlockDeviceMapping." + (i + 1) + ".Ebs.VolumeSize", "" + bdm.getVolumeSize());
+          }
+          params.put("BlockDeviceMapping." + (i + 1) + ".Ebs.DeleteOnTermination", bdm.isDeleteOnTerminate() ? "true" : "false");
+        }
+      }
+    }
+    if (isMonitoring()) {
+      params.put(prefix + "Monitoring.Enabled", "true");
+    }
+
+    final String subnetId = getSubnetId();
+    if (isNotEmpty(subnetId)) {
+      params.put(prefix + "SubnetId", subnetId);
+    }
+
+    final String privateIpAddress = getPrivateIpAddress();
+    if (isNotEmpty(privateIpAddress)) {
+      params.put(prefix + "PrivateIpAddress", privateIpAddress);
+    }
+
+    final String groupName = getGroupName();
+    if (isNotEmpty(groupName)) {
+      params.put(prefix + "GroupName", groupName);
+    }
+
+    final String tok = getClientToken();
+    if (isNotEmpty(tok)) {
+      params.put("clientToken", tok);
+    }
+
+    final InstanceShutdownBehavior beh = getInstanceShutdownBehaviour();
+    if (beh != null) {
+      switch (beh) {
+        case STOP:
+          params.put("InstanceInitiatedShutdownBehavior", "stop");
+          break;
+        case TERMINATE:
+          params.put("InstanceInitiatedShutdownBehavior", "terminate");
+          break;
+        default:
+          throw new IllegalArgumentException("Unexpected value of InstanceShutdownBehavior: " + beh);
+      }
+    }
+  }
+
+  private static boolean isNotEmpty(@Nullable String tok) {
+    return tok != null && !tok.trim().equals("");
+  }
 }
