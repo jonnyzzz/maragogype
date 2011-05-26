@@ -17,6 +17,8 @@
 
 package com.xerox.amazonws.ec2;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,15 +30,17 @@ import java.util.List;
  * {@link com.xerox.amazonws.ec2.Jec2#describeSecurityGroups(String[])}.
  */
 public class GroupDescription {
-	private String name;
-	private String desc;
-	private String owner;
+	private final String name;
+	private final String desc;
+	private final String owner;
+  private final String vpcId;
 	private List<IpPermission> perms = new ArrayList<IpPermission>();
 
-	public GroupDescription(String name, String desc, String owner) {
+	public GroupDescription(String name, String desc, String owner, @Nullable String vpdId) {
 		this.name = name;
 		this.desc = desc;
 		this.owner = owner;
+    this.vpcId = vpdId;
 	}
 
 	public String getName() {
@@ -51,8 +55,15 @@ public class GroupDescription {
 		return owner;
 	}
 
-	public IpPermission addPermission(String protocol, int fromPort,
-			int toPort) {
+  /**
+   * @return associated VPC id if any.
+   */
+  @Nullable
+  public String getVpcId() {
+    return vpcId;
+  }
+
+  public IpPermission addPermission(String protocol, int fromPort, int toPort) {
 		IpPermission perm = new IpPermission(protocol, fromPort, toPort);
 		perms.add(perm);
 		return perm;
@@ -116,7 +127,7 @@ public class GroupDescription {
 	}
 
 	public String toString() {
-		return "Group[name=" + this.name + ", Desc=" + this.desc + ", own="
+		return "Group[name=" + this.name + ", vpc= " + this.vpcId + ", Desc=" + this.desc + ", own="
 				+ this.owner + ", perms=" + this.perms + "]";
 	}
 }

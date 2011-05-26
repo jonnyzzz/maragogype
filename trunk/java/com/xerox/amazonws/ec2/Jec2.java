@@ -880,7 +880,7 @@ public class Jec2 extends AWSQueryConnection {
     final List<GroupDescription> result = new ArrayList<GroupDescription>();
     final SecurityGroupSetType rsp_set = response.getSecurityGroupInfo();
     for (SecurityGroupItemType item : rsp_set.getItems()) {
-      GroupDescription group = new GroupDescription(item.getGroupName(), item.getGroupDescription(), item.getOwnerId());
+      GroupDescription group = new GroupDescription(item.getGroupName(), item.getGroupDescription(), item.getOwnerId(), item.getVpcId());
       final IpPermissionSetType perms = item.getIpPermissions();
       for (IpPermissionType perm : perms.getItems()) {
         GroupDescription.IpPermission group_perms = group.addPermission(perm.getIpProtocol(), perm.getFromPort(), perm.getToPort());
