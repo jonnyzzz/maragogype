@@ -19,18 +19,15 @@ package com.xerox.amazonws.ec2;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Iterator;
 import java.util.List;
 
 import com.xerox.amazonws.typica.jaxb.EbsInstanceBlockDeviceMappingResponseType;
 import com.xerox.amazonws.typica.jaxb.GroupItemType;
 import com.xerox.amazonws.typica.jaxb.GroupSetType;
-import com.xerox.amazonws.typica.jaxb.InstanceBlockDeviceMappingItemType;
 import com.xerox.amazonws.typica.jaxb.InstanceBlockDeviceMappingResponseType;
 import com.xerox.amazonws.typica.jaxb.InstanceBlockDeviceMappingResponseItemType;
 import com.xerox.amazonws.typica.jaxb.InstanceStateType;
 import com.xerox.amazonws.typica.jaxb.ProductCodesSetItemType;
-import com.xerox.amazonws.typica.jaxb.ProductCodeType;
 import com.xerox.amazonws.typica.jaxb.RunningInstancesItemType;
 import com.xerox.amazonws.typica.jaxb.RunningInstancesSetType;
 
@@ -60,16 +57,12 @@ public class ReservationDescription {
 	ReservationDescription(String requestId, String ownerId, String reservationId, String requesterId,
 					GroupSetType groupSet, RunningInstancesSetType instSet) {
 		this(requestId, ownerId, reservationId, requesterId);
-		Iterator groups_iter = groupSet.getItems().iterator();
-		while (groups_iter.hasNext()) {
-			GroupItemType rsp_item = (GroupItemType) groups_iter.next();
-			groups.add(rsp_item.getGroupId());
-		}
-		Iterator instances_iter = instSet.getItems().iterator();
-		while (instances_iter.hasNext()) {
-			RunningInstancesItemType rsp_item = (RunningInstancesItemType) instances_iter.next();
-			instances.add(new Instance(rsp_item));
-		}
+    for (GroupItemType rsp_item : groupSet.getItems()) {
+      groups.add(rsp_item.getGroupId());
+    }
+    for (RunningInstancesItemType rsp_item : instSet.getItems()) {
+      instances.add(new Instance(rsp_item));
+    }
 	}
 
 	public String getRequestId() {
