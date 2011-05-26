@@ -31,19 +31,25 @@ import java.util.List;
  */
 public class GroupDescription {
 	private final String name;
+  private final String groupId;
 	private final String desc;
 	private final String owner;
   private final String vpcId;
 	private List<IpPermission> perms = new ArrayList<IpPermission>();
 
-	public GroupDescription(String name, String desc, String owner, @Nullable String vpdId) {
+	public GroupDescription(String groupId, String name, String desc, String owner, @Nullable String vpdId) {
 		this.name = name;
+    this.groupId = groupId;
 		this.desc = desc;
 		this.owner = owner;
     this.vpcId = vpdId;
 	}
 
-	public String getName() {
+  public String getGroupId() {
+    return groupId;
+  }
+
+  public String getName() {
 		return name;
 	}
 
@@ -63,8 +69,11 @@ public class GroupDescription {
     return vpcId;
   }
 
-  public IpPermission addPermission(String protocol, int fromPort, int toPort) {
-		IpPermission perm = new IpPermission(protocol, fromPort, toPort);
+  public IpPermission addPermission(String protocol, Integer fromPort, Integer toPort) {
+		IpPermission perm = new IpPermission(
+            protocol,
+            fromPort == null || fromPort < 0 ? 0 : fromPort,
+            toPort == null || toPort < 0 ? 65535 : toPort);
 		perms.add(perm);
 		return perm;
 	}
@@ -74,11 +83,11 @@ public class GroupDescription {
 	}
 
 	public class IpPermission {
-		private String protocol;
-		private int fromPort;
-		private int toPort;
-		private List<String> cidrIps = new ArrayList<String>();
-		private List<String[]> uid_group_pairs = new ArrayList<String[]>();
+		private final String protocol;
+		private final int fromPort;
+		private final int toPort;
+		private final List<String> cidrIps = new ArrayList<String>();
+		private final List<String[]> uid_group_pairs = new ArrayList<String[]>();
 		
 		public IpPermission(String protocol, int fromPort, int toPort) {
 			this.protocol = protocol;
@@ -110,7 +119,7 @@ public class GroupDescription {
 			this.uid_group_pairs.add(new String[] { userId, groupName });
 		}
 
-		public List<String []> getUidGroupPairs() {
+		public List<String[]> getUidGroupPairs() {
 			return uid_group_pairs;
 		}
 
@@ -127,7 +136,7 @@ public class GroupDescription {
 	}
 
 	public String toString() {
-		return "Group[name=" + this.name + ", vpc= " + this.vpcId + ", Desc=" + this.desc + ", own="
+		return "Group[id=" + this.groupId + ", vpcId=" + this.vpcId + ",  name=" + this.name + ", Desc=" + this.desc + ", own="
 				+ this.owner + ", perms=" + this.perms + "]";
 	}
 }

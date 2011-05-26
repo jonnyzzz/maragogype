@@ -853,6 +853,16 @@ public class Jec2 extends AWSQueryConnection {
   /**
    * Gets a list of security groups and their associated permissions.
    *
+   * @return A list of groups ({@link GroupDescription}.
+   * @throws EC2Exception wraps checked exceptions
+   */
+  public List<GroupDescription> describeSecurityGroups() throws EC2Exception {
+    return describeSecurityGroups(Collections.<String>emptyList());
+  }
+
+  /**
+   * Gets a list of security groups and their associated permissions.
+   *
    * @param groupNames An array of groups to describe.
    * @return A list of groups ({@link GroupDescription}.
    * @throws EC2Exception wraps checked exceptions
@@ -869,8 +879,7 @@ public class Jec2 extends AWSQueryConnection {
    * @return A list of groups ({@link GroupDescription}.
    * @throws EC2Exception wraps checked exceptions
    */
-  public List<GroupDescription> describeSecurityGroups(List<String> groupNames)
-          throws EC2Exception {
+  public List<GroupDescription> describeSecurityGroups(List<String> groupNames) throws EC2Exception {
     Map<String, String> params = new HashMap<String, String>();
     for (int i = 0; i < groupNames.size(); i++) {
       params.put("GroupName." + (i + 1), groupNames.get(i));
@@ -880,9 +889,8 @@ public class Jec2 extends AWSQueryConnection {
     final List<GroupDescription> result = new ArrayList<GroupDescription>();
     final SecurityGroupSetType rsp_set = response.getSecurityGroupInfo();
     for (SecurityGroupItemType item : rsp_set.getItems()) {
-      GroupDescription group = new GroupDescription(item.getGroupName(), item.getGroupDescription(), item.getOwnerId(), item.getVpcId());
-      final IpPermissionSetType perms = item.getIpPermissions();
-      for (IpPermissionType perm : perms.getItems()) {
+      final GroupDescription group = new GroupDescription(item.getGroupId(), item.getGroupName(), item.getGroupDescription(), item.getOwnerId(), item.getVpcId());
+      for (IpPermissionType perm : item.getIpPermissions().getItems()) {
         GroupDescription.IpPermission group_perms = group.addPermission(perm.getIpProtocol(), perm.getFromPort(), perm.getToPort());
 
         for (UserIdGroupPairType uid_group : perm.getGroups().getItems()) {
