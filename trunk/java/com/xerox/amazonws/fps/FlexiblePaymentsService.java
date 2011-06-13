@@ -142,7 +142,7 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         this.recipientToken = "".equals(recipientToken) ? null : recipientToken;
         this.descriptorPolicy = descriptorPolicy;
         this.tempDeclinePolicy = tempDeclinePolicy;
-        setVersionHeader(this);
+      setConnectionVersion("2007-01-08");
     }
 
     /**
@@ -2298,9 +2298,4 @@ public class FlexiblePaymentsService extends AWSQueryConnection {
         }
     }
 
-    static void setVersionHeader(AWSQueryConnection connection) {
-        List<String> vals = new ArrayList<String>();
-        vals.add("2007-01-08");
-        connection.getHeaders().put("Version", vals);
-    }
 }

@@ -84,8 +84,7 @@ public class JAXBuddy {
         Marshaller m = getMarshaller(c);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         m.marshal(object, baos);
-        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-        return bais;
+      return new ByteArrayInputStream(baos.toByteArray());
     }
 
 	/**
@@ -110,20 +109,19 @@ public class JAXBuddy {
 	 * @param is the stream to read the XMl from 
 	 * @return an object representing the data from the stream
 	 */
-    public static <T> T deserializeXMLStream(Class<T> c, InputStream is)
-			throws JAXBException, IOException, SAXException {
-        Unmarshaller u = getUnmarshaller(c);
-        //T result = c.cast(u.unmarshal(is));
-		Document doc = builder.get().parse(is);
-		if (doc == null) {
-			throw new IOException("XML parser returned no document");
-		}
-		Node root = doc.getDocumentElement();
-		T result = c.cast(u.unmarshal(doc));         
-        return result;
+  public static <T> T deserializeXMLStream(Class<T> c, InputStream is)
+          throws JAXBException, IOException, SAXException {
+    Unmarshaller u = getUnmarshaller(c);
+    //T result = c.cast(u.unmarshal(is));
+    Document doc = builder.get().parse(is);
+    if (doc == null) {
+      throw new IOException("XML parser returned no document");
     }
+    doc.getDocumentElement();
+    return c.cast(u.unmarshal(doc));
+  }
 
-	/**
+  /**
 	 * This method will clear the internal cache we use to speed up these util functions.
 	 *
 	 * Do we think anybody will need this method? no...
@@ -140,8 +138,7 @@ public class JAXBuddy {
         	jc = JAXBContext.newInstance(typePackage);
 			contextCache.put(typePackage, jc);
 		}
-		Marshaller m = jc.createMarshaller();
-        return m;
+      return jc.createMarshaller();
     }
 
     private static Unmarshaller getUnmarshaller(Class<?> c) throws JAXBException {
@@ -151,7 +148,6 @@ public class JAXBuddy {
 			jc = JAXBContext.newInstance(typePackage, c.getClassLoader());
 			contextCache.put(typePackage, jc);
 		}
-		Unmarshaller u = jc.createUnmarshaller();
-        return u;
+      return jc.createUnmarshaller();
     }
 }

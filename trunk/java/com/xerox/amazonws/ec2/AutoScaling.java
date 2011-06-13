@@ -113,9 +113,7 @@ public class AutoScaling extends AWSQueryConnection {
                              String server, int port)
     {
 		super(awsAccessId, awsSecretKey, isSecure, server, port);
-		ArrayList<String> vals = new ArrayList<String>();
-		vals.add("2009-05-15");
-		super.headers.put("Version", vals);
+      setConnectionVersion("2009-05-15");
     }
 
 	/**

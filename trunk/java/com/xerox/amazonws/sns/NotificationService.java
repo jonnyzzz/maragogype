@@ -17,9 +17,7 @@
 
 package com.xerox.amazonws.sns;
 
-import java.io.InputStream;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -119,7 +117,7 @@ public class NotificationService {
                              String server, int port)
     {
 		connection = new AWSQueryConnection(awsAccessId, awsSecretKey, isSecure, server, port);
-		setVersionHeader(connection);
+      connection.setHeader("Version", "2010-03-31");
     }
 
 	/**
@@ -416,9 +414,4 @@ public class NotificationService {
 		}
 	}
 
-	static void setVersionHeader(AWSQueryConnection connection) {
-		ArrayList<String> vals = new ArrayList<String>();
-		vals.add("2010-03-31");
-		connection.getHeaders().put("Version", vals);
-	}
 }

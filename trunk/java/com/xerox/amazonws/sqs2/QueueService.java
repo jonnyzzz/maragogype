@@ -214,8 +214,6 @@ public class QueueService extends AWSQueryConnection {
 	}
 
 	static void setVersionHeader(AWSQueryConnection connection) {
-		ArrayList vals = new ArrayList();
-		vals.add("2009-02-01");
-		connection.getHeaders().put("Version", vals);
+		connection.setHeader("Version", "2009-02-01");
 	}
 }

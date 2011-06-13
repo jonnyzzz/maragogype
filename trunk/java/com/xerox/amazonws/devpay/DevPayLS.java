@@ -110,7 +110,7 @@ public class DevPayLS extends AWSQueryConnection {
                              String server, int port)
     {
 		super(awsAccessId, awsSecretKey, isSecure, server, port);
-		setVersionHeader(this);
+      setConnectionVersion("2008-04-28");
     }
 
 	/**
@@ -266,11 +266,5 @@ public class DevPayLS extends AWSQueryConnection {
 		} catch (IOException ex) {
 			throw new DevPayException(ex.getMessage(), ex);
 		}
-	}
-
-	static void setVersionHeader(AWSQueryConnection connection) {
-		ArrayList<String> vals = new ArrayList<String>();
-		vals.add("2008-04-28");
-		connection.getHeaders().put("Version", vals);
 	}
 }

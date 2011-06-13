@@ -18,6 +18,13 @@
 package com.xerox.amazonws.common;
 
 import com.xerox.amazonws.fps.FPSError;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -27,47 +34,55 @@ import java.util.List;
  * @author developer@dotech.com
  */
 public class AWSException extends Exception {
-	private String requestId;
-	private List<? extends AWSError> errors;
+  private static final String UNKNOWN_REQUEST = "Unknown Request";
 
-    public AWSException(String s) {
-        super(s);
-    }
+  private final String requestId;
+  private final List<AWSError> errors = new ArrayList<AWSError>();
 
-    public AWSException(String s, Throwable cause) {
-        super(s, cause);
-    }
+  public AWSException(String s) {
+    super(s);
+    requestId = UNKNOWN_REQUEST;
+  }
 
-    public AWSException(String s, String requestId) {
-        this(s, requestId, null);
-    }
+  public AWSException(String s, Throwable cause) {
+    super(s, cause);
+    requestId = UNKNOWN_REQUEST;
+  }
 
-    public AWSException(String s, String requestId, List<? extends AWSError> errors) {
-        super(s);
-		this.requestId = requestId;
-        this.errors = errors;
-    }
+  public AWSException(@NotNull String message,
+                      @NotNull final String requestId,
+                      @NotNull AWSError... errors) {
+    this(message, requestId, Arrays.asList(errors));
+  }
 
-    protected AWSException(AWSException ex) {
-		// copy constructor
-		super(ex.getMessage(), ex.getCause());
-		this.requestId = ex.getRequestId();
-		this.errors = ex.getErrors();
-	}
+  public AWSException(String s, String requestId, List<? extends AWSError> errors) {
+    super(s);
+    this.requestId = requestId;
+    this.errors.addAll(errors);
+  }
 
-	public String getRequestId() {
-		return requestId;
-	}
+  protected AWSException(AWSException ex) {
+    // copy constructor
+    super(ex.getMessage(), ex.getCause());
+    this.requestId = ex.getRequestId();
+    this.errors.addAll(ex.errors);
+  }
 
-	public List<? extends AWSError> getErrors() {
-		return errors;
-	}
+  @Nullable
+  public String getRequestId() {
+    return requestId;
+  }
 
-    protected static String concatenateErrors(List<FPSError> errors) {
-        StringBuffer buffer = new StringBuffer();
-        for (FPSError error : errors)
-            buffer.append(error.getCode()).append(": ").append(error.getMessage()).append('.');
-        return buffer.toString();
-    }
+  @NotNull
+  public List<? extends AWSError> getErrors() {
+    return errors;
+  }
+
+  protected static String concatenateErrors(List<FPSError> errors) {
+    final StringBuilder buffer = new StringBuilder();
+    for (FPSError error : errors)
+      buffer.append(error.getCode()).append(": ").append(error.getMessage()).append('.');
+    return buffer.toString();
+  }
 }
 

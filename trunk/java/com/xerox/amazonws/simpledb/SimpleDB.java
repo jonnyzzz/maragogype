@@ -243,8 +243,6 @@ public class SimpleDB {
 	}
 
 	static void setVersionHeader(AWSQueryConnection connection) {
-		ArrayList vals = new ArrayList();
-		vals.add("2009-04-15");
-		connection.getHeaders().put("Version", vals);
+		connection.setHeader("Version", "2009-04-15");
 	}
 }

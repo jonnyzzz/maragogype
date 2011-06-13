@@ -3,6 +3,7 @@ package com.xerox.amazonws.fps;
 import com.xerox.amazonws.fps.FPSError;
 import com.xerox.amazonws.common.AWSException;
 import com.xerox.amazonws.common.AWSError.ErrorType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBException;
 import java.util.List;
@@ -34,6 +35,7 @@ public class FPSException extends AWSException {
         super(String.format("Invalid request %s. %s", requestID, concatenateErrors(errors)), requestID, errors);
     }
 
+    @NotNull
     @SuppressWarnings("unchecked")
     public List<FPSError> getErrors() {
         return (List<FPSError>) super.getErrors();

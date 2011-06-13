@@ -47,7 +47,7 @@ public abstract class AWSConnection {
     private int port;
 	private String resourcePrefix = "/";
 	private int sigVersion = 2;
-	protected Map <String, List<String>> headers;
+	protected final Map <String, String> headers = new TreeMap<String, String>();
 	// used for caching last used Mac obj.. to save time 99.99% of the time
 	// no longer static. was causing bottleneck for multi-core systems.
 	private Map<String, Mac> macMap = new HashMap<String, Mac>();
@@ -71,7 +71,6 @@ public abstract class AWSConnection {
         this.isSecure = isSecure;
         this.server = server;
         this.port = port;
-		this.headers = new TreeMap<String, List<String>>();
     }
 
 	/**
