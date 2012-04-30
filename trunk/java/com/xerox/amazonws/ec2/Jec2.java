@@ -748,8 +748,7 @@ public class Jec2 extends AWSQueryConnection {
   public void modifyInstanceAttribute(String instanceId, String attribute, String value) throws EC2Exception {
     Map<String, String> params = new HashMap<String, String>();
     params.put("InstanceId", instanceId);
-    params.put("Attribute", attribute);
-    params.put("Value", value);
+    params.put(attribute, value);
     ModifyInstanceAttributeResponse response =
             makeRequestInt(new HttpPost(), "ModifyInstanceAttribute", params, ModifyInstanceAttributeResponse.class);
     if (!response.isReturn()) {
